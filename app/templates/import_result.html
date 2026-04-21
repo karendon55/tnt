@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Importación completada{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Importación {% if summary.inserted %}completada{% else %}sin novedades{% endif %}</h1>
+        <p>Resumen de lo que ha entrado.</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <a href="/" class="btn btn-primary">Ver panel</a>
+        <a href="/movimientos" class="btn">Ver movimientos</a>
+        <a href="/importar" class="btn btn-ghost">Importar más</a>
+    </div>
+</div>
+
+{% if errors %}
+<div class="notice notice-danger">
+    <strong>Algunos ficheros no pudieron procesarse:</strong>
+    <ul class="mt-lg">
+        {% for e in errors %}
+        <li><code>{{ e.filename }}</code> — {{ e.message }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if results %}
+<div class="grid grid-kpi mb-md">
+    <div class="card">
+        <div class="card-title">Nuevos movimientos</div>
+        <div class="kpi-value">{{ summary.inserted }}</div>
+        <div class="kpi-delta">en {{ summary.files }} fichero{{ 's' if summary.files != 1 else '' }}</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Duplicados ignorados</div>
+        <div class="kpi-value">{{ summary.duplicates }}</div>
+        <div class="kpi-delta">ya estaban en la base</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Auto-categorizados</div>
+        <div class="kpi-value">{{ summary.categorized_hint + summary.auto_applied }}</div>
+        <div class="kpi-delta">{{ summary.categorized_hint }} por banco · {{ summary.auto_applied }} por reglas</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Transferencias emparejadas</div>
+        <div class="kpi-value">{{ summary.transfers }}</div>
+        <div class="kpi-delta">entre tus cuentas</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">Detalle por fichero</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fichero</th>
+                <th>Banco</th>
+                <th>Cuenta</th>
+                <th class="num">Total</th>
+                <th class="num">Nuevos</th>
+                <th class="num">Duplicados</th>
+                <th class="num">Categorizados</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td><code>{{ r.filename }}</code></td>
+                <td>{{ r.bank }}</td>
+                <td>{{ r.account }}</td>
+                <td class="num">{{ r.total }}</td>
+                <td class="num amount-pos">{{ r.inserted }}</td>
+                <td class="num muted">{{ r.duplicates }}</td>
+                <td class="num">{{ r.from_hint }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if summary.rules_created %}
+    <p class="small muted mt-lg">Se aprendieron <strong>{{ summary.rules_created }}</strong> reglas nuevas a partir de tus movimientos conocidos.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if confetti %}
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    if (window.tntConfetti) window.tntConfetti({count: 50, duration: 2800});
+  });
+</script>
+{% endif %}
+{% endblock %}

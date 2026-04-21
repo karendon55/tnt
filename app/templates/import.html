@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Importar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Importar extracto</h1>
+        <p>Sube uno o varios ficheros <code>.xls</code> de ING o CaixaBank. Los duplicados se ignoran automáticamente.</p>
+    </div>
+</div>
+
+<form method="post" action="/importar" enctype="multipart/form-data" class="card" id="importForm">
+    <div class="field">
+        <label for="files">Ficheros de extracto</label>
+        <input class="input" type="file" name="files" id="files" accept=".xls,.xlsx" multiple required>
+        <p class="small muted mt-lg">Puedes arrastrar varios a la vez. Soportamos ING (formato JasperReports) y CaixaBank.</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 32" width="14" height="18" aria-hidden="true"><path fill="currentColor" d="M14 0 L0 18 L9 18 L6 32 L22 12 L12 12 L14 0 Z"/></svg>
+            Importar
+        </button>
+        <a href="/" class="btn btn-ghost">Cancelar</a>
+    </div>
+</form>
+
+<div class="card mt-xl">
+    <h3 class="card-title">¿Cómo obtener el extracto?</h3>
+    <ul class="muted small">
+        <li><strong>ING:</strong> Acceso a tu cuenta → Movimientos → Exportar a Excel.</li>
+        <li><strong>CaixaBank:</strong> Cuentas → Movimientos → Descargar → Excel.</li>
+    </ul>
+    <p class="small muted">Los datos no salen de este ordenador. TNT funciona 100% en local.</p>
+</div>
+{% endblock %}

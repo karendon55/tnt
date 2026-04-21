@@ -1,0 +1,30 @@
+# Datos bancarios — NUNCA se suben a git
+/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Extractos del usuario
+*.xls
+*.xlsx
+*.csv
+*.ofx
+*.pdf
+/extracts/
+
+# Entornos Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %} · {{ app_tagline }}</title>
+    <meta name="description" content="{{ app_name }} — {{ app_tagline }}. Finanzas personales locales.">
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <link rel="stylesheet" href="/static/css/tnt.css">
+    <script>
+      // Tema antes de pintar para evitar flash
+      (function() {
+        var t = localStorage.getItem('tnt-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="Inicio">
+            <svg class="brand-bolt" viewBox="0 0 24 32" aria-hidden="true"><path d="M14 0 L0 18 L9 18 L6 32 L22 12 L12 12 L14 0 Z"/></svg>
+            <span class="brand-name">TNT</span>
+            <span class="brand-tagline">Tus Números Tranquilos</span>
+        </a>
+        <nav class="nav" aria-label="Navegación principal">
+            <a href="/" class="nav-link {% if active == 'dashboard' %}is-active{% endif %}">Panel</a>
+            <a href="/movimientos" class="nav-link {% if active == 'transactions' %}is-active{% endif %}">Movimientos</a>
+            <a href="/cuentas" class="nav-link {% if active == 'accounts' %}is-active{% endif %}">Cuentas</a>
+            <a href="/categorias" class="nav-link {% if active == 'categories' %}is-active{% endif %}">Categorías</a>
+            <a href="/presupuestos" class="nav-link {% if active == 'budgets' %}is-active{% endif %}">Presupuestos</a>
+            <a href="/importar" class="nav-link {% if active == 'import' %}is-active{% endif %}">Importar</a>
+        </nav>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema">
+            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+    </header>
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-left">
+            <svg class="footer-bolt" viewBox="0 0 24 32" aria-hidden="true"><path d="M14 0 L0 18 L9 18 L6 32 L22 12 L12 12 L14 0 Z"/></svg>
+            <span>{{ app_name }} · {{ app_tagline }}</span>
+        </div>
+        <div class="footer-right" title="Angus lo aprueba">
+            <svg class="angus" viewBox="0 0 40 40" aria-hidden="true">
+                <!-- Silueta muy discreta de un escolar con gorra (guiño a Angus) -->
+                <path d="M20 8 C17 8 15 10 15 12 L15 14 L13 14 C12 14 11 15 11 16 L11 17 L29 17 L29 16 C29 15 28 14 27 14 L25 14 L25 12 C25 10 23 8 20 8 Z M15 18 L17 18 L17 22 L19 22 L19 18 L21 18 L21 22 L23 22 L23 18 L25 18 L25 32 L22 32 L22 26 L18 26 L18 32 L15 32 Z"/>
+            </svg>
+        </div>
+    </footer>
+
+    <script src="/static/js/tnt.js" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

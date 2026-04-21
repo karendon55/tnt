@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Movimientos</h1>
+        <p>{{ total }} resultado{{ 's' if total != 1 else '' }} · página {{ page }} de {{ pages }}</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <a class="btn" href="/exportar.csv?{{ request.url.query }}">Exportar CSV</a>
+        <a class="btn btn-primary" href="/importar">Importar</a>
+    </div>
+</div>
+
+<form method="get" action="/movimientos" class="card mb-md">
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="field">
+            <label for="q">Buscar</label>
+            <input class="input" type="text" name="q" id="q" value="{{ filters.q }}" placeholder="ej. mercadona">
+        </div>
+        <div class="field">
+            <label for="account_id">Cuenta</label>
+            <select class="select" name="account_id" id="account_id">
+                <option value="">Todas</option>
+                {% for a in accounts %}
+                <option value="{{ a.id }}" {% if filters.account_id == a.id %}selected{% endif %}>
+                    {{ a.name }}{% if a.bank %} · {{ a.bank }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="category_id">Categoría</label>
+            <select class="select" name="category_id" id="category_id">
+                <option value="">Todas</option>
+                <option value="-1" {% if filters.category_id == -1 %}selected{% endif %}>Sin categoría</option>
+                {% for p in cat_tree %}
+                <option value="{{ p.id }}" {% if filters.category_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="date_from">Desde</label>
+            <input class="input" type="date" name="date_from" id="date_from" value="{{ filters.date_from }}">
+        </div>
+        <div class="field">
+            <label for="date_to">Hasta</label>
+            <input class="input" type="date" name="date_to" id="date_to" value="{{ filters.date_to }}">
+        </div>
+    </div>
+    <div class="row wrap gap-lg">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a class="btn btn-ghost" href="/movimientos">Limpiar</a>
+    </div>
+</form>
+
+<div class="card">
+    {% if transactions %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Cuenta</th>
+                <th>Categoría</th>
+                <th class="num">Importe</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transactions %}
+            <tr>
+                <td class="tabular">{{ tx.date }}</td>
+                <td>
+                    {{ tx.description }}
+                    {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
+                </td>
+                <td class="muted small">{{ tx.account_name }}</td>
+                <td id="cat-{{ tx.id }}">
+                    {% include "_category_cell.html" with context %}
+                </td>
+                <td class="num {% if tx.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
+                    {{ '%+.2f'|format(tx.amount) }} €
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted small">No hay movimientos que coincidan con los filtros.</p>
+    {% endif %}
+
+    {% if pages > 1 %}
+    <div class="row wrap gap-lg mt-xl">
+        {% set base_args = request.url.include_query_params().query %}
+        {% if page > 1 %}
+            <a class="btn btn-sm" href="?{{ base_args }}&page={{ page - 1 }}">← Anterior</a>
+        {% endif %}
+        <span class="small muted">Página {{ page }} de {{ pages }}</span>
+        {% if page < pages %}
+            <a class="btn btn-sm" href="?{{ base_args }}&page={{ page + 1 }}">Siguiente →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+{% endblock %}

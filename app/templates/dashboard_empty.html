@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Panel{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+    <svg class="empty-bolt" viewBox="0 0 24 32" aria-hidden="true"><path d="M14 0 L0 18 L9 18 L6 32 L22 12 L12 12 L14 0 Z"/></svg>
+    <h2>Aún no hay movimientos</h2>
+    <p>Importa un extracto para empezar a ver tus números.</p>
+    <a href="/importar" class="btn btn-primary mt-lg">Importar extracto</a>
+    <p class="lyric">«Va a ser largo el camino hasta arriba, pero aquí empieza.»</p>
+</div>
+{% endblock %}
