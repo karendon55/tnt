@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Cuentas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Cuentas</h1>
+        <p>Todas tus cuentas bancarias y en efectivo. El saldo se calcula desde los movimientos.</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <button class="btn btn-primary" onclick="document.getElementById('newAccount').showModal()">
+            Nueva cuenta
+        </button>
+    </div>
+</div>
+
+{% set active_accs  = accounts | rejectattr('archived') | list %}
+{% set archived_accs = accounts | selectattr('archived') | list %}
+
+{% if active_accs %}
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Banco / Tipo</th>
+                <th>IBAN</th>
+                <th class="num">Saldo inicial</th>
+                <th class="num">Movs.</th>
+                <th class="num">Saldo actual</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in active_accs %}
+            <tr>
+                <td>{{ a.name }}</td>
+                <td class="muted small">{{ a.bank or a.type }}</td>
+                <td class="muted small tabular">{{ a.iban or '—' }}</td>
+                <td class="num tabular">{{ '%.2f'|format(a.initial_balance) }} €</td>
+                <td class="num">{{ a.tx_count }}</td>
+                <td class="num tabular {% if a.balance is not none and a.balance < 0 %}amount-neg{% elif a.balance is not none and a.balance > 0 %}amount-pos{% endif %}">
+                    {% if a.balance is not none %}{{ '%.2f'|format(a.balance) }} €{% else %}—{% endif %}
+                </td>
+                <td>
+                    <details class="row" style="gap:.3rem;">
+                        <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">Editar</summary>
+                        <form method="post" action="/cuentas/{{ a.id }}/editar" class="card mt-lg" style="position:absolute; z-index:20; min-width:320px;">
+                            <div class="field">
+                                <label>Nombre</label>
+                                <input class="input" name="name" value="{{ a.name }}" required>
+                            </div>
+                            <div class="field">
+                                <label>Banco</label>
+                                <input class="input" name="bank" value="{{ a.bank or '' }}">
+                            </div>
+                            <div class="field">
+                                <label>IBAN</label>
+                                <input class="input" name="iban" value="{{ a.iban or '' }}">
+                            </div>
+                            <div class="field">
+                                <label>Saldo inicial (€)</label>
+                                <input class="input tabular" type="number" step="0.01" name="initial_balance" value="{{ a.initial_balance }}">
+                            </div>
+                            <div class="field">
+                                <label>Tipo</label>
+                                <select class="select" name="type">
+                                    <option value="bank" {% if a.type == 'bank' %}selected{% endif %}>Banco</option>
+                                    <option value="cash" {% if a.type == 'cash' %}selected{% endif %}>Efectivo</option>
+                                    <option value="credit" {% if a.type == 'credit' %}selected{% endif %}>Tarjeta de crédito</option>
+                                </select>
+                            </div>
+                            <div class="row wrap gap-lg">
+                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                            </div>
+                        </form>
+                    </details>
+                    <form method="post" action="/cuentas/{{ a.id }}/archivar" style="display:inline;"
+                          onsubmit="return confirm('¿Archivar {{ a.name }}? Los movimientos se mantienen.');">
+                        <button type="submit" class="btn btn-sm btn-ghost">Archivar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <p class="muted small">Aún no hay cuentas. Al importar un extracto, TNT creará la cuenta automáticamente.</p>
+</div>
+{% endif %}
+
+{% if archived_accs %}
+<div class="card mt-xl">
+    <h3 class="card-title">Cuentas archivadas</h3>
+    <table class="table">
+        <tbody>
+            {% for a in archived_accs %}
+            <tr>
+                <td class="muted">{{ a.name }}</td>
+                <td class="muted small">{{ a.bank }}</td>
+                <td class="num">{{ a.tx_count }} movs.</td>
+                <td>
+                    <form method="post" action="/cuentas/{{ a.id }}/restaurar" style="display:inline;">
+                        <button type="submit" class="btn btn-sm">Restaurar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<dialog id="newAccount" class="card" style="max-width:480px; border:1px solid var(--border);">
+    <form method="post" action="/cuentas/nueva">
+        <h3 class="card-title">Nueva cuenta</h3>
+        <div class="field">
+            <label>Nombre</label>
+            <input class="input" name="name" placeholder="p. ej. Cuenta ahorro" required>
+        </div>
+        <div class="field">
+            <label>Banco</label>
+            <input class="input" name="bank" placeholder="ING / CaixaBank / —">
+        </div>
+        <div class="field">
+            <label>IBAN (opcional)</label>
+            <input class="input" name="iban" placeholder="ES...">
+        </div>
+        <div class="field">
+            <label>Saldo inicial (€)</label>
+            <input class="input tabular" type="number" step="0.01" name="initial_balance" value="0.00">
+        </div>
+        <div class="field">
+            <label>Tipo</label>
+            <select class="select" name="type">
+                <option value="bank">Banco</option>
+                <option value="cash">Efectivo</option>
+                <option value="credit">Tarjeta de crédito</option>
+            </select>
+        </div>
+        <div class="row wrap gap-lg">
+            <button type="submit" class="btn btn-primary">Crear</button>
+            <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}
