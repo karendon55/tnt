@@ -19,6 +19,16 @@ router = APIRouter()
 PAGE_SIZE = 50
 
 
+def _to_int_or_none(value: Optional[str]) -> Optional[int]:
+    """Convierte '' o None a None, números a int. Silenciosa ante basura."""
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _build_query(
     account_id: Optional[int],
     category_id: Optional[int],
@@ -52,16 +62,22 @@ def _build_query(
 @router.get("/movimientos", response_class=HTMLResponse)
 def transactions_list(
     request: Request,
-    account_id: Optional[int] = None,
-    category_id: Optional[int] = None,
+    account_id: Optional[str] = None,
+    category_id: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     q: Optional[str] = None,
     page: int = 1,
 ):
+    account_id_i = _to_int_or_none(account_id)
+    category_id_i = _to_int_or_none(category_id)
+    date_from = date_from or None
+    date_to = date_to or None
+    q = (q or "").strip() or None
+
     page = max(1, page)
     offset = (page - 1) * PAGE_SIZE
-    clause, params = _build_query(account_id, category_id, date_from, date_to, q)
+    clause, params = _build_query(account_id_i, category_id_i, date_from, date_to, q)
 
     with cursor() as cur:
         accounts = cur.execute(
@@ -129,7 +145,7 @@ def transactions_list(
             "accounts": accounts,
             "cat_tree": cat_tree,
             "filters": {
-                "account_id": account_id, "category_id": category_id,
+                "account_id": account_id_i, "category_id": category_id_i,
                 "date_from": date_from or "", "date_to": date_to or "",
                 "q": q or "",
             },
@@ -189,13 +205,19 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
 
 @router.get("/exportar.csv")
 def export_csv(
-    account_id: Optional[int] = None,
-    category_id: Optional[int] = None,
+    account_id: Optional[str] = None,
+    category_id: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     q: Optional[str] = None,
 ):
-    clause, params = _build_query(account_id, category_id, date_from, date_to, q)
+    clause, params = _build_query(
+        _to_int_or_none(account_id),
+        _to_int_or_none(category_id),
+        date_from or None,
+        date_to or None,
+        (q or "").strip() or None,
+    )
     with cursor() as cur:
         rows = cur.execute(
             f"""SELECT t.date, a.name AS account, t.description, t.amount,
