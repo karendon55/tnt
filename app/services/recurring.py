@@ -109,9 +109,12 @@ class Anomaly:
 def detect_anomalies(cur: sqlite3.Cursor) -> list[Anomaly]:
     anomalies: list[Anomaly] = []
 
-    # 1. Duplicados en ventana de 3 días (mismo importe, misma cuenta, misma descripción)
+    # 1. Duplicados en ventana de 3 días: mismo importe, cuenta y descripción.
+    # Si ambas traen saldo y son diferentes, son movs reales y legítimos (p.ej.
+    # dos recargas de 30€ el mismo día). Filtramos esos falsos positivos.
     dup_rows = cur.execute(
-        """SELECT t1.id AS a_id, t2.id AS b_id, t1.amount, t1.description, t1.date
+        """SELECT t1.id AS a_id, t2.id AS b_id, t1.amount, t1.description, t1.date,
+                  t1.balance AS bal1, t2.balance AS bal2
            FROM transactions t1 JOIN transactions t2 ON
                t1.account_id = t2.account_id
                AND t1.amount = t2.amount
@@ -121,6 +124,10 @@ def detect_anomalies(cur: sqlite3.Cursor) -> list[Anomaly]:
                AND t1.transfer_id IS NULL"""
     ).fetchall()
     for d in dup_rows:
+        if (d["bal1"] is not None and d["bal2"] is not None
+                and abs(d["bal1"] - d["bal2"]) > 0.01):
+            # Saldos distintos ⇒ son dos movs reales, no duplicado
+            continue
         anomalies.append(Anomaly(
             kind="duplicate",
             message=f"Posible duplicado: {d['description']} · {abs(d['amount']):.2f} €",
