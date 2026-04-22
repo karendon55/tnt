@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import APP_NAME, STATIC_DIR
 from app.db import init_db
-from app.routers import accounts, categories, dashboard, import_page, transactions
+from app.routers import accounts, budgets, categories, dashboard, import_page, transactions
 
 app = FastAPI(title=APP_NAME, docs_url=None, redoc_url=None)
 
@@ -24,6 +24,7 @@ app.include_router(import_page.router)
 app.include_router(transactions.router)
 app.include_router(accounts.router)
 app.include_router(categories.router)
+app.include_router(budgets.router)
 
 
 @app.get("/health")
