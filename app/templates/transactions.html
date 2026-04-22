@@ -65,6 +65,7 @@
                 <th>Descripción</th>
                 <th>Cuenta</th>
                 <th>Categoría</th>
+                <th>Memo</th>
                 <th class="num">Importe</th>
             </tr>
         </thead>
@@ -79,6 +80,9 @@
                 <td class="muted small">{{ tx.account_name }}</td>
                 <td id="cat-{{ tx.id }}">
                     {% include "_category_cell.html" with context %}
+                </td>
+                <td id="memo-{{ tx.id }}" style="min-width:160px;">
+                    {% include "_memo_cell.html" with context %}
                 </td>
                 <td class="num {% if tx.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                     {{ '%+.2f'|format(tx.amount) }} €

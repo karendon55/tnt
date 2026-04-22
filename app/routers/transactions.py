@@ -53,7 +53,8 @@ def _build_query(
         where.append("t.date <= ?")
         params.append(date_to)
     if q:
-        where.append("LOWER(t.description) LIKE ?")
+        where.append("(LOWER(t.description) LIKE ? OR LOWER(COALESCE(t.memo, '')) LIKE ?)")
+        params.append(f"%{q.lower()}%")
         params.append(f"%{q.lower()}%")
     clause = ("WHERE " + " AND ".join(where)) if where else ""
     return clause, params
@@ -96,7 +97,7 @@ def transactions_list(
         ).fetchone()["n"]
 
         rows = cur.execute(
-            f"""SELECT t.id, t.date, t.amount, t.description, t.transfer_id,
+            f"""SELECT t.id, t.date, t.amount, t.description, t.memo, t.transfer_id,
                        t.auto_categorized, a.name AS account_name,
                        c.id AS cat_id, c.name AS cat_name,
                        pc.id AS parent_id, pc.name AS parent_name
@@ -128,6 +129,7 @@ def transactions_list(
         {
             "id": r["id"], "date": r["date"], "amount": r["amount"],
             "description": r["description"],
+            "memo": r["memo"] or "",
             "account_name": r["account_name"],
             "is_transfer": r["transfer_id"] is not None,
             "auto": bool(r["auto_categorized"]),
@@ -203,6 +205,21 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
     )
 
 
+@router.post("/movimientos/{tx_id}/memo", response_class=HTMLResponse)
+def update_memo(request: Request, tx_id: int, memo: str = Form("")):
+    """Guarda el memo manual de una transacción. Vacío => NULL."""
+    clean = (memo or "").strip()
+    with cursor() as cur:
+        cur.execute(
+            "UPDATE transactions SET memo = ? WHERE id = ?",
+            (clean or None, tx_id),
+        )
+    return templates.TemplateResponse(
+        request, "_memo_cell.html",
+        {"tx": {"id": tx_id, "memo": clean}},
+    )
+
+
 @router.get("/exportar.csv")
 def export_csv(
     account_id: Optional[str] = None,
@@ -220,7 +237,7 @@ def export_csv(
     )
     with cursor() as cur:
         rows = cur.execute(
-            f"""SELECT t.date, a.name AS account, t.description, t.amount,
+            f"""SELECT t.date, a.name AS account, t.description, t.memo, t.amount,
                        COALESCE(pc.name, c.name) AS category, t.balance
                 FROM transactions t
                 JOIN accounts a ON a.id = t.account_id
@@ -233,10 +250,11 @@ def export_csv(
 
     buf = io.StringIO()
     writer = csv.writer(buf, delimiter=";")
-    writer.writerow(["Fecha", "Cuenta", "Descripción", "Importe", "Categoría", "Saldo"])
+    writer.writerow(["Fecha", "Cuenta", "Descripción", "Memo", "Importe", "Categoría", "Saldo"])
     for r in rows:
         writer.writerow([
             r["date"], r["account"], r["description"],
+            r["memo"] or "",
             f"{r['amount']:.2f}".replace(".", ","),
             r["category"] or "",
             f"{r['balance']:.2f}".replace(".", ",") if r["balance"] is not None else "",
