@@ -141,31 +141,27 @@ GCO, MERCEDES BENZ) que el usuario categorizará con un clic.
 
 ### 🔴 Crítico — próxima sesión
 
-### 🟡 Importante
+### ✅ Hecho en la sesión del 2026-04-22
 
-4. **Router `/cuentas`** — CRUD simple, saldo calculado.
-5. **Router `/categorias`** — árbol jerárquico, crear/renombrar/archivar.
-6. **Router `/presupuestos`** — presupuesto mensual por categoría + barra
-   de progreso. Cuando supere 100%, pill `.pill-highway` (easter egg).
+- **Router `/cuentas`** — CRUD simple con saldo calculado y cuentas archivadas.
+- **Router `/categorias`** — árbol jerárquico, crear subcategorías, renombrar,
+  borrar (si no tiene movs ni hijos), mover.
+- **Router `/presupuestos`** — límite mensual por categoría con barra de
+  progreso y pill `.pill-highway` 🔥 al superar el 100%. Si el mes en curso
+  está vacío, mide sobre el último mes con datos.
+- **Falsos positivos de duplicados filtrados** — si dos movs tienen el
+  mismo importe y descripción pero saldos distintos, son movs reales.
+- **README.md** — guía completa: requisitos, arranque, uso, backup.
+- **git init** + 5 commits pequeños firmados como Angus.
 
-### 🟢 Pulido
+### 🟢 Pulido pendiente
 
-8. **Easter eggs** (clases CSS ya existen, faltan triggers):
-   - `tntConfetti()` al finalizar importación, con lyric.
-   - `.pill-highway` en presupuestos >100%.
-   - Empty state ya está con lyric adaptado.
-9. **Detección de anomalías / recurrentes en dashboard** — aviso arriba del
-   dashboard con `detect_anomalies()` (duplicados, subidas de precio).
-10. **UX review propio** — críticar como diseñador senior:
-    - ¿Importar, ver resumen, recategorizar en ≤3 clics?
-    - ¿Es obvio qué hacer al abrir la app por primera vez?
-    - Leer cada cadena en alto: ¿suena natural a un hispanohablante nativo?
-11. **QA final con los 3 XLS reales** + screenshots de cada pantalla.
-12. **README.md** con cómo arrancar, cómo hacer backup (`cp data/tnt.db ...`),
-    qué queda fuera respecto a HomeBank.
-13. **git init + commits pequeños** — **bloqueado**: git no está instalado.
-    Pedir a Jesús `sudo apt install -y git` y después firmar commits como
-    `Angus <angus@users.noreply.github.com>`.
+- **Screenshots de cada pantalla** para meter en el README.
+- **UX review como diseñador senior** — leer cada cadena en voz alta y
+  probar si importar + ver resumen + recategorizar se hace en ≤3 clics.
+- **Push a GitHub** — cuando Jesús decida, crear repo privado y pushear.
+- **Parsers adicionales** — BBVA, Santander, Openbank si los pide.
+- **Soporte PDF/OFX** — `pdfplumber` y `ofxparse` ya están en requirements.
 
 ---
 
