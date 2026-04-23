@@ -37,9 +37,25 @@ def accounts_list(request: Request):
                 "tx_count": tx_count,
             })
 
+        # Reglas de transferencias externas (plan de pensiones, etc.)
+        rule_rows = cur.execute(
+            """SELECT r.id, r.pattern, r.source_account_id, r.target_account_id,
+                      r.active, r.note,
+                      sa.name AS source_name, ta.name AS target_name
+               FROM external_transfer_rules r
+               LEFT JOIN accounts sa ON sa.id = r.source_account_id
+               LEFT JOIN accounts ta ON ta.id = r.target_account_id
+               ORDER BY r.active DESC, r.pattern"""
+        ).fetchall()
+        rules = [dict(r) for r in rule_rows]
+
     return templates.TemplateResponse(
         request, "accounts.html",
-        {"active": "accounts", "accounts": accounts},
+        {
+            "active": "accounts",
+            "accounts": accounts,
+            "rules": rules,
+        },
     )
 
 

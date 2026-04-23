@@ -10,6 +10,7 @@ from datetime import timedelta
 
 from app.importers.common import ParsedExtract, tx_hash
 from app.services.categorizer import resolve_category
+from app.services.external_transfers import apply_rules as apply_external_rules
 
 
 @dataclass
@@ -106,6 +107,9 @@ def ingest(cur: sqlite3.Cursor, extract: ParsedExtract) -> ImportResult:
         inserted += 1
 
     transfers = _link_internal_transfers(cur)
+    # Reglas externas: crean espejos (p. ej. aportaciones a plan de pensiones)
+    mirrors = apply_external_rules(cur)
+    transfers += mirrors * 2  # cada espejo enlaza 2 movimientos
 
     return ImportResult(
         account_id=account_id,

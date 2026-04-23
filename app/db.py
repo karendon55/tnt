@@ -82,6 +82,24 @@ CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+
+-- Reglas para reflejar automáticamente salidas de una cuenta como
+-- entradas en otra cuenta "externa" (p. ej. plan de pensiones INDEXA).
+-- Cuando se importa una transacción cuya descripción contiene `pattern`,
+-- se crea una transacción espejo con importe opuesto en `target_account_id`
+-- y se enlazan mediante `transfer_id`.
+CREATE TABLE IF NOT EXISTS external_transfer_rules (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    pattern           TEXT    NOT NULL,                               -- subcadena en descripción (lowercase)
+    source_account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,  -- NULL = cualquier cuenta
+    target_account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    active            INTEGER NOT NULL DEFAULT 1,
+    note              TEXT,
+    created_at        TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(pattern, source_account_id, target_account_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ext_rules_active ON external_transfer_rules(active);
 """
 
 

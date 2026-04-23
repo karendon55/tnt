@@ -114,6 +114,103 @@
 </div>
 {% endif %}
 
+<div class="card mt-xl">
+    <div class="row-between mb-md">
+        <div>
+            <h3 class="card-title" style="margin:0;">Reglas de transferencias externas</h3>
+            <p class="muted small" style="margin:.25rem 0 0;">
+                Reflejan automáticamente ciertos movimientos (p. ej. aportaciones a plan de
+                pensiones) como entradas en otra cuenta. Se enlazan como traspaso.
+            </p>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('newRule').showModal()">
+            Nueva regla
+        </button>
+    </div>
+    {% if rules %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Patrón (descripción contiene)</th>
+                <th>Cuenta origen</th>
+                <th>Cuenta destino</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rules %}
+            <tr>
+                <td class="tabular small">{{ r.pattern }}</td>
+                <td class="muted small">{{ r.source_name or 'cualquiera' }}</td>
+                <td>{{ r.target_name }}</td>
+                <td>
+                    {% if r.active %}
+                        <span class="pill pill-success">activa</span>
+                    {% else %}
+                        <span class="pill">pausada</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post" action="/reglas-transferencias/{{ r.id }}/toggle" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-ghost">
+                            {% if r.active %}Pausar{% else %}Activar{% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="/reglas-transferencias/{{ r.id }}/borrar" style="display:inline;"
+                          onsubmit="return confirm('¿Borrar regla? Se eliminarán también los movimientos espejo generados.');">
+                        <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted small">No hay reglas. Úsalas para reflejar aportaciones recurrentes a otra cuenta.</p>
+    {% endif %}
+</div>
+
+<dialog id="newRule" class="card" style="max-width:520px; border:1px solid var(--border);">
+    <form method="post" action="/reglas-transferencias/nueva">
+        <h3 class="card-title">Nueva regla de transferencia externa</h3>
+        <div class="field">
+            <label>Texto a buscar en la descripción</label>
+            <input class="input" name="pattern" placeholder="p. ej. INDEXA MAS RENTABILIDAD" required>
+            <p class="muted small" style="margin:.25rem 0 0;">Se busca como subcadena, en minúsculas.</p>
+        </div>
+        <div class="field">
+            <label>Cuenta origen (opcional)</label>
+            <select class="select" name="source_account_id">
+                <option value="">Cualquiera</option>
+                {% for a in accounts if not a.archived %}
+                <option value="{{ a.id }}">{{ a.name }}{% if a.bank %} · {{ a.bank }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label>Cuenta destino</label>
+            <select class="select" name="target_account_id" required>
+                <option value="">— Selecciona destino —</option>
+                {% for a in accounts if not a.archived %}
+                <option value="{{ a.id }}">{{ a.name }}</option>
+                {% endfor %}
+            </select>
+            <p class="muted small" style="margin:.25rem 0 0;">
+                Crea antes la cuenta destino (p. ej. "INDEXA Plan de Pensiones") si no existe.
+            </p>
+        </div>
+        <div class="field">
+            <label>Nota (opcional)</label>
+            <input class="input" name="note" placeholder="para recordar por qué existe la regla">
+        </div>
+        <div class="row wrap gap-lg">
+            <button type="submit" class="btn btn-primary">Crear y aplicar</button>
+            <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
+        </div>
+    </form>
+</dialog>
+
 <dialog id="newAccount" class="card" style="max-width:480px; border:1px solid var(--border);">
     <form method="post" action="/cuentas/nueva">
         <h3 class="card-title">Nueva cuenta</h3>
