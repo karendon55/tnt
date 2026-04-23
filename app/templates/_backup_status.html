@@ -1,0 +1,25 @@
+<div class="row wrap gap-lg" style="align-items:center;">
+    <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
+        <button type="submit" class="btn btn-sm">🔁 Hacer backup</button>
+    </form>
+    {% if results is defined and results %}
+        {% if ok %}
+            <span class="pill pill-success">Backup ok · {{ ts }}</span>
+        {% else %}
+            <span class="pill pill-warning">Backup parcial · {{ ts }}</span>
+        {% endif %}
+        <ul class="small muted" style="list-style:none; padding:0; margin:0;">
+            {% for r in results %}
+                <li style="margin:.1rem 0;">
+                    {% if r.ok %}
+                        ✓ <span class="tabular">{{ r.dest }}</span> · {{ r.size_kb }} KB
+                    {% else %}
+                        ✗ <span class="tabular">{{ r.dest }}</span> — {{ r.error }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif message is defined %}
+        <span class="pill pill-warning">{{ message }}</span>
+    {% endif %}
+</div>
