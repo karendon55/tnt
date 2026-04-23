@@ -30,8 +30,8 @@
              style="width: {{ [totals.pct, 100]|min }}%;"></div>
     </div>
     <div class="row-between mt-lg small muted">
-        <span class="tabular">{{ '%.2f'|format(totals.spent) }} € gastado</span>
-        <span class="tabular">{{ '%.2f'|format(totals.limit) }} € límite</span>
+        <span class="tabular">{{ totals.spent | eur }} gastado</span>
+        <span class="tabular">{{ totals.limit | eur }} límite</span>
     </div>
 </div>
 
@@ -54,12 +54,12 @@
         </div>
         <div class="row-between mt-lg small">
             <span class="tabular">
-                <span class="muted">Gastado:</span> {{ '%.2f'|format(b.spent) }} €
+                <span class="muted">Gastado:</span> {{ b.spent | eur }}
             </span>
             <span class="tabular">
                 <span class="muted">Queda:</span>
                 <span class="{% if b.remaining < 0 %}amount-neg{% else %}amount-pos{% endif %}">
-                    {{ '%+.2f'|format(b.remaining) }} €
+                    {{ b.remaining | eur_signed }}
                 </span>
             </span>
         </div>

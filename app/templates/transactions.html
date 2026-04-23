@@ -88,7 +88,7 @@
                     {% include "_memo_cell.html" with context %}
                 </td>
                 <td class="num {% if tx.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
-                    {{ '%+.2f'|format(tx.amount) }} €
+                    {{ tx.amount | eur_signed }}
                 </td>
             </tr>
             {% endfor %}
