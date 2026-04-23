@@ -38,6 +38,9 @@
                 <option value="-1" {% if filters.category_id == -1 %}selected{% endif %}>Sin categoría</option>
                 {% for p in cat_tree %}
                 <option value="{{ p.id }}" {% if filters.category_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                    {% for c in p.children %}
+                <option value="{{ c.id }}" {% if filters.category_id == c.id %}selected{% endif %}>&nbsp;&nbsp;↳ {{ c.name }}</option>
+                    {% endfor %}
                 {% endfor %}
             </select>
         </div>
