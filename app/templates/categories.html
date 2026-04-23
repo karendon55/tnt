@@ -2,7 +2,7 @@
 
 {% block title %}Categorías{% endblock %}
 
-{% macro render_parent(p) %}
+{% macro render_parent(p, siblings) %}
 <details class="cat-group">
     <summary>
         <span class="cat-name">{{ p.name }}</span>
@@ -15,15 +15,24 @@
         {% if p.children %}
         <ul class="cat-children">
             {% for c in p.children %}
-            <li class="row-between">
-                <span>
+            <li class="cat-child">
+                <div class="cat-child-name">
                     <span class="muted">↳</span> {{ c.name }}
                     <span class="muted small">· {{ c.tx_count }} mov</span>
-                </span>
-                <span class="row" style="gap:.35rem;">
+                </div>
+                <div class="cat-child-actions row wrap" style="gap:.35rem;">
                     <form method="post" action="/categorias/{{ c.id }}/renombrar" class="row" style="gap:.3rem;">
-                        <input class="input btn-sm" name="name" value="{{ c.name }}" style="padding:.3rem .5rem; min-width:180px;">
+                        <input class="input btn-sm" name="name" value="{{ c.name }}" style="padding:.3rem .5rem; min-width:160px;">
                         <button class="btn btn-sm" type="submit">Renombrar</button>
+                    </form>
+                    <form method="post" action="/categorias/{{ c.id }}/mover" class="row" style="gap:.3rem;">
+                        <select class="select btn-sm" name="parent_id" style="padding:.3rem .5rem; min-width:140px; font-size:.82rem;">
+                            {% for s in siblings %}
+                            <option value="{{ s.id }}" {% if s.id == p.id %}selected{% endif %}>{{ s.name }}</option>
+                            {% endfor %}
+                            <option value="">— Sin padre —</option>
+                        </select>
+                        <button class="btn btn-sm" type="submit">Mover</button>
                     </form>
                     {% if c.tx_count == 0 %}
                     <form method="post" action="/categorias/{{ c.id }}/borrar" style="display:inline;"
@@ -31,7 +40,7 @@
                         <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
                     </form>
                     {% endif %}
-                </span>
+                </div>
             </li>
             {% endfor %}
         </ul>
@@ -63,7 +72,7 @@
     <div class="card">
         <h3 class="card-title">Gasto</h3>
         {% for p in expense_parents %}
-            {{ render_parent(p) }}
+            {{ render_parent(p, expense_parents) }}
         {% endfor %}
         <form method="post" action="/categorias/nueva" class="row wrap gap-lg mt-xl">
             <input type="hidden" name="kind" value="expense">
@@ -76,7 +85,7 @@
     <div class="card">
         <h3 class="card-title">Ingreso</h3>
         {% for p in income_parents %}
-            {{ render_parent(p) }}
+            {{ render_parent(p, income_parents) }}
         {% endfor %}
         <form method="post" action="/categorias/nueva" class="row wrap gap-lg mt-xl">
             <input type="hidden" name="kind" value="income">
@@ -115,10 +124,17 @@
     .cat-name { font-weight: 500; }
     .cat-body { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
     .cat-children { list-style: none; padding: 0; margin: 0 0 .6rem; }
-    .cat-children li {
-        padding: .35rem 0;
+    .cat-children li.cat-child {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: .5rem;
+        padding: .45rem 0;
         border-bottom: 1px dashed var(--border);
     }
-    .cat-children li:last-child { border-bottom: none; }
+    .cat-children li.cat-child:last-child { border-bottom: none; }
+    .cat-child-name { flex: 1 1 200px; }
+    .cat-child-actions { flex: 1 1 auto; justify-content: flex-end; }
 </style>
 {% endblock %}
