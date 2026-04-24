@@ -12,6 +12,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from app.db import cursor
+from app.services.categorizer import extract_tokens
 from app.templating import templates
 
 router = APIRouter()
@@ -159,7 +160,18 @@ def transactions_list(
 
 @router.post("/movimientos/{tx_id}/categoria", response_class=HTMLResponse)
 def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
+    """Cambia la categoría de un movimiento y (si procede) sugiere una regla.
+
+    Tras asignar categoría, buscamos tokens distintivos de la descripción y
+    miramos cuántos *otros* movimientos del usuario los comparten. Si hay
+    al menos 1 más, devolvemos junto con la celda una propuesta de regla.
+    """
     with cursor() as cur:
+        tx_row = cur.execute(
+            "SELECT description FROM transactions WHERE id = ?", (tx_id,)
+        ).fetchone()
+        description = tx_row["description"] if tx_row else ""
+
         if category_id == "" or category_id == "null":
             cur.execute(
                 "UPDATE transactions SET category_id = NULL, auto_categorized = 0, "
@@ -187,6 +199,11 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
             "SELECT id, name, parent_id FROM categories ORDER BY parent_id IS NOT NULL, name"
         ).fetchall()
 
+        # Sugerir una regla sólo si hemos asignado categoría real (no limpiado).
+        suggestion = None
+        if cat_id_int is not None and description:
+            suggestion = _best_rule_suggestion(cur, description, cat_id_int)
+
     cat_tree = []
     by_parent: dict = {}
     for c in cats:
@@ -200,9 +217,52 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
 
     return templates.TemplateResponse(
         request, "_category_cell.html",
-        {"tx": {"id": tx_id, "cat_id": cat_id_int, "category_label": label},
-         "cat_tree": cat_tree},
+        {
+            "tx": {"id": tx_id, "cat_id": cat_id_int, "category_label": label},
+            "cat_tree": cat_tree,
+            "suggestion": suggestion,
+        },
     )
+
+
+def _best_rule_suggestion(
+    cur, description: str, category_id: int
+) -> Optional[dict]:
+    """Devuelve el mejor token candidato a regla, o None si no merece sugerir.
+
+    Criterio: el token debe aparecer en ≥1 movimiento *sin* categoría o con
+    otra categoría distinta, y NO debe existir ya una regla activa con ese
+    mismo patrón apuntando a esta misma categoría.
+    """
+    tokens = extract_tokens(description)
+    if not tokens:
+        return None
+
+    best = None
+    for tok in tokens:
+        # ¿Hay ya una regla igual?
+        exists = cur.execute(
+            "SELECT 1 FROM category_rules WHERE pattern = ? AND category_id = ?",
+            (tok, category_id),
+        ).fetchone()
+        if exists:
+            continue
+
+        # Cuántos otros movimientos tienen este token Y no tienen ya esta categoría.
+        # Usamos LIKE sobre UPPER(description) porque extract_tokens devuelve mayúsculas.
+        n = cur.execute(
+            """SELECT COUNT(*) AS n
+               FROM transactions
+               WHERE UPPER(description) LIKE ?
+                 AND (category_id IS NULL OR category_id != ?)""",
+            (f"%{tok}%", category_id),
+        ).fetchone()["n"]
+        if n < 1:
+            continue
+
+        if best is None or n > best["matches"]:
+            best = {"token": tok, "matches": n, "category_id": category_id}
+    return best
 
 
 @router.post("/movimientos/{tx_id}/memo", response_class=HTMLResponse)

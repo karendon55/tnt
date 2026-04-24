@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Reglas{% endblock %}
+
+{% macro render_rules(rs, cat_tree) %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Patrón</th>
+            <th>Categoría</th>
+            <th class="num">Prioridad</th>
+            <th class="num">Aciertos</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in rs %}
+        <tr>
+            <td class="tabular">{{ r.pattern }}</td>
+            <td>{{ r.category_label }}</td>
+            <td class="num">{{ r.priority }}</td>
+            <td class="num">{{ r.hits }}</td>
+            <td>
+                <details style="display:inline-block;">
+                    <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">Editar</summary>
+                    <form method="post" action="/reglas/{{ r.id }}/editar" class="card mt-lg"
+                          style="position:absolute; z-index:20; min-width:320px;">
+                        <div class="field">
+                            <label>Patrón</label>
+                            <input class="input tabular" name="pattern" value="{{ r.pattern }}" required>
+                        </div>
+                        <div class="field">
+                            <label>Categoría</label>
+                            <select class="select" name="category_id" required>
+                                {% for p in cat_tree %}
+                                <option value="{{ p.id }}" {% if r.category_id == p.id %}selected{% endif %}>{{ p.name }}</option>
+                                {% for c in p.children %}
+                                <option value="{{ c.id }}" {% if r.category_id == c.id %}selected{% endif %}>&nbsp;&nbsp;↳ {{ c.name }}</option>
+                                {% endfor %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Prioridad</label>
+                            <input class="input tabular" type="number" name="priority" value="{{ r.priority }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                    </form>
+                </details>
+                <form method="post" action="/reglas/{{ r.id }}/borrar" style="display:inline;"
+                      onsubmit="return confirm('¿Borrar la regla {{ r.pattern }}?');">
+                    <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Reglas de categorización</h1>
+        <p>
+            TNT aplica estas reglas a los movimientos sin categoría en cada importación.
+            Prioridad alta gana empates.
+        </p>
+    </div>
+    <div class="row wrap gap-lg">
+        <form method="post" action="/reglas/reentrenar" style="display:inline;">
+            <button type="submit" class="btn" title="Vuelve a extraer reglas de los movimientos ya categorizados">
+                🧠 Reentrenar
+            </button>
+        </form>
+        <button class="btn btn-primary" onclick="document.getElementById('newRule').showModal()">
+            Nueva regla
+        </button>
+    </div>
+</div>
+
+{% set manual_rules  = rules | selectattr('source', 'equalto', 'manual')  | list %}
+{% set learned_rules = rules | selectattr('source', 'equalto', 'learned') | list %}
+{% set builtin_rules = rules | selectattr('source', 'equalto', 'builtin') | list %}
+
+<div class="card">
+    <h3 class="card-title">Manuales ({{ manual_rules|length }})</h3>
+    <p class="muted small">Creadas por ti al recategorizar un movimiento. Prioridad alta.</p>
+    {% if manual_rules %}
+        {{ render_rules(manual_rules, cat_tree) }}
+    {% else %}
+        <p class="muted small">Aún no has creado ninguna. Cuando recategorices un movimiento en <a href="/movimientos">Movimientos</a> y haya otros similares, verás un atajo para crear regla.</p>
+    {% endif %}
+</div>
+
+{% if learned_rules %}
+<div class="card mt-xl">
+    <h3 class="card-title">Aprendidas ({{ learned_rules|length }})</h3>
+    <p class="muted small">Extraídas automáticamente de los movimientos ya categorizados.</p>
+    {{ render_rules(learned_rules, cat_tree) }}
+</div>
+{% endif %}
+
+{% if builtin_rules %}
+<div class="card mt-xl">
+    <h3 class="card-title">Integradas ({{ builtin_rules|length }})</h3>
+    <p class="muted small">Reglas por defecto para patrones bancarios comunes en España.</p>
+    {{ render_rules(builtin_rules, cat_tree) }}
+</div>
+{% endif %}
+
+<dialog id="newRule" class="card" style="max-width:480px; border:1px solid var(--border);">
+    <form method="post" action="/reglas/crear">
+        <h3 class="card-title">Nueva regla</h3>
+        <div class="field">
+            <label>Patrón (subcadena en descripción)</label>
+            <input class="input tabular" name="pattern" placeholder="p. ej. MERCADONA" required>
+            <p class="muted small" style="margin:.25rem 0 0;">Se guarda en mayúsculas. Se aplica a todos los movimientos sin categoría.</p>
+        </div>
+        <div class="field">
+            <label>Categoría</label>
+            <select class="select" name="category_id" required>
+                <option value="" disabled selected>Elige una categoría…</option>
+                {% for p in cat_tree %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+                {% for c in p.children %}
+                <option value="{{ c.id }}">&nbsp;&nbsp;↳ {{ c.name }}</option>
+                {% endfor %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row wrap gap-lg">
+            <button type="submit" class="btn btn-primary">Crear y aplicar</button>
+            <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
+        </div>
+    </form>
+</dialog>
+{% endblock %}

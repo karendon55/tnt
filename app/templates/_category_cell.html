@@ -15,3 +15,22 @@
         {% endfor %}
     </select>
 </form>
+{% if suggestion is defined and suggestion %}
+<div class="rule-suggestion mt-lg" id="suggest-{{ tx.id }}">
+    <span class="small">
+        Hay <strong>{{ suggestion.matches }}</strong> movimiento{{ 's' if suggestion.matches != 1 else '' }} más
+        con <span class="tabular">{{ suggestion.token }}</span>
+    </span>
+    <form hx-post="/reglas/crear"
+          hx-target="#suggest-{{ tx.id }}"
+          hx-swap="outerHTML"
+          style="display:inline;">
+        <input type="hidden" name="pattern" value="{{ suggestion.token }}">
+        <input type="hidden" name="category_id" value="{{ suggestion.category_id }}">
+        <input type="hidden" name="tx_id" value="{{ tx.id }}">
+        <button type="submit" class="btn btn-sm btn-primary">Crear regla</button>
+    </form>
+    <button type="button" class="btn btn-sm btn-ghost"
+            onclick="this.closest('.rule-suggestion').remove()">Descartar</button>
+</div>
+{% endif %}
