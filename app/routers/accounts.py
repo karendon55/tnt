@@ -3,6 +3,8 @@ Router /cuentas — CRUD simple. El saldo se calcula desde las transacciones.
 """
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
@@ -20,6 +22,7 @@ def accounts_list(request: Request):
             "SELECT id, name, bank, iban, type, initial_balance, currency, "
             "archived FROM accounts ORDER BY archived, name"
         ).fetchall()
+        today = date.today()
         accounts = []
         for r in rows:
             bal = account_balance(cur, r["id"]) if not r["archived"] else None
@@ -27,6 +30,22 @@ def accounts_list(request: Request):
                 "SELECT COUNT(*) AS n FROM transactions WHERE account_id = ?",
                 (r["id"],),
             ).fetchone()["n"]
+            # Historial de reconciliaciones de esta cuenta
+            rec_rows = cur.execute(
+                """SELECT id, date, bank_balance, tnt_balance, diff, note, created_at
+                   FROM reconciliations WHERE account_id = ?
+                   ORDER BY date DESC, id DESC""",
+                (r["id"],),
+            ).fetchall()
+            recons = [dict(x) for x in rec_rows]
+            last_recon = recons[0] if recons else None
+            days_since = None
+            if last_recon:
+                try:
+                    last_date = date.fromisoformat(last_recon["date"])
+                    days_since = (today - last_date).days
+                except Exception:
+                    days_since = None
             accounts.append({
                 "id": r["id"], "name": r["name"], "bank": r["bank"],
                 "iban": r["iban"], "type": r["type"],
@@ -35,6 +54,9 @@ def accounts_list(request: Request):
                 "archived": bool(r["archived"]),
                 "balance": bal,
                 "tx_count": tx_count,
+                "recons": recons,
+                "last_recon": last_recon,
+                "days_since_recon": days_since,
             })
 
         # Reglas de transferencias externas (plan de pensiones, etc.)
@@ -55,6 +77,7 @@ def accounts_list(request: Request):
             "active": "accounts",
             "accounts": accounts,
             "rules": rules,
+            "today_iso": today.isoformat(),
         },
     )
 

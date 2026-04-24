@@ -17,6 +17,19 @@ def account_balance(cur: sqlite3.Cursor, account_id: int) -> float:
     return round(row["bal"] if row and row["bal"] is not None else 0, 2)
 
 
+def account_balance_at(cur: sqlite3.Cursor, account_id: int, as_of: str) -> float:
+    """Saldo de una cuenta en una fecha dada (inclusive). Se usa en la
+    reconciliación contra el saldo real del banco."""
+    row = cur.execute(
+        """SELECT a.initial_balance +
+                  COALESCE((SELECT SUM(amount) FROM transactions
+                            WHERE account_id = a.id AND date <= ?), 0) AS bal
+           FROM accounts a WHERE a.id = ?""",
+        (as_of, account_id),
+    ).fetchone()
+    return round(row["bal"] if row and row["bal"] is not None else 0, 2)
+
+
 def total_balance(cur: sqlite3.Cursor) -> float:
     initial = cur.execute(
         "SELECT COALESCE(SUM(initial_balance), 0) AS ib FROM accounts WHERE archived = 0"

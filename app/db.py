@@ -100,6 +100,23 @@ CREATE TABLE IF NOT EXISTS external_transfer_rules (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ext_rules_active ON external_transfer_rules(active);
+
+-- Historial de reconciliaciones contra el saldo real del banco.
+-- Cada fila registra qué decía el banco en una fecha concreta,
+-- qué decía TNT, y la diferencia. Sirve para detectar movimientos
+-- perdidos o duplicados al importar.
+CREATE TABLE IF NOT EXISTS reconciliations (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id   INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    date         TEXT    NOT NULL,
+    bank_balance REAL    NOT NULL,
+    tnt_balance  REAL    NOT NULL,
+    diff         REAL    NOT NULL,
+    note         TEXT,
+    created_at   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_recon_account ON reconciliations(account_id, date DESC);
 """
 
 
