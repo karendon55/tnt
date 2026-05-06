@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Traspasos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Traspasos entre cuentas</h1>
+        <p>Empareja a mano dos movimientos como traspaso, deshaz emparejamientos automáticos incorrectos y revisa sugerencias evidentes.</p>
+    </div>
+</div>
+
+{% if msg %}
+<div class="card mb-md" style="border-left: 3px solid var(--success, #2ecc71);">
+    <p style="margin:0;">✓ {{ msg }}</p>
+</div>
+{% endif %}
+{% if err %}
+<div class="card mb-md" style="border-left: 3px solid var(--danger, #e74c3c);">
+    <p style="margin:0;">⚠ {{ err }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3 class="card-title">Pares emparejados ({{ pairs|length }})</h3>
+    <p class="muted small">Cada fila es un traspaso entre dos cuentas. "Desemparejar" deja los dos lados como movimientos independientes (no los borra).</p>
+    {% if pairs %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Salida</th>
+                <th class="num">Importe</th>
+                <th>Entrada</th>
+                <th class="num">Importe</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in pairs %}
+            {% set out_amount = p.left_amount if p.left_amount < 0 else p.right_amount %}
+            {% set in_amount  = p.left_amount if p.left_amount > 0 else p.right_amount %}
+            {% set out_acc = p.left_account if p.left_amount < 0 else p.right_account %}
+            {% set in_acc  = p.left_account if p.left_amount > 0 else p.right_account %}
+            {% set out_desc = p.left_desc if p.left_amount < 0 else p.right_desc %}
+            {% set in_desc  = p.left_desc if p.left_amount > 0 else p.right_desc %}
+            <tr>
+                <td class="tabular small">{{ p.left_date }}</td>
+                <td>
+                    <strong>{{ out_acc }}</strong>
+                    <div class="muted small">{{ out_desc | truncate(50) }}</div>
+                </td>
+                <td class="num tabular amount-neg">{{ out_amount | eur_signed }}</td>
+                <td>
+                    <strong>{{ in_acc }}</strong>
+                    <div class="muted small">{{ in_desc | truncate(50) }}</div>
+                </td>
+                <td class="num tabular amount-pos">{{ in_amount | eur_signed }}</td>
+                <td>
+                    <form method="post" action="/traspasos/{{ p.left_id }}/desemparejar" style="display:inline;"
+                          onsubmit="return confirm('¿Desemparejar este traspaso? Los dos movimientos quedan independientes.');">
+                        <button type="submit" class="btn btn-sm btn-ghost">Desemparejar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted small">No hay traspasos emparejados todavía.</p>
+    {% endif %}
+</div>
+
+{% if suggestions %}
+<div class="card mt-xl">
+    <h3 class="card-title">Sugerencias automáticas ({{ suggestions|length }})</h3>
+    <p class="muted small">Pares de movimientos sin emparejar con importes opuestos en cuentas distintas y fechas a ±3 días. Pulsa "Emparejar" si son el mismo traspaso.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Salida (cuenta · fecha)</th>
+                <th class="num">Importe</th>
+                <th>Entrada (cuenta · fecha)</th>
+                <th class="num">Importe</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in suggestions %}
+            <tr>
+                <td>
+                    <strong>{{ s.left_account }}</strong>
+                    <span class="muted small tabular">· {{ s.left_date }}</span>
+                    <div class="muted small">{{ s.left_desc | truncate(50) }}</div>
+                </td>
+                <td class="num tabular amount-neg">{{ s.left_amount | eur_signed }}</td>
+                <td>
+                    <strong>{{ s.right_account }}</strong>
+                    <span class="muted small tabular">· {{ s.right_date }}</span>
+                    <div class="muted small">{{ s.right_desc | truncate(50) }}</div>
+                </td>
+                <td class="num tabular amount-pos">{{ s.right_amount | eur_signed }}</td>
+                <td>
+                    <form method="post" action="/traspasos/emparejar" style="display:inline;">
+                        <input type="hidden" name="left_id" value="{{ s.left_id }}">
+                        <input type="hidden" name="right_id" value="{{ s.right_id }}">
+                        <button type="submit" class="btn btn-sm btn-primary">Emparejar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="card mt-xl">
+    <h3 class="card-title">Emparejar a mano</h3>
+    <p class="muted small">Selecciona dos movimientos sueltos en cuentas distintas con importes opuestos.</p>
+    <form method="post" action="/traspasos/emparejar">
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem;">
+            <div class="field">
+                <label>Movimiento 1</label>
+                <select class="select" name="left_id" required>
+                    <option value="" disabled selected>Elige movimiento…</option>
+                    {% for u in unlinked %}
+                    <option value="{{ u.id }}">
+                        {{ u.date }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label>Movimiento 2</label>
+                <select class="select" name="right_id" required>
+                    <option value="" disabled selected>Elige movimiento…</option>
+                    {% for u in unlinked %}
+                    <option value="{{ u.id }}">
+                        {{ u.date }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row wrap gap-lg">
+            <button type="submit" class="btn btn-primary">Emparejar como traspaso</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
