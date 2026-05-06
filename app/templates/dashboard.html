@@ -120,7 +120,7 @@
                 {% for t in last_transactions %}
                 <tr>
                     <td class="tabular">{{ t.date }}</td>
-                    <td>{{ t.description }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}</td>
+                    <td>{{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}</td>
                     <td><span class="pill">{{ t.category }}</span></td>
                     <td class="num {% if t.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                         {{ t.amount | eur_signed }}

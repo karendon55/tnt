@@ -128,6 +128,17 @@ CREATE TABLE IF NOT EXISTS import_batches (
     inserted     INTEGER NOT NULL DEFAULT 0,
     duplicates   INTEGER NOT NULL DEFAULT 0
 );
+
+-- Alias de descripciones: cuando la descripción del banco contiene `pattern`
+-- (subcadena en mayúsculas), se muestra `alias` en la UI. La descripción
+-- original NO se modifica en la BD: el alias es solo cosmético.
+CREATE TABLE IF NOT EXISTS description_aliases (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    pattern    TEXT    NOT NULL UNIQUE,    -- subcadena en MAYÚSCULAS
+    alias      TEXT    NOT NULL,
+    hits       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 

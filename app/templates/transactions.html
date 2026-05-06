@@ -79,7 +79,7 @@
             <tr>
                 <td class="tabular">{{ tx.date }}</td>
                 <td>
-                    {{ tx.description }}
+                    {{ tx.description | alias }}
                     {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                 </td>
                 <td class="muted small">{{ tx.account_name }}</td>
