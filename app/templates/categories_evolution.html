@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Evolución por categoría{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Evolución por categoría</h1>
+        <p>Cómo evoluciona cada categoría padre a lo largo del tiempo. Útil para detectar subidas escondidas en recibos.</p>
+    </div>
+    <div>
+        <a class="btn" href="/categorias">← Volver al árbol</a>
+    </div>
+</div>
+
+<form method="get" action="/categorias/evolucion" class="card mb-md">
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="field">
+            <label for="kind">Tipo</label>
+            <select class="select" name="kind" id="kind">
+                <option value="expense" {% if kind == 'expense' %}selected{% endif %}>Gastos</option>
+                <option value="income"  {% if kind == 'income'  %}selected{% endif %}>Ingresos</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="months">Meses</label>
+            <select class="select" name="months" id="months">
+                {% for n in [6, 12, 18, 24, 36] %}
+                <option value="{{ n }}" {% if months == n %}selected{% endif %}>{{ n }} meses</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field">
+            <label for="top">Top categorías</label>
+            <select class="select" name="top" id="top">
+                {% for n in [3, 5, 6, 8, 10] %}
+                <option value="{{ n }}" {% if top == n %}selected{% endif %}>Top {{ n }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="row wrap gap-lg">
+        <button type="submit" class="btn btn-primary">Aplicar</button>
+    </div>
+</form>
+
+<div class="card">
+    {% if has_data %}
+    <canvas id="chartCatEvol" height="120"></canvas>
+    {% else %}
+    <p class="muted">No hay datos suficientes en la ventana seleccionada.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if has_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  (function() {
+    const data = {{ chart_json|safe }};
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9a9a9a';
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#2a2a2a';
+    const el = document.getElementById('chartCatEvol');
+    if (!el) return;
+    new Chart(el, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: textColor, font: { size: 12 } } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${window.formatEUR(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: textColor }, grid: { color: gridColor } },
+          y: {
+            ticks: {
+              color: textColor,
+              callback: (v) => window.formatEUR(v),
+            },
+            grid: { color: gridColor },
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

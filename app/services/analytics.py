@@ -154,6 +154,90 @@ def monthly_expense_series(cur: sqlite3.Cursor, months: int = 12) -> list[dict]:
     return [{"month": r["ym"], "total": round(r["total"], 2)} for r in rows[-months:]]
 
 
+def category_monthly_series(
+    cur: sqlite3.Cursor,
+    months: int = 12,
+    kind: str = "expense",
+    top_n: int = 6,
+) -> dict:
+    """
+    Evolución mensual del gasto (o ingreso) por categoría padre.
+
+    Devuelve:
+      {
+        "months": ["2025-06", ..., "2026-05"],   # ventana de N meses hasta hoy
+        "series": [{"id": int, "name": str, "values": [float, ...]}, ...],
+                                                  # ordenadas por total desc
+        "others": [float, ...] | None,            # suma de las que no entran en top_n
+      }
+
+    `kind` es 'expense' (suma -amount cuando amount<0) o 'income' (amount>0).
+    Excluye transferencias internas (transfer_id NOT NULL).
+    """
+    today = date.today()
+    # Ventana cerrada de N meses contando hacia atrás desde el mes actual.
+    ym_list: list[str] = []
+    y, m = today.year, today.month
+    for _ in range(months):
+        ym_list.append(f"{y:04d}-{m:02d}")
+        m -= 1
+        if m == 0:
+            m = 12
+            y -= 1
+    ym_list.reverse()
+
+    if kind == "income":
+        amount_expr = "SUM(CASE WHEN t.amount > 0 THEN t.amount ELSE 0 END)"
+    else:
+        amount_expr = "SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END)"
+
+    rows = cur.execute(
+        f"""SELECT
+              COALESCE(pc.id, c.id)   AS cat_id,
+              COALESCE(pc.name, c.name) AS cat_name,
+              substr(t.date, 1, 7)    AS ym,
+              {amount_expr}           AS total
+            FROM transactions t
+            JOIN categories c ON c.id = t.category_id
+            LEFT JOIN categories pc ON pc.id = c.parent_id
+            WHERE t.transfer_id IS NULL
+              AND substr(t.date, 1, 7) BETWEEN ? AND ?
+            GROUP BY cat_id, cat_name, ym
+            HAVING total > 0""",
+        (ym_list[0], ym_list[-1]),
+    ).fetchall()
+
+    cat_totals: dict[int, dict] = {}
+    for r in rows:
+        cid = r["cat_id"]
+        cat_totals.setdefault(cid, {"id": cid, "name": r["cat_name"], "by_ym": {}})
+        cat_totals[cid]["by_ym"][r["ym"]] = float(r["total"] or 0)
+
+    ranked = sorted(
+        cat_totals.values(),
+        key=lambda c: sum(c["by_ym"].values()),
+        reverse=True,
+    )
+    top = ranked[:top_n]
+    rest = ranked[top_n:]
+
+    series = [
+        {
+            "id": c["id"],
+            "name": c["name"],
+            "values": [round(c["by_ym"].get(ym, 0), 2) for ym in ym_list],
+        }
+        for c in top
+    ]
+    others = None
+    if rest:
+        others = [
+            round(sum(c["by_ym"].get(ym, 0) for c in rest), 2)
+            for ym in ym_list
+        ]
+    return {"months": ym_list, "series": series, "others": others}
+
+
 def category_tree(cur: sqlite3.Cursor) -> list[dict]:
     cats = cur.execute(
         "SELECT id, name, parent_id, kind FROM categories ORDER BY parent_id IS NOT NULL, name"

@@ -3,10 +3,13 @@ Router /categorias — árbol jerárquico con crear, renombrar, mover, archivar.
 """
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
+from app.services.analytics import category_monthly_series, month_label
 from app.templating import templates
 
 router = APIRouter()
@@ -95,6 +98,66 @@ def categories_move(cat_id: int, parent_id: str = Form("")):
             (new_parent, cat_id),
         )
     return RedirectResponse("/categorias", status_code=303)
+
+
+_LINE_COLORS = [
+    "#e10600", "#ff6b35", "#f7b801", "#4ade80", "#38bdf8",
+    "#a78bfa", "#f472b6", "#94a3b8",
+]
+
+
+@router.get("/categorias/evolucion", response_class=HTMLResponse)
+def categories_evolution(
+    request: Request,
+    months: int = 12,
+    kind: str = "expense",
+    top: int = 6,
+):
+    """Gráfico de líneas: gasto (o ingreso) mensual por categoría padre."""
+    months = max(3, min(months, 36))
+    top = max(2, min(top, 10))
+    if kind not in ("expense", "income"):
+        kind = "expense"
+
+    with cursor() as cur:
+        data = category_monthly_series(cur, months=months, kind=kind, top_n=top)
+
+    labels = [month_label(ym) for ym in data["months"]]
+    datasets = []
+    for i, s in enumerate(data["series"]):
+        color = _LINE_COLORS[i % len(_LINE_COLORS)]
+        datasets.append({
+            "label": s["name"],
+            "data": s["values"],
+            "borderColor": color,
+            "backgroundColor": color + "22",
+            "tension": 0.3,
+            "pointRadius": 2,
+        })
+    if data["others"]:
+        datasets.append({
+            "label": "Otros",
+            "data": data["others"],
+            "borderColor": "#666",
+            "borderDash": [4, 4],
+            "backgroundColor": "transparent",
+            "tension": 0.3,
+            "pointRadius": 2,
+        })
+
+    has_data = any(any(v > 0 for v in d["data"]) for d in datasets)
+
+    return templates.TemplateResponse(
+        request, "categories_evolution.html",
+        {
+            "active": "categories",
+            "months": months,
+            "kind": kind,
+            "top": top,
+            "chart_json": json.dumps({"labels": labels, "datasets": datasets}),
+            "has_data": has_data,
+        },
+    )
 
 
 @router.post("/categorias/{cat_id}/borrar")
