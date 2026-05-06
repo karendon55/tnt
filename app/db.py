@@ -117,6 +117,17 @@ CREATE TABLE IF NOT EXISTS reconciliations (
 );
 
 CREATE INDEX IF NOT EXISTS idx_recon_account ON reconciliations(account_id, date DESC);
+
+-- Lotes de importación. Cada importación de uno o varios ficheros crea
+-- un único batch; las transacciones nuevas guardan ese `import_batch_id`
+-- para permitir deshacer todo el lote en un click.
+CREATE TABLE IF NOT EXISTS import_batches (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at   TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    files        TEXT    NOT NULL,    -- JSON: [{"filename": ..., "bank": ..., "account": ..., "inserted": N, "duplicates": M}, ...]
+    inserted     INTEGER NOT NULL DEFAULT 0,
+    duplicates   INTEGER NOT NULL DEFAULT 0
+);
 """
 
 
@@ -142,7 +153,23 @@ def init_db() -> None:
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     with cursor() as cur:
         cur.executescript(SCHEMA)
+        _add_columns_if_missing(cur)
         _seed_categories(cur)
+
+
+def _add_columns_if_missing(cur: sqlite3.Cursor) -> None:
+    """Migraciones puntuales: añadir columnas a tablas existentes
+    cuando el esquema evoluciona. SQLite no permite IF NOT EXISTS en
+    ALTER TABLE, así que comprobamos PRAGMA primero."""
+    cols = {row["name"] for row in cur.execute("PRAGMA table_info(transactions)")}
+    if "import_batch_id" not in cols:
+        cur.execute(
+            "ALTER TABLE transactions ADD COLUMN import_batch_id "
+            "INTEGER REFERENCES import_batches(id) ON DELETE SET NULL"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tx_batch ON transactions(import_batch_id)"
+        )
 
 
 # Jerarquía de categorías inspirada en la que ya usa ING,

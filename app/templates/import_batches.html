@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Lotes de importación{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Lotes de importación</h1>
+        <p>Cada importación queda registrada como un lote. Si algo salió mal, puedes deshacerlo y volver a intentarlo.</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <a class="btn" href="/importar">← Importar más</a>
+    </div>
+</div>
+
+{% if msg %}
+<div class="card mb-md" style="border-left: 3px solid var(--success, #2ecc71);">
+    <p style="margin:0;">✓ {{ msg }}</p>
+</div>
+{% endif %}
+
+<div class="card">
+    {% if batches %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Fecha</th>
+                <th>Ficheros</th>
+                <th class="num">Insertados</th>
+                <th class="num">Quedan</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in batches %}
+            <tr>
+                <td class="tabular">#{{ b.id }}</td>
+                <td class="tabular small">{{ b.created_at }}</td>
+                <td class="small">
+                    {% for f in b.files %}
+                        <div>
+                            <code>{{ f.filename }}</code>
+                            <span class="muted">· {{ f.bank }} · {{ f.account }} ·</span>
+                            <span class="amount-pos">{{ f.inserted }} nuevos</span>
+                            <span class="muted">/ {{ f.duplicates }} dup</span>
+                        </div>
+                    {% endfor %}
+                </td>
+                <td class="num">{{ b.inserted }}</td>
+                <td class="num {% if b.still_present < b.inserted %}muted{% endif %}">{{ b.still_present }}</td>
+                <td>
+                    {% if b.still_present > 0 %}
+                    <form method="post" action="/importar/lotes/{{ b.id }}/borrar" style="display:inline;"
+                          onsubmit="return confirm('¿Deshacer el lote #{{ b.id }}? Se borrarán {{ b.still_present }} movimiento{{ 's' if b.still_present != 1 else '' }}. No se puede revertir.');">
+                        <button type="submit" class="btn btn-sm btn-ghost">Deshacer</button>
+                    </form>
+                    {% else %}
+                    <span class="muted small">vacío</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted small">Aún no hay lotes registrados. Importa un extracto y aparecerá aquí.</p>
+    {% endif %}
+</div>
+{% endblock %}

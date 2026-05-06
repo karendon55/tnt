@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Preview de importación{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Preview de importación</h1>
+        <p>Esto es lo que se insertaría si confirmas. Aún no se ha tocado la base de datos.</p>
+    </div>
+    <div class="row wrap gap-lg">
+        <a href="/importar" class="btn btn-ghost">← Cancelar</a>
+        {% if token and summary.new > 0 %}
+        <form method="post" action="/importar/confirmar" style="display:inline;">
+            <input type="hidden" name="token" value="{{ token }}">
+            <button type="submit" class="btn btn-primary">
+                Confirmar e insertar {{ summary.new }} movimiento{{ 's' if summary.new != 1 else '' }}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if errors %}
+<div class="card mb-md" style="border-left: 3px solid var(--danger, #e74c3c);">
+    <strong>Algunos ficheros no pudieron procesarse:</strong>
+    <ul class="mt-lg">
+        {% for e in errors %}
+        <li><code>{{ e.filename }}</code> — {{ e.message }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if previews %}
+<div class="grid grid-kpi mb-md">
+    <div class="card">
+        <div class="card-title">Se insertarán</div>
+        <div class="kpi-value amount-pos">{{ summary.new }}</div>
+        <div class="kpi-delta">en {{ summary.files }} fichero{{ 's' if summary.files != 1 else '' }}</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Duplicados</div>
+        <div class="kpi-value muted">{{ summary.duplicates }}</div>
+        <div class="kpi-delta">ya estaban en la BD, se ignoran</div>
+    </div>
+</div>
+
+{% for p in previews %}
+<div class="card mt-xl">
+    <h3 class="card-title">
+        {{ p.filename }}
+        <span class="muted small">· {{ p.bank }} · {{ p.account }}</span>
+    </h3>
+    <p class="muted small">
+        {{ p.total }} fila{{ 's' if p.total != 1 else '' }} en el extracto:
+        <strong class="amount-pos">{{ p.new }} nuevo{{ 's' if p.new != 1 else '' }}</strong>,
+        {{ p.duplicates }} duplicado{{ 's' if p.duplicates != 1 else '' }}.
+        {% if p.iban %}<span class="tabular">IBAN: {{ p.iban }}</span>{% endif %}
+    </p>
+    {% if p.rows %}
+    <p class="muted small">Muestra de las primeras {{ p.rows|length }} filas:</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th>Categoría banco</th>
+                <th class="num">Importe</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in p.rows %}
+            <tr {% if not r.will_insert %}style="opacity:.55;"{% endif %}>
+                <td class="tabular">{{ r.date }}</td>
+                <td>{{ r.description | truncate(60) }}</td>
+                <td class="muted small">{{ r.source_hint or '—' }}</td>
+                <td class="num tabular {% if r.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
+                    {{ r.amount | eur_signed }}
+                </td>
+                <td>
+                    {% if r.will_insert %}
+                        <span class="pill pill-success">nueva</span>
+                    {% else %}
+                        <span class="pill">duplicada</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% if summary.new == 0 and not errors %}
+<div class="card mt-md">
+    <p class="muted">No hay movimientos nuevos que insertar — todos los del extracto ya están en la BD.</p>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

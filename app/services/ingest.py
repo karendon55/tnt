@@ -7,6 +7,7 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import Optional
 
 from app.importers.common import ParsedExtract, tx_hash
 from app.services.categorizer import resolve_category
@@ -22,6 +23,63 @@ class ImportResult:
     duplicates: int
     categorized_from_hint: int
     transfers_linked: int
+
+
+@dataclass
+class PreviewRow:
+    date: str
+    amount: float
+    description: str
+    will_insert: bool          # True si es nueva, False si duplicado
+    source_hint: str | None
+
+
+@dataclass
+class PreviewResult:
+    bank: str
+    iban: str
+    account_name: str
+    total_rows: int
+    new_rows: int
+    duplicate_rows: int
+    rows: list[PreviewRow]     # primeras N filas con flag duplicado/nuevo
+
+
+def preview(cur: sqlite3.Cursor, extract: ParsedExtract, sample: int = 20) -> PreviewResult:
+    """Calcula qué pasaría si se importase, sin tocar la BD. Devuelve los
+    conteos y una muestra de las primeras `sample` filas."""
+    new_rows = 0
+    dupes = 0
+    rows: list[PreviewRow] = []
+    for tx in extract.transactions:
+        date_iso = tx.date.isoformat()
+        h = tx_hash(
+            iban=extract.iban,
+            date_iso=date_iso,
+            amount=tx.amount,
+            description=tx.description,
+            balance=tx.balance,
+        )
+        exists = cur.execute(
+            "SELECT 1 FROM transactions WHERE hash = ?", (h,)
+        ).fetchone()
+        if exists:
+            dupes += 1
+            will = False
+        else:
+            new_rows += 1
+            will = True
+        if len(rows) < sample:
+            rows.append(PreviewRow(
+                date=date_iso, amount=tx.amount,
+                description=tx.description, will_insert=will,
+                source_hint=tx.source_hint,
+            ))
+    return PreviewResult(
+        bank=extract.bank, iban=extract.iban, account_name=extract.account_name,
+        total_rows=len(extract.transactions),
+        new_rows=new_rows, duplicate_rows=dupes, rows=rows,
+    )
 
 
 def ensure_account(cur: sqlite3.Cursor, extract: ParsedExtract) -> tuple[int, str]:
@@ -57,7 +115,11 @@ def ensure_account(cur: sqlite3.Cursor, extract: ParsedExtract) -> tuple[int, st
     return cur.lastrowid, extract.account_name
 
 
-def ingest(cur: sqlite3.Cursor, extract: ParsedExtract) -> ImportResult:
+def ingest(
+    cur: sqlite3.Cursor,
+    extract: ParsedExtract,
+    batch_id: Optional[int] = None,
+) -> ImportResult:
     account_id, account_name = ensure_account(cur, extract)
 
     total = len(extract.transactions)
@@ -89,8 +151,8 @@ def ingest(cur: sqlite3.Cursor, extract: ParsedExtract) -> ImportResult:
             """INSERT INTO transactions(
                 account_id, date, value_date, amount, description, memo,
                 category_id, auto_categorized, confidence, payee, balance,
-                source_hint, hash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                source_hint, hash, import_batch_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 account_id, date_iso,
                 tx.value_date.isoformat() if tx.value_date else None,
@@ -102,6 +164,7 @@ def ingest(cur: sqlite3.Cursor, extract: ParsedExtract) -> ImportResult:
                 tx.balance,
                 tx.source_hint,
                 h,
+                batch_id,
             ),
         )
         inserted += 1
