@@ -36,4 +36,54 @@
     </ul>
     <p class="small muted">Los datos no salen de este ordenador. TNT funciona 100% en local.</p>
 </div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- Importar histórico desde HomeBank                                       -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="card mt-xl">
+    <h2 class="card-title">📥 Importar histórico de HomeBank</h2>
+    <p class="muted small">
+        ¿Tienes movimientos antiguos en HomeBank? Expórtalos a CSV desde HomeBank
+        (<em>Archivo → Exportar → Movimientos en CSV</em>) y súbelos aquí para
+        traerlos a TNT. El formato esperado tiene cabecera
+        <code>date;payment;info;payee;memo;amount;category;tags</code> y separador
+        <code>;</code>.
+    </p>
+
+    {% if accounts %}
+    <form method="post" action="/importar/homebank" enctype="multipart/form-data" class="form-grid mt-md">
+        <div class="field">
+            <label for="hb-account">Cuenta destino</label>
+            <select class="input" name="account_id" id="hb-account" required>
+                {% for a in accounts %}
+                <option value="{{ a.id }}">{{ a.name }}{% if a.bank %} · {{ a.bank }}{% endif %}{% if a.iban %} · {{ a.iban[-4:] }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <p class="small muted">
+                El CSV de HomeBank no contiene IBAN, así que necesitamos saber a qué
+                cuenta de TNT pertenecen estos movimientos.
+            </p>
+        </div>
+        <div class="field">
+            <label for="hb-file">Fichero CSV</label>
+            <input class="input" type="file" name="file" id="hb-file" accept=".csv,text/csv" required>
+            <p class="small muted">
+                Solo se importan movimientos nuevos: si una fila ya existe en TNT,
+                se saltará automáticamente (deduplicación por fecha + importe + descripción).
+            </p>
+        </div>
+        <div class="row wrap gap-lg">
+            <button type="submit" class="btn">
+                📥 Importar desde HomeBank
+            </button>
+            <a href="/cuentas" class="btn btn-ghost btn-sm">Crear cuenta nueva</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="pill pill-warning mt-md">
+        Para importar desde HomeBank necesitas tener al menos una cuenta dada de
+        alta en TNT. <a href="/cuentas">Crear una ahora</a>.
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

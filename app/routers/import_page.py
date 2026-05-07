@@ -25,6 +25,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.importers.dispatcher import detect_and_parse
+from app.importers.homebank import _decode as _homebank_decode
+from app.importers.homebank import parse_csv_text as parse_homebank_csv
 from app.services.categorizer import retrain_and_apply
 from app.services.ingest import ingest, preview
 from app.templating import templates
@@ -48,8 +50,14 @@ def _gc_previews() -> None:
 
 @router.get("/importar", response_class=HTMLResponse)
 def import_form(request: Request):
+    with cursor() as cur:
+        accounts = cur.execute(
+            "SELECT id, name, bank, iban FROM accounts "
+            "WHERE archived = 0 ORDER BY name"
+        ).fetchall()
     return templates.TemplateResponse(
-        request, "import.html", {"active": "import"}
+        request, "import.html",
+        {"active": "import", "accounts": [dict(a) for a in accounts]},
     )
 
 
@@ -218,6 +226,128 @@ def import_confirm(request: Request, token: str = Form(...)):
                 "auto_applied": auto_applied,
             },
             "confetti": total_inserted > 0,
+        },
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  CSV de HomeBank
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/importar/homebank", response_class=HTMLResponse)
+async def import_homebank_preview(
+    request: Request,
+    account_id: int = Form(...),
+    file: UploadFile = File(...),
+):
+    """Lee un CSV de HomeBank, lo asocia a la cuenta destino indicada y muestra
+    el preview. La inserción real reutiliza /importar/confirmar."""
+    _gc_previews()
+
+    # Cuenta destino (necesaria porque el CSV de HomeBank no trae IBAN)
+    with cursor() as cur:
+        acct = cur.execute(
+            "SELECT id, name, iban, bank, currency FROM accounts WHERE id = ?",
+            (account_id,),
+        ).fetchone()
+    if not acct:
+        return templates.TemplateResponse(
+            request, "import_preview.html",
+            {
+                "active": "import",
+                "previews": [],
+                "errors": [{"filename": file.filename or "(sin nombre)",
+                            "message": "Cuenta destino no encontrada."}],
+                "token": "",
+                "summary": {"files": 0, "new": 0, "duplicates": 0},
+            },
+        )
+
+    blob = await file.read()
+    if not blob:
+        return templates.TemplateResponse(
+            request, "import_preview.html",
+            {
+                "active": "import",
+                "previews": [],
+                "errors": [{"filename": file.filename or "(sin nombre)",
+                            "message": "El fichero está vacío."}],
+                "token": "",
+                "summary": {"files": 0, "new": 0, "duplicates": 0},
+            },
+        )
+
+    parsed: list[tuple[str, object]] = []
+    previews: list[dict] = []
+    errors: list[dict] = []
+
+    try:
+        text = _homebank_decode(blob)
+        extract = parse_homebank_csv(
+            text,
+            bank=acct["bank"] or "HomeBank",
+            iban=acct["iban"] or "",
+            account_name=acct["name"],
+            currency=acct["currency"] or "EUR",
+        )
+        with cursor() as cur:
+            pv = preview(cur, extract)
+        parsed.append((file.filename or "homebank.csv", extract))
+        previews.append({
+            "filename": file.filename or "homebank.csv",
+            "bank": "HomeBank",
+            "account": pv.account_name,
+            "iban": pv.iban,
+            "total": pv.total_rows,
+            "new": pv.new_rows,
+            "duplicates": pv.duplicate_rows,
+            "rows": [
+                {
+                    "date": r.date, "amount": r.amount,
+                    "description": r.description,
+                    "will_insert": r.will_insert,
+                    "source_hint": r.source_hint,
+                } for r in pv.rows
+            ],
+        })
+        # Errores no críticos del parser (filas malformadas que se han saltado)
+        parse_errors = getattr(extract, "parse_errors", None)
+        if parse_errors:
+            for n, msg in parse_errors[:10]:
+                errors.append({
+                    "filename": file.filename or "homebank.csv",
+                    "message": f"línea {n}: {msg}",
+                })
+    except Exception as exc:
+        errors.append({
+            "filename": file.filename or "(sin nombre)",
+            "message": str(exc) or exc.__class__.__name__,
+            "trace": traceback.format_exc(limit=2),
+        })
+
+    token = ""
+    if parsed:
+        token = uuid.uuid4().hex
+        _PREVIEW_CACHE[token] = {
+            "expires_at": time.time() + _PREVIEW_TTL,
+            "parsed": parsed,
+        }
+
+    total_new = sum(p["new"] for p in previews)
+    total_dup = sum(p["duplicates"] for p in previews)
+
+    return templates.TemplateResponse(
+        request, "import_preview.html",
+        {
+            "active": "import",
+            "previews": previews,
+            "errors": errors,
+            "token": token,
+            "summary": {
+                "files": len(previews),
+                "new": total_new,
+                "duplicates": total_dup,
+            },
         },
     )
 
