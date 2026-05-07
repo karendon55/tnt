@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=TNT
+GenericName=Tus Números Tranquilos
+GenericName[es]=Tus Números Tranquilos
+Comment=Finanzas personales locales
+Comment[es]=Finanzas personales locales (sustituto de HomeBank)
+Exec=tnt-launcher
+Icon=tnt
+Terminal=false
+Categories=Office;Finance;
+Keywords=finance;money;bank;HomeBank;TNT;
+StartupNotify=true
+StartupWMClass=TNT

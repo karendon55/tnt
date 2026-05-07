@@ -49,14 +49,72 @@ abrir en Excel o LibreOffice en España).
 
 ## Backup
 
-Todos tus datos viven en `data/tnt.db` (SQLite). Copia ese fichero a donde
-quieras para hacer backup:
+Todos tus datos viven en `data/tnt.db` (SQLite). Tienes tres formas:
+
+**1. Backup local plano** (`/backup` POST, también desde el panel)
+Copia `data/tnt.db` a las rutas configuradas en `app/routers/backup.py`
+(`~/Dropbox`, `~/Documentos/contabilidad/backup`, …). Sobrescribe la copia
+anterior, escribe a `.tmp` y hace rename atómico.
+
+**2. Backup cifrado descargable** (`/backup` página → "Backup cifrado")
+Genera un fichero `tnt-backup-YYYYMMDD-HHMMSS.tnt` cifrado con la contraseña
+que tú elijas. Por debajo: PBKDF2-HMAC-SHA256 con 480 000 iteraciones para
+derivar la clave + Fernet (AES-128-CBC + HMAC-SHA256) para cifrar y firmar.
+Si pierdes la contraseña, el contenido es irrecuperable.
+
+**3. Restaurar desde un `.tnt`** (misma página)
+Sube el fichero, mete la contraseña y reemplaza la BD. Antes de sobrescribir
+deja una copia de seguridad de la BD actual con sufijo `.before-restore-XXXXXXXX`
+por si quieres deshacer.
 
 ```bash
+# Manual también funciona:
 cp data/tnt.db ~/Copias/tnt-$(date +%Y%m%d).db
 ```
 
-Para restaurar: sustituye `data/tnt.db` por la copia y arranca la app.
+## Instalar como aplicación de escritorio
+
+Para usar TNT como una app más del menú (icono del rayo AC/DC en el menú
+de aplicaciones, sin tener que arrancarlo desde la terminal):
+
+```bash
+./packaging/install.sh
+```
+
+Esto instala en el HOME del usuario (sin root):
+
+| Ruta                                              | Contenido                |
+|---------------------------------------------------|--------------------------|
+| `~/.local/share/tnt/`                             | código + venv + data/    |
+| `~/.local/bin/tnt-launcher` (y `tnt`)             | wrapper ejecutable       |
+| `~/.local/share/applications/tnt.desktop`         | entrada del menú         |
+| `~/.local/share/icons/hicolor/*/apps/tnt.{svg,png}` | iconos en varios tamaños |
+
+Después: doble click en *TNT* desde el menú, o ejecuta `tnt-launcher` en cualquier
+terminal — arranca uvicorn y abre tu navegador en `http://127.0.0.1:8000`.
+
+Para desinstalar (preservando la BD):
+
+```bash
+~/.local/share/tnt/packaging/uninstall.sh
+# o con --purge para borrar también data/
+```
+
+## Distribuir TNT a otro PC
+
+```bash
+./packaging/package.sh                # auto-versión por fecha+commit
+./packaging/package.sh 1.0.0          # versión explícita
+```
+
+Crea `packaging/dist/tnt-<versión>.tar.gz` (~150 KB, sin BD ni extractos)
+y un fichero `.sha256` para verificar. En el PC destino:
+
+```bash
+tar -xzf tnt-<versión>.tar.gz
+cd tnt-<versión>
+./packaging/install.sh
+```
 
 ## Estructura del proyecto
 
