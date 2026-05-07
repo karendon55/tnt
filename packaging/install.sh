@@ -54,6 +54,31 @@ if [[ "$PY_MAJ" -lt 3 || ( "$PY_MAJ" -eq 3 && "$PY_MIN" -lt 10 ) ]]; then
 fi
 echo "  · Python $PY_VERSION OK"
 
+# Comprobamos que ensurepip está disponible — sin él, `python3 -m venv` falla
+# con "ensurepip is not available". En Debian/Ubuntu hay que instalar
+# python3-venv (o python3.X-venv) aparte.
+if [[ "$USE_VENV" -eq 1 ]] && ! python3 -c "import ensurepip" >/dev/null 2>&1; then
+    cat >&2 <<MSG
+ERROR: tu Python no tiene 'ensurepip', así que no se puede crear el entorno
+       virtual con 'python3 -m venv'.
+
+       En Debian/Ubuntu instala el paquete del módulo venv:
+
+           sudo apt install python3-venv
+           # o, si lo anterior no encuentra el paquete:
+           sudo apt install python$PY_VERSION-venv
+
+       Luego vuelve a lanzar este instalador.
+
+       Si prefieres no crear venv y usar directamente el python3 del sistema
+       (asegúrate de que tiene fastapi, uvicorn, jinja2, openpyxl, cryptography
+       y python-multipart instalados con 'pip install --user'), lanza:
+
+           ./packaging/install.sh --no-venv
+MSG
+    exit 1
+fi
+
 # ---------- destinos ----------
 APP_DIR="$PREFIX/share/tnt"
 BIN_DIR="$PREFIX/bin"

@@ -81,6 +81,18 @@ de aplicaciones, sin tener que arrancarlo desde la terminal):
 ./packaging/install.sh
 ```
 
+> **Nota para Debian/Ubuntu:** el módulo `venv` viene en un paquete aparte.
+> Si el instalador aborta con *«ensurepip is not available»*, instala primero:
+>
+> ```bash
+> sudo apt install python3-venv
+> # o, si esa fórmula no encuentra el paquete:
+> sudo apt install python3.10-venv
+> ```
+>
+> El instalador detecta esta situación al inicio y aborta con un mensaje claro
+> sin tocar nada en tu sistema.
+
 Esto instala en el HOME del usuario (sin root):
 
 | Ruta                                              | Contenido                |
