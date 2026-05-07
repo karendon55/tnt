@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Backup{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Backup y restauración</h1>
+
+{% if db_info %}
+<div class="card mb-md">
+    <div class="row wrap gap-md" style="align-items:center;">
+        <span class="muted small">Base de datos actual</span>
+        <span class="tabular">{{ db_info.path }}</span>
+        <span class="pill">{{ db_info.size_kb }} KB</span>
+        <span class="pill">modificada {{ db_info.mtime }}</span>
+    </div>
+</div>
+{% else %}
+<div class="card mb-md"><span class="pill pill-warning">No existe la base de datos.</span></div>
+{% endif %}
+
+<!-- ============================================================ -->
+<section class="card mb-md">
+    <h2 class="card-title">Backup local sin cifrar</h2>
+    <p class="muted small">Copia <code>data/tnt.db</code> a las rutas configuradas en el servidor.</p>
+    <ul class="small muted" style="list-style:none; padding:0; margin:.25rem 0 .5rem 0;">
+        {% for d in destinations %}<li>· <span class="tabular">{{ d }}</span></li>{% endfor %}
+    </ul>
+    <div id="backup-status" class="row wrap gap-md" style="align-items:center;">
+        <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
+            <button type="submit" class="btn">🔁 Hacer backup ahora</button>
+        </form>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="card mb-md">
+    <h2 class="card-title">Backup cifrado para descargar</h2>
+    <p class="muted small">
+        Genera un fichero <code>.tnt</code> cifrado con AES-128 y firmado con HMAC-SHA256.
+        La clave se deriva de tu contraseña con PBKDF2 (480 000 iteraciones).
+        <strong>Si pierdes la contraseña no se puede recuperar el contenido.</strong>
+    </p>
+
+    <form action="/backup/cifrado" method="post" class="form-grid" style="max-width:32rem;">
+        <label>
+            <span>Contraseña (mínimo 8 caracteres)</span>
+            <input type="password" name="password" required minlength="8" autocomplete="new-password">
+        </label>
+        <label>
+            <span>Repite la contraseña</span>
+            <input type="password" name="confirm" required minlength="8" autocomplete="new-password">
+        </label>
+        <div>
+            <button type="submit" class="btn">⬇️  Generar y descargar</button>
+        </div>
+    </form>
+</section>
+
+<!-- ============================================================ -->
+<section class="card mb-md">
+    <h2 class="card-title">Restaurar desde backup cifrado</h2>
+    <p class="muted small">
+        Reemplaza la base de datos actual por la del fichero. Se hace una copia
+        de la BD actual con sufijo <code>.before-restore-XXXXXXXX</code> antes de sobrescribir,
+        por si quieres deshacerlo.
+        <strong>Recomendado: para a TNT antes (Ctrl+C en la terminal) y arráncalo de nuevo después.</strong>
+    </p>
+
+    <form action="/backup/restaurar" method="post" enctype="multipart/form-data"
+          hx-post="/backup/restaurar" hx-target="#restore-status" hx-swap="innerHTML" hx-encoding="multipart/form-data"
+          class="form-grid" style="max-width:32rem;">
+        <label>
+            <span>Archivo .tnt</span>
+            <input type="file" name="file" accept=".tnt,application/octet-stream" required>
+        </label>
+        <label>
+            <span>Contraseña</span>
+            <input type="password" name="password" required autocomplete="off">
+        </label>
+        <div>
+            <button type="submit" class="btn btn-danger">↩️  Restaurar</button>
+        </div>
+    </form>
+
+    <div id="restore-status" class="mt-md"></div>
+</section>
+{% endblock %}

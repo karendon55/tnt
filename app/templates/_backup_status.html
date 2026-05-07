@@ -2,6 +2,7 @@
     <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
         <button type="submit" class="btn btn-sm">🔁 Hacer backup</button>
     </form>
+    <a href="/backup" class="btn btn-sm btn-ghost" title="Backup cifrado / restaurar">🔒 Más opciones</a>
     {% if results is defined and results %}
         {% if ok %}
             <span class="pill pill-success">Backup ok · {{ ts }}</span>

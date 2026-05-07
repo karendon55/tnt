@@ -1,0 +1,20 @@
+{% if ok %}
+<div class="row wrap gap-md" style="align-items:center;">
+    <span class="pill pill-success">Restauración correcta · {{ ts }}</span>
+    <span class="muted small">archivo: <span class="tabular">{{ filename }}</span></span>
+    <span class="muted small">SHA-256 (16): <span class="tabular">{{ sha }}</span></span>
+</div>
+{% if previous %}
+<p class="small muted">
+    Se ha guardado la BD anterior en
+    <span class="tabular">{{ previous }}</span> por si quieres deshacer.
+</p>
+{% endif %}
+<p class="small">
+    <strong>Importante:</strong> reinicia TNT (Ctrl+C en la terminal y vuelve a ejecutar
+    <code>./run.sh</code> o cierra y reabre el lanzador) para asegurar que la app
+    lee la nueva base de datos.
+</p>
+{% else %}
+<div><span class="pill pill-warning">No se pudo restaurar — {{ error }}</span></div>
+{% endif %}
