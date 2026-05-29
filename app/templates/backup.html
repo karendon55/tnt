@@ -33,6 +33,73 @@
 
 <!-- ============================================================ -->
 <section class="card mb-md">
+    <h2 class="card-title">Backup por directorio (cifrado o sin cifrar)</h2>
+    <p class="muted small">
+        Para cada destino puedes elegir si la copia va en plano (<code>tnt.db</code>)
+        o cifrada con contraseña (<code>tnt.db.tnt</code>). Son independientes:
+        puedes guardar uno, otro o los dos en cada carpeta.
+    </p>
+
+    {% for d in destinations %}
+    {% set i = loop.index0 %}
+    <div class="card" style="margin:.5rem 0; background:rgba(0,0,0,0.15);">
+        <div class="row wrap gap-md" style="align-items:center;">
+            <span class="tabular small">{{ d }}</span>
+        </div>
+        <form hx-post="/backup/destino"
+              hx-target="#dest-status-{{ i }}"
+              hx-swap="innerHTML"
+              class="row wrap gap-md mt-md"
+              style="align-items:flex-end;"
+              data-dest-form>
+            <input type="hidden" name="dest_index" value="{{ i }}">
+            <label>
+                <span class="small muted">Tipo</span><br>
+                <select name="mode" class="input" data-mode-select>
+                    <option value="plain">Backup sin cifrar</option>
+                    <option value="encrypted">Backup cifrado</option>
+                </select>
+            </label>
+            <label class="enc-only" style="display:none;">
+                <span class="small muted">Contraseña (mín. 8)</span><br>
+                <input type="password" name="password" minlength="8"
+                       autocomplete="new-password" class="input">
+            </label>
+            <label class="enc-only" style="display:none;">
+                <span class="small muted">Repite contraseña</span><br>
+                <input type="password" name="confirm" minlength="8"
+                       autocomplete="new-password" class="input">
+            </label>
+            <button type="submit" class="btn">💾 Backup ahora</button>
+        </form>
+        <div id="dest-status-{{ i }}" class="mt-md"></div>
+    </div>
+    {% endfor %}
+</section>
+
+<script>
+(function() {
+    function toggle(form) {
+        const sel = form.querySelector('[data-mode-select]');
+        const isEnc = sel.value === 'encrypted';
+        form.querySelectorAll('.enc-only').forEach(function(lbl) {
+            lbl.style.display = isEnc ? '' : 'none';
+            lbl.querySelectorAll('input').forEach(function(inp) {
+                inp.required = isEnc;
+                if (!isEnc) inp.value = '';
+            });
+        });
+    }
+    document.querySelectorAll('[data-dest-form]').forEach(function(form) {
+        const sel = form.querySelector('[data-mode-select]');
+        sel.addEventListener('change', function() { toggle(form); });
+        toggle(form);
+    });
+})();
+</script>
+
+<!-- ============================================================ -->
+<section class="card mb-md">
     <h2 class="card-title">Backup cifrado para descargar</h2>
     <p class="muted small">
         Genera un fichero <code>.tnt</code> cifrado con AES-128 y firmado con HMAC-SHA256.

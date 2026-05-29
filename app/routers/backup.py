@@ -1,7 +1,8 @@
 """
 Router /backup — copia data/tnt.db a rutas locales de respaldo.
 
-  · POST /backup          → copia plana a destinos locales (Dropbox, ...).
+  · POST /backup          → copia plana a TODOS los destinos locales (Dropbox, ...).
+  · POST /backup/destino  → copia (plana o cifrada) a UN único destino.
   · GET  /backup          → página con todas las opciones (cifrado, restaurar).
   · POST /backup/cifrado  → descarga un .tnt cifrado con contraseña.
   · POST /backup/restaurar→ acepta un .tnt + contraseña y restaura la BD.
@@ -94,6 +95,78 @@ def run_backup(request: Request):
             "ts": datetime.now().strftime("%H:%M:%S"),
         },
     )
+
+
+# -----------------------------------------------------------------------
+# Backup a un único directorio (plano o cifrado)
+# -----------------------------------------------------------------------
+
+@router.post("/backup/destino", response_class=HTMLResponse)
+def backup_destino(
+    request: Request,
+    dest_index: int = Form(...),
+    mode: str = Form(...),
+    password: str = Form(""),
+    confirm: str = Form(""),
+):
+    """Hace backup a UN único destino, plano o cifrado.
+
+    El backup plano se guarda como ``tnt.db``; el cifrado como ``tnt.db.tnt``.
+    Así un mismo directorio puede tener los dos sin pisarse.
+    """
+    src = Path(DB_PATH)
+    if not src.exists():
+        return templates.TemplateResponse(
+            request, "_backup_destino_status.html",
+            {"ok": False, "dest_index": dest_index, "mode": mode,
+             "error": f"No existe {src}"},
+        )
+    if dest_index < 0 or dest_index >= len(BACKUP_DESTINATIONS):
+        return templates.TemplateResponse(
+            request, "_backup_destino_status.html",
+            {"ok": False, "dest_index": dest_index, "mode": mode,
+             "error": "Destino inválido."},
+        )
+
+    dest_dir = BACKUP_DESTINATIONS[dest_index]
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        if mode == "encrypted":
+            if password != confirm:
+                raise ValueError("Las contraseñas no coinciden.")
+            if len(password) < 8:
+                raise ValueError("La contraseña debe tener al menos 8 caracteres.")
+            blob = _pack_file(src, password)
+            dest_file = dest_dir / "tnt.db.tnt"
+            tmp = dest_file.with_suffix(dest_file.suffix + ".tmp")
+            with tmp.open("wb") as fout:
+                fout.write(blob)
+                fout.flush()
+                os.fsync(fout.fileno())
+            os.replace(tmp, dest_file)
+        elif mode == "plain":
+            dest_file = dest_dir / "tnt.db"
+            _copy_with_fsync(src, dest_file)
+        else:
+            raise ValueError(f"Modo desconocido: {mode!r}")
+
+        st = dest_file.stat()
+        return templates.TemplateResponse(
+            request, "_backup_destino_status.html",
+            {
+                "ok": True,
+                "dest_index": dest_index,
+                "dest": str(dest_file),
+                "mode": mode,
+                "size_kb": round(st.st_size / 1024, 1),
+                "ts": datetime.now().strftime("%H:%M:%S"),
+            },
+        )
+    except Exception as e:  # noqa: BLE001
+        return templates.TemplateResponse(
+            request, "_backup_destino_status.html",
+            {"ok": False, "dest_index": dest_index, "mode": mode, "error": str(e)},
+        )
 
 
 # -----------------------------------------------------------------------

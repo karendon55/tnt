@@ -1,0 +1,12 @@
+{% if ok %}
+    <div class="row wrap gap-md" style="align-items:center;">
+        {% if mode == "encrypted" %}
+            <span class="pill pill-success">🔒 Cifrado · {{ size_kb }} KB · {{ ts }}</span>
+        {% else %}
+            <span class="pill pill-success">✓ Sin cifrar · {{ size_kb }} KB · {{ ts }}</span>
+        {% endif %}
+        <span class="tabular small muted">{{ dest }}</span>
+    </div>
+{% else %}
+    <span class="pill pill-warning">✗ {{ error }}</span>
+{% endif %}
