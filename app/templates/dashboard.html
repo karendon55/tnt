@@ -10,6 +10,25 @@
             {{ month_name|capitalize }} · resumen en vivo.
             {% if showing_latest %}<span class="pill pill-warning">último mes con datos</span>{% endif %}
         </p>
+        <form method="get" action="/" class="row gap-md" style="align-items:center; margin-top:.5rem;">
+            <a class="btn btn-sm btn-ghost" href="/?month={{ prev_ym }}" title="Mes anterior">‹</a>
+            <select name="month" class="select btn-sm" onchange="this.form.submit()"
+                    style="min-width:12rem;">
+                {% set listed = [] %}
+                {% for m in months_for_selector %}
+                    <option value="{{ m.ym }}" {% if m.ym == current_ym %}selected{% endif %}>
+                        {{ m.label|capitalize }}
+                    </option>
+                    {% set _ = listed.append(m.ym) %}
+                {% endfor %}
+                {# Si el mes seleccionado no tiene datos aún, lo añadimos suelto #}
+                {% if current_ym not in listed %}
+                    <option value="{{ current_ym }}" selected>{{ month_name|capitalize }} (sin datos)</option>
+                {% endif %}
+            </select>
+            <a class="btn btn-sm btn-ghost" href="/?month={{ next_ym }}" title="Mes siguiente">›</a>
+            <a class="btn btn-sm btn-ghost" href="/" title="Volver al mes actual">hoy</a>
+        </form>
     </div>
     <div class="row wrap gap-lg">
         <a href="/importar" class="btn btn-primary">Importar</a>

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import date
+from typing import Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -33,8 +34,35 @@ _CATEGORY_COLORS = [
 ]
 
 
+def _parse_month_param(value: Optional[str]) -> Optional[date]:
+    """Devuelve date(year, month, 1) si value es 'YYYY-MM' válido; si no, None."""
+    if not value or len(value) < 7:
+        return None
+    try:
+        y = int(value[:4])
+        m = int(value[5:7])
+        if 1 <= m <= 12 and 2000 <= y <= 2100:
+            return date(y, m, 1)
+    except (ValueError, TypeError):
+        pass
+    return None
+
+
+def _adjacent_ym(ym: str, offset: int) -> str:
+    """Devuelve YYYY-MM desplazado offset meses (1 o -1)."""
+    y, m = int(ym[:4]), int(ym[5:7])
+    m += offset
+    while m < 1:
+        m += 12
+        y -= 1
+    while m > 12:
+        m -= 12
+        y += 1
+    return f"{y:04d}-{m:02d}"
+
+
 @router.get("/", response_class=HTMLResponse)
-def dashboard(request: Request):
+def dashboard(request: Request, month: Optional[str] = None):
     with cursor() as cur:
         has_any = cur.execute("SELECT 1 FROM transactions LIMIT 1").fetchone()
         if not has_any:
@@ -44,18 +72,29 @@ def dashboard(request: Request):
 
         balance = total_balance(cur)
 
-        # Si el mes actual no tiene movs, mostramos el último mes con datos
-        latest_ym_row = cur.execute(
-            "SELECT MAX(substr(date,1,7)) AS ym FROM transactions"
-        ).fetchone()
-        latest_ym = latest_ym_row["ym"] if latest_ym_row else None
-        cur_ym = date.today().strftime("%Y-%m")
-        has_current_month = cur.execute(
-            "SELECT 1 FROM transactions WHERE substr(date,1,7) = ? LIMIT 1",
-            (cur_ym,),
-        ).fetchone() is not None
+        # Meses con datos para el selector (más reciente primero)
+        available_months = [
+            r["ym"] for r in cur.execute(
+                "SELECT DISTINCT substr(date,1,7) AS ym FROM transactions "
+                "ORDER BY ym DESC"
+            ).fetchall()
+        ]
 
-        if has_current_month:
+        # Mes a mostrar:
+        # 1º) ?month=YYYY-MM si llega válido,
+        # 2º) mes actual si tiene movs,
+        # 3º) último mes con datos como fallback.
+        sel_date = _parse_month_param(month)
+        latest_ym = available_months[0] if available_months else None
+        cur_ym = date.today().strftime("%Y-%m")
+        has_current_month = cur_ym in available_months
+
+        if sel_date:
+            ref = sel_date
+            m_start, m_end = month_range(ref)
+            p_start, p_end = prev_month_range(ref)
+            showing_latest = False
+        elif has_current_month:
             m_start, m_end = month_range()
             p_start, p_end = prev_month_range()
             showing_latest = False
@@ -118,11 +157,24 @@ def dashboard(request: Request):
     line_labels = [month_label(p["month"]) for p in bal_series]
     line_values = [p["balance"] for p in bal_series]
 
+    # Para el selector de mes
+    current_ym = m_start[:7]
+    months_for_selector = [
+        {"ym": ym, "label": month_label(ym)} for ym in available_months
+    ]
+    # Permitimos avanzar/retroceder libremente, no solo entre meses con datos.
+    prev_ym = _adjacent_ym(current_ym, -1)
+    next_ym = _adjacent_ym(current_ym, +1)
+
     ctx = {
         "active": "dashboard",
         "balance": balance,
-        "month_name": month_label(m_start[:7]),
+        "month_name": month_label(current_ym),
         "showing_latest": showing_latest,
+        "current_ym": current_ym,
+        "prev_ym": prev_ym,
+        "next_ym": next_ym,
+        "months_for_selector": months_for_selector,
         "cur_month": cur_month,
         "prev_month": prev_month,
         "delta_expense": delta_expense,
