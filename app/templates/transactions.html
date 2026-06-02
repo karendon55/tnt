@@ -69,6 +69,7 @@
                 <th>Descripción</th>
                 <th>Cuenta</th>
                 <th>Categoría</th>
+                <th>Subcategoría</th>
                 <th>Memo</th>
                 <th class="num">Importe</th>
                 <th></th>
@@ -83,6 +84,9 @@
                     {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                 </td>
                 <td class="muted small">{{ tx.account_name }}</td>
+                <td id="cat-parent-{{ tx.id }}" class="muted small">
+                    {{ tx.category_label }}
+                </td>
                 <td id="cat-{{ tx.id }}">
                     {% include "_category_cell.html" with context %}
                 </td>

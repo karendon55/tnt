@@ -136,7 +136,10 @@ def transactions_list(
             "is_transfer": r["transfer_id"] is not None,
             "auto": bool(r["auto_categorized"]),
             "cat_id": r["cat_id"],
+            # "Categoría" = la padre si la asignada tiene padre, si no la propia.
+            # "Subcategoría" = la propia sólo cuando tiene padre.
             "category_label": r["parent_name"] or r["cat_name"] or "Sin categoría",
+            "subcategory_label": r["cat_name"] if r["parent_name"] else "",
         }
         for r in rows
     ]
@@ -180,6 +183,7 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
                 (tx_id,),
             )
             label = "Sin categoría"
+            sub_label = ""
             cat_id_int: Optional[int] = None
         else:
             cat_id_int = int(category_id)
@@ -195,6 +199,7 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
                 (cat_id_int,),
             ).fetchone()
             label = (row["pn"] or row["n"]) if row else "Sin categoría"
+            sub_label = row["n"] if (row and row["pn"]) else ""
 
         cats = cur.execute(
             "SELECT id, name, parent_id FROM categories ORDER BY parent_id IS NOT NULL, name"
@@ -219,9 +224,13 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
     return templates.TemplateResponse(
         request, "_category_cell.html",
         {
-            "tx": {"id": tx_id, "cat_id": cat_id_int, "category_label": label},
+            "tx": {
+                "id": tx_id, "cat_id": cat_id_int,
+                "category_label": label, "subcategory_label": sub_label,
+            },
             "cat_tree": cat_tree,
             "suggestion": suggestion,
+            "oob_subcat": True,  # incluye el OOB swap para la celda hermana
         },
     )
 
