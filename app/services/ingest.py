@@ -83,13 +83,23 @@ def preview(cur: sqlite3.Cursor, extract: ParsedExtract, sample: int = 20) -> Pr
 
 
 def ensure_account(cur: sqlite3.Cursor, extract: ParsedExtract) -> tuple[int, str]:
-    """Devuelve (account_id, account_name). Crea la cuenta si no existe."""
-    row = cur.execute(
-        "SELECT id, name FROM accounts WHERE iban = ? AND iban != ''",
-        (extract.iban,),
-    ).fetchone()
-    if row:
-        return row["id"], row["name"]
+    """Devuelve (account_id, account_name). Crea la cuenta si no existe.
+
+    Compara IBANs normalizados (sin espacios, mayúsculas) para no crear
+    duplicados si la cuenta existente se guardó con un formato distinto
+    al que produce el importer.
+    """
+    # Normaliza igual que el importer (sin espacios ni tabs, upper).
+    norm = "".join((extract.iban or "").upper().split())
+    if norm:
+        row = cur.execute(
+            "SELECT id, name FROM accounts "
+            "WHERE REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), '') = ? "
+            "  AND iban != ''",
+            (norm,),
+        ).fetchone()
+        if row:
+            return row["id"], row["name"]
 
     # Sin IBAN: intentar por nombre
     row = cur.execute(

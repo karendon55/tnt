@@ -9,6 +9,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
+from app.importers.common import normalize_iban
 from app.services.analytics import account_balance
 from app.templating import templates
 
@@ -94,7 +95,7 @@ def accounts_create(
         cur.execute(
             "INSERT INTO accounts(name, bank, iban, type, initial_balance, currency) "
             "VALUES (?, ?, ?, ?, ?, 'EUR')",
-            (name.strip(), bank.strip(), iban.strip(), type, initial_balance),
+            (name.strip(), bank.strip(), normalize_iban(iban), type, initial_balance),
         )
     return RedirectResponse("/cuentas", status_code=303)
 
@@ -112,7 +113,7 @@ def accounts_update(
         cur.execute(
             "UPDATE accounts SET name=?, bank=?, iban=?, initial_balance=?, type=? "
             "WHERE id=?",
-            (name.strip(), bank.strip(), iban.strip(), initial_balance, type, account_id),
+            (name.strip(), bank.strip(), normalize_iban(iban), initial_balance, type, account_id),
         )
     return RedirectResponse("/cuentas", status_code=303)
 

@@ -165,7 +165,24 @@ def init_db() -> None:
     with cursor() as cur:
         cur.executescript(SCHEMA)
         _add_columns_if_missing(cur)
+        _normalize_account_ibans(cur)
         _seed_categories(cur)
+
+
+def _normalize_account_ibans(cur: sqlite3.Cursor) -> None:
+    """Quita espacios/tabs y pasa a mayúsculas los IBANs de la tabla accounts.
+
+    Versiones antiguas guardaban el IBAN con espacios tal cual lo tecleaba
+    el usuario. El importer normaliza sin espacios, así que el lookup por
+    IBAN no matcheaba y se duplicaba la cuenta al importar. Esta migración
+    deja todos los IBANs en formato canónico.
+    """
+    cur.execute(
+        "UPDATE accounts "
+        "SET iban = REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), '') "
+        "WHERE iban IS NOT NULL "
+        "  AND iban != REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), '')"
+    )
 
 
 def _add_columns_if_missing(cur: sqlite3.Cursor) -> None:
