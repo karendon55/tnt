@@ -6,7 +6,7 @@
 <div class="page-header">
     <div>
         <h1>Importar extracto</h1>
-        <p>Sube uno o varios ficheros <code>.xls</code> de ING o CaixaBank. Verás un preview antes de confirmar.</p>
+        <p>Sube uno o varios ficheros de ING, CaixaBank o EuroCaja Rural. Verás un preview antes de confirmar.</p>
     </div>
     <div class="row wrap gap-lg">
         <a class="btn" href="/importar/lotes">📜 Lotes anteriores</a>
@@ -16,8 +16,8 @@
 <form method="post" action="/importar" enctype="multipart/form-data" class="card" id="importForm">
     <div class="field">
         <label for="files">Ficheros de extracto</label>
-        <input class="input" type="file" name="files" id="files" accept=".xls,.xlsx" multiple required>
-        <p class="small muted mt-lg">Puedes arrastrar varios a la vez. Soportamos ING (formato JasperReports) y CaixaBank.</p>
+        <input class="input" type="file" name="files" id="files" accept=".xls,.xlsx,.csv" multiple required>
+        <p class="small muted mt-lg">Puedes arrastrar varios a la vez. Soportamos ING (XLS), CaixaBank (XLS) y EuroCaja Rural (CSV).</p>
     </div>
     <div class="row wrap gap-lg">
         <button type="submit" class="btn btn-primary">
@@ -32,6 +32,7 @@
     <h3 class="card-title">¿Cómo obtener el extracto?</h3>
     <ul class="muted small">
         <li><strong>ING:</strong> Acceso a tu cuenta → Movimientos → Exportar a Excel.</li>
+        <li><strong>EuroCaja Rural:</strong> Cuentas → Consultar → Movimientos → Descargar CSV.</li>
         <li><strong>CaixaBank:</strong> Cuentas → Movimientos → Descargar → Excel.</li>
     </ul>
     <p class="small muted">Los datos no salen de este ordenador. TNT funciona 100% en local.</p>

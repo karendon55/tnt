@@ -88,10 +88,14 @@ def ensure_account(cur: sqlite3.Cursor, extract: ParsedExtract) -> tuple[int, st
     Compara IBANs normalizados (sin espacios, mayúsculas) para no crear
     duplicados si la cuenta existente se guardó con un formato distinto
     al que produce el importer.
+
+    Para cuentas españolas tolera la diferencia entre IBAN completo (ES99…,
+    24 chars) y BBAN (20 chars) comparando también por los últimos 20.
     """
     # Normaliza igual que el importer (sin espacios ni tabs, upper).
     norm = "".join((extract.iban or "").upper().split())
     if norm:
+        # 1) Match exacto normalizado.
         row = cur.execute(
             "SELECT id, name FROM accounts "
             "WHERE REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), '') = ? "
@@ -100,6 +104,21 @@ def ensure_account(cur: sqlite3.Cursor, extract: ParsedExtract) -> tuple[int, st
         ).fetchone()
         if row:
             return row["id"], row["name"]
+
+        # 2) Match por BBAN (últimos 20 chars del IBAN normalizado).
+        #    Cubre el caso "BD tiene 20 dígitos sin ES, extracto trae IBAN largo".
+        if len(norm) >= 20:
+            tail = norm[-20:]
+            row = cur.execute(
+                "SELECT id, name FROM accounts "
+                "WHERE iban != '' "
+                "  AND LENGTH(REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), '')) >= 20 "
+                "  AND SUBSTR("
+                "      REPLACE(REPLACE(UPPER(iban), ' ', ''), CHAR(9), ''), -20) = ?",
+                (tail,),
+            ).fetchone()
+            if row:
+                return row["id"], row["name"]
 
     # Sin IBAN: intentar por nombre
     row = cur.execute(

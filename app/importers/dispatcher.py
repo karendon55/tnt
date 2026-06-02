@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.importers import caixabank, ing
+from app.importers import caixabank, eurocajarural, ing
 from app.importers.common import ParsedExtract, xls_to_csv_rows
 
 
@@ -23,5 +23,18 @@ def detect_and_parse(path: Path | str) -> ParsedExtract:
             f"Formato XLS no reconocido. {p.name}: no encaja con ING ni CaixaBank."
         )
 
+    if ext == ".csv":
+        blob = Path(p).read_bytes()
+        text = eurocajarural._decode(blob)
+        rows = eurocajarural._read_rows(text)
+        if eurocajarural.matches(rows):
+            return eurocajarural.parse(p)
+        # Nota: HomeBank tiene su propio endpoint /importar/homebank con
+        # selector de cuenta destino — no lo metemos aquí para no confundirlo.
+        raise ValueError(
+            f"Formato CSV no reconocido. {p.name}: no parece de EuroCaja Rural. "
+            f"Si es un CSV de HomeBank, usa la sección 'Importar histórico de HomeBank'."
+        )
+
     raise ValueError(f"Tipo de archivo {ext} no soportado todavía. "
-                     f"Soportamos: .xls, .xlsx.")
+                     f"Soportamos: .xls, .xlsx, .csv.")
