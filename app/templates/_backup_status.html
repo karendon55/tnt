@@ -13,7 +13,7 @@
             {% for r in results %}
                 <li style="margin:.1rem 0;">
                     {% if r.ok %}
-                        ✓ <span class="tabular">{{ r.dest }}</span> · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
+                        ✓ <span class="tabular">{{ r.dest }}</span>{% if r.mode == "encrypted" %} · 🔒 cifrado{% endif %} · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
                     {% else %}
                         ✗ <span class="tabular">{{ r.dest }}</span> — {{ r.error }}
                     {% endif %}

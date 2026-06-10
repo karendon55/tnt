@@ -19,10 +19,14 @@
 
 <!-- ============================================================ -->
 <section class="card mb-md">
-    <h2 class="card-title">Backup local sin cifrar</h2>
-    <p class="muted small">Copia <code>data/tnt.db</code> a las rutas configuradas en el servidor.</p>
+    <h2 class="card-title">Backup local</h2>
+    <p class="muted small">Copia <code>data/tnt.db</code> a cada destino aplicando el modo configurado más abajo.</p>
     <ul class="small muted" style="list-style:none; padding:0; margin:.25rem 0 .5rem 0;">
-        {% for d in destinations %}<li>· <span class="tabular">{{ d }}</span></li>{% endfor %}
+        {% for d in destinations %}
+        <li>· <span class="tabular">{{ d.path }}</span>
+            {% if d.mode == "encrypted" %}<span class="pill">🔒 cifrado</span>{% else %}<span class="pill">sin cifrar</span>{% endif %}
+        </li>
+        {% endfor %}
     </ul>
     <div id="backup-status" class="row wrap gap-md" style="align-items:center;">
         <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
@@ -36,7 +40,7 @@
             <label>
                 <span class="small muted">Una ruta por línea (admite <code>~</code>)</span>
                 <textarea name="destinations_text" class="input tabular" rows="4"
-                          style="width:100%;">{{ destinations | join('\n') }}</textarea>
+                          style="width:100%;">{{ destinations | map(attribute='path') | join('\n') }}</textarea>
             </label>
             <div class="mt-md">
                 <button type="submit" class="btn">Guardar destinos</button>
@@ -47,35 +51,42 @@
 
 <!-- ============================================================ -->
 <section class="card mb-md">
-    <h2 class="card-title">Backup por directorio (cifrado o sin cifrar)</h2>
+    <h2 class="card-title">Configuración por destino</h2>
     <p class="muted small">
-        Para cada destino puedes elegir si la copia va en plano (<code>tnt.db</code>)
-        o cifrada con contraseña (<code>tnt.db.tnt</code>). Son independientes:
-        puedes guardar uno, otro o los dos en cada carpeta.
+        Elige para cada destino si la copia va en plano (<code>tnt.db</code>)
+        o cifrada con contraseña (<code>tnt.db.tnt</code>). La elección queda
+        <strong>guardada</strong> y se aplica siempre, también al botón
+        «Hacer backup» del panel. <strong>Si pierdes la contraseña no podrás
+        restaurar el backup cifrado.</strong>
     </p>
+    {% if saved %}<p><span class="pill pill-success">Configuración guardada.</span></p>{% endif %}
+    {% if config_error %}<p><span class="pill pill-warning">{{ config_error }}</span></p>{% endif %}
 
     {% for d in destinations %}
     {% set i = loop.index0 %}
     <div class="card" style="margin:.5rem 0; background:rgba(0,0,0,0.15);">
         <div class="row wrap gap-md" style="align-items:center;">
-            <span class="tabular small">{{ d }}</span>
+            <span class="tabular small">{{ d.path }}</span>
+            {% if d.mode == "encrypted" %}
+            <span class="pill">🔒 cifrado{% if d.has_password %} · contraseña guardada{% endif %}</span>
+            {% else %}
+            <span class="pill">sin cifrar</span>
+            {% endif %}
         </div>
-        <form hx-post="/backup/destino"
-              hx-target="#dest-status-{{ i }}"
-              hx-swap="innerHTML"
+        <form method="post" action="/backup/destino/config"
               class="row wrap gap-md mt-md"
               style="align-items:flex-end;"
-              data-dest-form>
+              data-dest-form data-has-password="{{ 1 if d.has_password else 0 }}">
             <input type="hidden" name="dest_index" value="{{ i }}">
             <label>
                 <span class="small muted">Tipo</span><br>
                 <select name="mode" class="input" data-mode-select>
-                    <option value="plain">Backup sin cifrar</option>
-                    <option value="encrypted">Backup cifrado</option>
+                    <option value="plain" {% if d.mode == "plain" %}selected{% endif %}>Backup sin cifrar</option>
+                    <option value="encrypted" {% if d.mode == "encrypted" %}selected{% endif %}>Backup cifrado</option>
                 </select>
             </label>
             <label class="enc-only" style="display:none;">
-                <span class="small muted">Contraseña (mín. 8)</span><br>
+                <span class="small muted">Contraseña (mín. 8){% if d.has_password %} — vacío = mantener{% endif %}</span><br>
                 <input type="password" name="password" minlength="8"
                        autocomplete="new-password" class="input">
             </label>
@@ -84,7 +95,14 @@
                 <input type="password" name="confirm" minlength="8"
                        autocomplete="new-password" class="input">
             </label>
-            <button type="submit" class="btn">💾 Backup ahora</button>
+            <button type="submit" class="btn">Guardar</button>
+        </form>
+        <form hx-post="/backup/destino"
+              hx-target="#dest-status-{{ i }}"
+              hx-swap="innerHTML"
+              class="mt-md" style="display:inline;">
+            <input type="hidden" name="dest_index" value="{{ i }}">
+            <button type="submit" class="btn">💾 Backup ahora ({% if d.mode == "encrypted" %}cifrado{% else %}sin cifrar{% endif %})</button>
         </form>
         <div id="dest-status-{{ i }}" class="mt-md"></div>
     </div>
@@ -96,10 +114,12 @@
     function toggle(form) {
         const sel = form.querySelector('[data-mode-select]');
         const isEnc = sel.value === 'encrypted';
+        const hasPwd = form.dataset.hasPassword === '1';
         form.querySelectorAll('.enc-only').forEach(function(lbl) {
             lbl.style.display = isEnc ? '' : 'none';
             lbl.querySelectorAll('input').forEach(function(inp) {
-                inp.required = isEnc;
+                // Si ya hay contraseña guardada, dejarla vacía la mantiene.
+                inp.required = isEnc && !hasPwd;
                 if (!isEnc) inp.value = '';
             });
         });
