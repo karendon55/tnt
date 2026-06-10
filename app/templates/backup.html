@@ -29,6 +29,20 @@
             <button type="submit" class="btn">🔁 Hacer backup ahora</button>
         </form>
     </div>
+
+    <details class="mt-md">
+        <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">⚙️ Editar destinos</summary>
+        <form method="post" action="/backup/destinos" class="mt-md" style="max-width:32rem;">
+            <label>
+                <span class="small muted">Una ruta por línea (admite <code>~</code>)</span>
+                <textarea name="destinations_text" class="input tabular" rows="4"
+                          style="width:100%;">{{ destinations | join('\n') }}</textarea>
+            </label>
+            <div class="mt-md">
+                <button type="submit" class="btn">Guardar destinos</button>
+            </div>
+        </form>
+    </details>
 </section>
 
 <!-- ============================================================ -->

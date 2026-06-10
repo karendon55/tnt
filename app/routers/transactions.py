@@ -13,22 +13,14 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from app.db import cursor
+from app.services.analytics import category_tree
 from app.services.categorizer import extract_tokens
 from app.templating import templates
+from app.utils.forms import to_int_or_none
 
 router = APIRouter()
 
 PAGE_SIZE = 50
-
-
-def _to_int_or_none(value: Optional[str]) -> Optional[int]:
-    """Convierte '' o None a None, números a int. Silenciosa ante basura."""
-    if value is None or value == "":
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
 
 
 def _build_query(
@@ -72,8 +64,8 @@ def transactions_list(
     q: Optional[str] = None,
     page: int = 1,
 ):
-    account_id_i = _to_int_or_none(account_id)
-    category_id_i = _to_int_or_none(category_id)
+    account_id_i = to_int_or_none(account_id)
+    category_id_i = to_int_or_none(category_id)
     date_from = date_from or None
     date_to = date_to or None
     q = (q or "").strip() or None
@@ -86,9 +78,7 @@ def transactions_list(
         accounts = cur.execute(
             "SELECT id, name, bank FROM accounts WHERE archived = 0 ORDER BY name"
         ).fetchall()
-        cats = cur.execute(
-            "SELECT id, name, parent_id FROM categories ORDER BY parent_id IS NOT NULL, name"
-        ).fetchall()
+        cat_tree = category_tree(cur)  # árbol de categorías para el selector
 
         total = cur.execute(
             f"""SELECT COUNT(*) AS n
@@ -114,18 +104,6 @@ def transactions_list(
         ).fetchall()
 
     pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
-
-    # Árbol de categorías para el selector
-    cat_tree = []
-    by_parent: dict = {}
-    for c in cats:
-        by_parent.setdefault(c["parent_id"], []).append(c)
-    for parent in by_parent.get(None, []):
-        cat_tree.append({
-            "id": parent["id"], "name": parent["name"],
-            "children": [{"id": c["id"], "name": c["name"]}
-                         for c in by_parent.get(parent["id"], [])]
-        })
 
     txs = [
         {
@@ -201,25 +179,12 @@ def recategorize(request: Request, tx_id: int, category_id: str = Form(...)):
             label = (row["pn"] or row["n"]) if row else "Sin categoría"
             sub_label = row["n"] if (row and row["pn"]) else ""
 
-        cats = cur.execute(
-            "SELECT id, name, parent_id FROM categories ORDER BY parent_id IS NOT NULL, name"
-        ).fetchall()
+        cat_tree = category_tree(cur)  # árbol de categorías para el selector
 
         # Sugerir una regla sólo si hemos asignado categoría real (no limpiado).
         suggestion = None
         if cat_id_int is not None and description:
             suggestion = _best_rule_suggestion(cur, description, cat_id_int)
-
-    cat_tree = []
-    by_parent: dict = {}
-    for c in cats:
-        by_parent.setdefault(c["parent_id"], []).append(c)
-    for parent in by_parent.get(None, []):
-        cat_tree.append({
-            "id": parent["id"], "name": parent["name"],
-            "children": [{"id": c["id"], "name": c["name"]}
-                         for c in by_parent.get(parent["id"], [])]
-        })
 
     return templates.TemplateResponse(
         request, "_category_cell.html",
@@ -323,7 +288,7 @@ def transaction_create(
 ):
     """Crea un movimiento manual (gasto en efectivo, corrección, etc.)."""
     desc = (description or "").strip() or "(manual)"
-    cat_id = _to_int_or_none(category_id)
+    cat_id = to_int_or_none(category_id)
     with cursor() as cur:
         cur.execute(
             """INSERT INTO transactions(
@@ -353,7 +318,7 @@ def transaction_update(
     """Edita un movimiento existente. Si cambiaron campos clave (importe, fecha,
     cuenta), se rompe el enlace de traspaso por si ya no es simétrico."""
     desc = (description or "").strip() or "(manual)"
-    cat_id = _to_int_or_none(category_id)
+    cat_id = to_int_or_none(category_id)
     with cursor() as cur:
         old = cur.execute(
             "SELECT account_id, date, amount FROM transactions WHERE id = ?", (tx_id,)
@@ -404,8 +369,8 @@ def export_csv(
     q: Optional[str] = None,
 ):
     clause, params = _build_query(
-        _to_int_or_none(account_id),
-        _to_int_or_none(category_id),
+        to_int_or_none(account_id),
+        to_int_or_none(category_id),
         date_from or None,
         date_to or None,
         (q or "").strip() or None,

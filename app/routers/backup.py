@@ -12,14 +12,16 @@ Sobrescribe el fichero destino (no versiona con timestamp).
 from __future__ import annotations
 
 import io
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from app.config import DB_PATH
+from app.db import cursor
 from app.services.encrypted_backup import (
     pack_file as _pack_file,
     restore_file as _restore_file,
@@ -28,11 +30,50 @@ from app.templating import templates
 
 router = APIRouter()
 
-# Destinos del backup. Si una ruta no existe, se crea (con sus padres).
-BACKUP_DESTINATIONS = [
-    Path("/home/trooper/Dropbox"),
-    Path("/home/trooper/Documentos/contabilidad/backup"),
+# Clave en la tabla `settings` con la lista (JSON) de destinos de backup.
+_SETTINGS_KEY = "backup_destinations"
+
+# Valores por defecto si la clave aún no existe (primera ejecución tras
+# la migración desde las rutas hardcodeadas).
+_DEFAULT_DESTINATIONS = [
+    "~/Dropbox",
+    "~/Documentos/contabilidad/backup",
 ]
+
+
+def get_backup_destinations() -> list[Path]:
+    """Destinos del backup, leídos de la tabla `settings` (JSON).
+    Si la clave no existe todavía, se siembra con los valores por defecto.
+    Las rutas admiten `~` y se expanden aquí."""
+    with cursor() as cur:
+        row = cur.execute(
+            "SELECT value FROM settings WHERE key = ?", (_SETTINGS_KEY,)
+        ).fetchone()
+        if row is None:
+            cur.execute(
+                "INSERT INTO settings(key, value) VALUES (?, ?)",
+                (_SETTINGS_KEY, json.dumps(_DEFAULT_DESTINATIONS)),
+            )
+            raw = _DEFAULT_DESTINATIONS
+        else:
+            try:
+                raw = json.loads(row["value"])
+                if not isinstance(raw, list):
+                    raw = _DEFAULT_DESTINATIONS
+            except (ValueError, TypeError):
+                raw = _DEFAULT_DESTINATIONS
+    return [Path(p).expanduser() for p in raw if str(p).strip()]
+
+
+def set_backup_destinations(paths: list[str]) -> None:
+    """Guarda la lista de destinos (texto, una ruta por elemento) en settings."""
+    clean = [p.strip() for p in paths if p.strip()]
+    with cursor() as cur:
+        cur.execute(
+            "INSERT INTO settings(key, value) VALUES (?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (_SETTINGS_KEY, json.dumps(clean)),
+        )
 
 
 def _copy_with_fsync(src: Path, dest: Path) -> None:
@@ -63,7 +104,7 @@ def run_backup(request: Request):
     src_size = src.stat().st_size
 
     results = []
-    for dest_dir in BACKUP_DESTINATIONS:
+    for dest_dir in get_backup_destinations():
         dest_file = dest_dir / "tnt.db"
         try:
             dest_dir.mkdir(parents=True, exist_ok=True)
@@ -121,14 +162,15 @@ def backup_destino(
             {"ok": False, "dest_index": dest_index, "mode": mode,
              "error": f"No existe {src}"},
         )
-    if dest_index < 0 or dest_index >= len(BACKUP_DESTINATIONS):
+    destinations = get_backup_destinations()
+    if dest_index < 0 or dest_index >= len(destinations):
         return templates.TemplateResponse(
             request, "_backup_destino_status.html",
             {"ok": False, "dest_index": dest_index, "mode": mode,
              "error": "Destino inválido."},
         )
 
-    dest_dir = BACKUP_DESTINATIONS[dest_index]
+    dest_dir = destinations[dest_index]
     try:
         dest_dir.mkdir(parents=True, exist_ok=True)
         if mode == "encrypted":
@@ -186,8 +228,16 @@ def backup_page(request: Request):
         }
     return templates.TemplateResponse(
         request, "backup.html",
-        {"active": "backup", "db_info": db_info, "destinations": [str(d) for d in BACKUP_DESTINATIONS]},
+        {"active": "backup", "db_info": db_info,
+         "destinations": [str(d) for d in get_backup_destinations()]},
     )
+
+
+@router.post("/backup/destinos")
+def update_destinations(destinations_text: str = Form("")):
+    """Actualiza la lista de destinos de backup (una ruta por línea)."""
+    set_backup_destinations(destinations_text.splitlines())
+    return RedirectResponse("/backup", status_code=303)
 
 
 @router.post("/backup/cifrado")

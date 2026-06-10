@@ -15,6 +15,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
+from app.services.analytics import category_tree
 from app.templating import templates
 
 router = APIRouter()
@@ -32,10 +33,7 @@ def rules_list(request: Request):
                ORDER BY r.source, r.pattern"""
         ).fetchall()
 
-        cats = cur.execute(
-            "SELECT id, name, parent_id FROM categories "
-            "ORDER BY parent_id IS NOT NULL, name"
-        ).fetchall()
+        cat_tree = category_tree(cur)  # árbol de categorías para el selector
 
     rules = []
     for r in rows:
@@ -44,18 +42,6 @@ def rules_list(request: Request):
             "id": r["id"], "pattern": r["pattern"], "source": r["source"],
             "priority": r["priority"], "hits": r["hits"],
             "category_id": r["category_id"], "category_label": label,
-        })
-
-    # Árbol de categorías para el selector
-    cat_tree = []
-    by_parent: dict = {}
-    for c in cats:
-        by_parent.setdefault(c["parent_id"], []).append(c)
-    for parent in by_parent.get(None, []):
-        cat_tree.append({
-            "id": parent["id"], "name": parent["name"],
-            "children": [{"id": c["id"], "name": c["name"]}
-                         for c in by_parent.get(parent["id"], [])]
         })
 
     return templates.TemplateResponse(
