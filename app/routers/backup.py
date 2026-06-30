@@ -27,6 +27,11 @@ from app.services.encrypted_backup import (
     pack_file as _pack_file,
     restore_file as _restore_file,
 )
+from app.services.master_key import (
+    decrypt_secret as _decrypt_secret,
+    encrypt_secret as _encrypt_secret,
+    is_encrypted as _is_encrypted,
+)
 from app.templating import templates
 
 router = APIRouter()
@@ -61,7 +66,8 @@ def _normalize_entry(entry) -> dict | None:
 
 def _load_destinations() -> list[dict]:
     """Lee la configuración de destinos de `settings`. La primera vez
-    siembra los valores por defecto."""
+    siembra los valores por defecto. Migra contraseñas en texto plano
+    (legacy) cifrándolas con la clave maestra y reescribiendo settings."""
     with cursor() as cur:
         row = cur.execute(
             "SELECT value FROM settings WHERE key = ?", (_SETTINGS_KEY,)
@@ -79,7 +85,19 @@ def _load_destinations() -> list[dict]:
                     raw = _DEFAULT_DESTINATIONS
             except (ValueError, TypeError):
                 raw = _DEFAULT_DESTINATIONS
-    return [d for d in (_normalize_entry(e) for e in raw) if d]
+    dests = [d for d in (_normalize_entry(e) for e in raw) if d]
+
+    # Migración: contraseñas que estén en texto plano se cifran con la
+    # clave maestra y se reescriben en BD. Idempotente.
+    needs_save = False
+    for d in dests:
+        pwd = d.get("password")
+        if pwd and not _is_encrypted(pwd):
+            d["password"] = _encrypt_secret(pwd)
+            needs_save = True
+    if needs_save:
+        _save_destinations(dests)
+    return dests
 
 
 def _save_destinations(dests: list[dict]) -> None:
@@ -123,7 +141,13 @@ def set_backup_destinations(paths: list[str]) -> None:
 
 def _backup_one(src: Path, dest: dict) -> dict:
     """Copia `src` a un destino según su modo configurado (plano o cifrado).
-    Devuelve un dict de resultado para las plantillas de estado."""
+
+    Tras escribir el archivo del modo activo, elimina el archivo del otro
+    modo si existe — así no quedan huérfanos de configuraciones anteriores
+    (p.ej. un ``tnt.db`` plano viejo al lado de un ``tnt.db.tnt`` actual).
+
+    Devuelve un dict de resultado para las plantillas de estado.
+    """
     dest_dir: Path = dest["dir"]
     mode = dest["mode"]
     try:
@@ -134,8 +158,10 @@ def _backup_one(src: Path, dest: dict) -> dict:
             )
         dest_dir.mkdir(parents=True, exist_ok=True)
         if mode == "encrypted":
-            blob = _pack_file(src, dest["password"])
+            password = _decrypt_secret(dest["password"])
+            blob = _pack_file(src, password)
             dest_file = dest_dir / "tnt.db.tnt"
+            other_file = dest_dir / "tnt.db"
             tmp = dest_file.with_suffix(dest_file.suffix + ".tmp")
             with tmp.open("wb") as fout:
                 fout.write(blob)
@@ -144,9 +170,17 @@ def _backup_one(src: Path, dest: dict) -> dict:
             os.replace(tmp, dest_file)
         else:
             dest_file = dest_dir / "tnt.db"
+            other_file = dest_dir / "tnt.db.tnt"
             _copy_with_fsync(src, dest_file)
             if dest_file.stat().st_size != src.stat().st_size:
                 raise IOError("el tamaño no coincide tras copiar")
+
+        # Limpia huérfanos del otro modo.
+        try:
+            other_file.unlink(missing_ok=True)
+        except OSError:
+            pass
+
         st = dest_file.stat()
         return {
             "dest": str(dest_file),
@@ -256,7 +290,7 @@ def backup_destino_config(
                 return RedirectResponse(
                     f"/backup?error={quote(error)}", status_code=303
                 )
-            d["password"] = password
+            d["password"] = _encrypt_secret(password)
     else:
         d["password"] = None
     d["mode"] = mode
