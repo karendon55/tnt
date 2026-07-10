@@ -154,7 +154,9 @@ def categories_evolution(
             "months": months,
             "kind": kind,
             "top": top,
-            "chart_json": json.dumps({"labels": labels, "datasets": datasets}),
+            # Va con |safe dentro de <script>: escapar '<' evita que un
+            # nombre de categoría con '</script>' rompa/inyecte en la página.
+            "chart_json": json.dumps({"labels": labels, "datasets": datasets}).replace("<", "\\u003c"),
             "has_data": has_data,
         },
     )

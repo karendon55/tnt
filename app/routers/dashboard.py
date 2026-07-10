@@ -182,15 +182,17 @@ def dashboard(request: Request, month: Optional[str] = None):
         "last_transactions": last_transactions,
         "forecast": forecast,
         "anomalies": anomalies[:5],
+        # .replace: estos JSON van con |safe dentro de <script>; escapar '<'
+        # evita que un texto con '</script>' rompa/inyecte en la página.
         "donut_json": json.dumps({
             "labels": donut_labels,
             "values": donut_values,
             "colors": donut_colors,
-        }),
+        }).replace("<", "\\u003c"),
         "line_json": json.dumps({
             "labels": line_labels,
             "values": line_values,
-        }),
+        }).replace("<", "\\u003c"),
         "has_categories": len(cats) > 0,
         "has_series": len(bal_series) > 1,
     }

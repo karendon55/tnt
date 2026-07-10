@@ -22,7 +22,7 @@ from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 from app.config import DB_PATH
-from app.db import cursor
+from app.db import cursor, db_snapshot
 from app.services.encrypted_backup import (
     pack_file as _pack_file,
     restore_file as _restore_file,
@@ -219,7 +219,10 @@ def run_backup(request: Request):
             {"ok": False, "results": [], "message": f"No existe {src}"},
         )
 
-    results = [_backup_one(src, d) for d in get_backup_destinations()]
+    # Snapshot consistente (incluye lo pendiente en el -wal) para todos
+    # los destinos, en vez de copiar tnt.db a pelo con la app escribiendo.
+    with db_snapshot(src) as snap:
+        results = [_backup_one(snap, d) for d in get_backup_destinations()]
     all_ok = all(r["ok"] for r in results)
     return templates.TemplateResponse(
         request, "_backup_status.html",
@@ -256,7 +259,8 @@ def backup_destino(request: Request, dest_index: int = Form(...)):
              "error": "Destino inválido."},
         )
 
-    r = _backup_one(src, destinations[dest_index])
+    with db_snapshot(src) as snap:
+        r = _backup_one(snap, destinations[dest_index])
     ctx = {"dest_index": dest_index, "ts": datetime.now().strftime("%H:%M:%S"), **r}
     return templates.TemplateResponse(request, "_backup_destino_status.html", ctx)
 
@@ -351,7 +355,8 @@ def download_encrypted(password: str = Form(...), confirm: str = Form(...)):
             "<p class='pill pill-warning'>La contraseña debe tener al menos 8 caracteres.</p>",
             status_code=400,
         )
-    blob = _pack_file(src, password)
+    with db_snapshot(src) as snap:
+        blob = _pack_file(snap, password)
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     filename = f"tnt-backup-{ts}.tnt"
     return StreamingResponse(

@@ -31,8 +31,13 @@ def _get_or_create_key() -> bytes:
     """Devuelve la clave maestra (32 bytes URL-safe base64). Si no existe,
     la genera con permisos 600."""
     if _KEY_PATH.exists():
+        # Reafirma permisos: mkdir(mode=...) solo aplica al crear, y el
+        # usuario puede haber copiado la clave a mano con permisos laxos.
+        os.chmod(_KEY_PATH.parent, 0o700)
+        os.chmod(_KEY_PATH, 0o600)
         return _KEY_PATH.read_bytes().strip()
     _KEY_PATH.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    os.chmod(_KEY_PATH.parent, 0o700)  # por si el dir ya existía laxo
     key = Fernet.generate_key()
     # O_EXCL para evitar carrera si dos procesos arrancan a la vez.
     fd = os.open(str(_KEY_PATH), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)

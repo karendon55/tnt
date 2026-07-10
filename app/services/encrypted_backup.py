@@ -20,6 +20,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+import sqlite3
 import struct
 from pathlib import Path
 from typing import Tuple
@@ -89,6 +90,19 @@ def pack_file(src: Path, password: str, *, iters: int = DEFAULT_ITERS) -> bytes:
     return pack(src.read_bytes(), password, iters=iters)
 
 
+def _checkpoint_wal(db: Path) -> None:
+    """Vuelca el -wal pendiente a la BD principal (best effort).
+    Así la copia .before-restore incluye las últimas transacciones."""
+    try:
+        conn = sqlite3.connect(db)
+        try:
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        pass
+
+
 def restore_file(blob: bytes, password: str, dest: Path) -> Tuple[Path, str]:
     """Descifra `blob` y escribe el resultado en `dest` de forma atómica.
 
@@ -102,11 +116,20 @@ def restore_file(blob: bytes, password: str, dest: Path) -> Tuple[Path, str]:
     dest = Path(dest)
     backup_prev = None
     if dest.exists():
+        # Checkpoint para que la copia de seguridad previa esté completa.
+        _checkpoint_wal(dest)
         backup_prev = dest.with_suffix(dest.suffix + f".before-restore-{sha[:8]}")
         # No sobrescribimos un previo si ya existe (es información de seguridad)
         if not backup_prev.exists():
             os.replace(dest, backup_prev)
     tmp = dest.with_suffix(dest.suffix + ".tmp")
-    tmp.write_bytes(plaintext)
+    with tmp.open("wb") as f:
+        f.write(plaintext)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, dest)
+    # El -wal/-shm de la BD anterior no debe aplicarse a la restaurada:
+    # SQLite intentaría "recuperar" ese WAL viejo sobre la BD nueva.
+    for suffix in ("-wal", "-shm"):
+        Path(str(dest) + suffix).unlink(missing_ok=True)
     return (backup_prev or dest, sha)

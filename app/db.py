@@ -2,7 +2,9 @@
 Capa de datos SQLite para TNT.
 Esquema mínimo: cuentas, categorías, transacciones, presupuestos, reglas.
 """
+import shutil
 import sqlite3
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -157,6 +159,35 @@ def cursor() -> Iterator[sqlite3.Cursor]:
         yield cur
     finally:
         conn.close()
+
+
+@contextmanager
+def db_snapshot(src: Path | str = DB_PATH) -> Iterator[Path]:
+    """Copia consistente de la BD en un fichero temporal, vía la API de
+    backup de SQLite.
+
+    Con journal_mode=WAL, las transacciones confirmadas viven en el
+    fichero -wal hasta el checkpoint; copiar tnt.db a pelo puede perder
+    los últimos movimientos o pillar un checkpoint a medias. La API de
+    backup produce un snapshot íntegro aunque la app esté escribiendo.
+
+    El temporal se borra al salir del contexto.
+    """
+    tmp_dir = Path(tempfile.mkdtemp(prefix="tnt-snapshot-"))
+    snap = tmp_dir / "tnt.db"
+    try:
+        src_conn = sqlite3.connect(src)
+        try:
+            dst_conn = sqlite3.connect(snap)
+            try:
+                src_conn.backup(dst_conn)
+            finally:
+                dst_conn.close()
+        finally:
+            src_conn.close()
+        yield snap
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def init_db() -> None:
