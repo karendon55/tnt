@@ -35,3 +35,6 @@ __pycache__/
 
 # Notas personales de trabajo (no son del proyecto)
 /reinstalarcambios.txt
+
+# Ajustes locales del agente (permisos propios de cada máquina)
+.claude/settings.local.json
