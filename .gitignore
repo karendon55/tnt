@@ -32,3 +32,6 @@ __pycache__/
 
 # Artefactos de empaquetado
 /packaging/dist/
+
+# Notas personales de trabajo (no son del proyecto)
+/reinstalarcambios.txt
