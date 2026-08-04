@@ -97,13 +97,25 @@ def uncategorized_category_id(cur: sqlite3.Cursor) -> int:
 
 # ====== Aprendizaje de reglas ======
 
+MIN_CONFIDENCE = 0.70
+
+
 def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
     """
     Recorre las transacciones que ya tienen category_id y actualiza
     category_rules con los tokens dominantes de cada descripción.
     Regla de confianza: un token genera regla si al menos el 70% de las
-    transacciones donde aparece pertenecen a la misma categoría, y aparece >=2 veces.
-    Devuelve el número de reglas creadas o actualizadas.
+    transacciones donde aparece pertenecen a la misma categoría.
+
+    También *revoca* las reglas aprendidas que la evidencia actual ya no
+    respalda: si el usuario recategoriza a mano, el token deja de ser
+    dominante y su regla debe desaparecer. Sin esto, una regla aprendida
+    con datos antiguos sobrevive para siempre y sigue clasificando mal
+    (p. ej. "REPSOL"→Luz y gas aprendido de los recibos domiciliados,
+    aplicándose luego a "REPSOL WAYLET", que es combustible).
+
+    Las reglas 'manual' y 'builtin' nunca se tocan aquí.
+    Devuelve el número de reglas creadas.
     """
     rows = cur.execute(
         "SELECT description, category_id FROM transactions "
@@ -121,11 +133,12 @@ def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
         if total < 1:
             continue
         cat_id, cat_hits = counter.most_common(1)[0]
-        if cat_hits / total < 0.70:
+        if cat_hits / total < MIN_CONFIDENCE:
             continue
-        # Si el token solo tiene 1 aparición, exigimos que sea suficientemente
-        # distintivo (longitud) para no generar ruido.
-        if total == 1 and len(tok) < 5:
+        # Con una sola aparición exigimos un token distintivo: alfabético y
+        # largo. Los códigos de referencia del banco ("NI2394WW4",
+        # "ETAMOB00001232707") llevan dígitos y solo generan ruido.
+        if total == 1 and (len(tok) < 5 or any(c.isdigit() for c in tok)):
             continue
 
         existing = cur.execute(
@@ -144,19 +157,66 @@ def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
                 (tok, cat_id, cat_hits),
             )
             created += 1
+
+    _revoke_unsupported_learned_rules(cur, token_cat_counts)
     return created
+
+
+def _revoke_unsupported_learned_rules(
+    cur: sqlite3.Cursor, token_cat_counts: dict[str, Counter]
+) -> int:
+    """Borra las reglas 'learned' que la evidencia actual ya no sostiene.
+
+    Una regla deja de sostenerse cuando menos del 70% de las transacciones
+    que contienen su token pertenecen a la categoría que la regla asigna.
+    Devuelve cuántas se borraron.
+    """
+    stale: list[int] = []
+    for rule in cur.execute(
+        "SELECT id, pattern, category_id FROM category_rules WHERE source = 'learned'"
+    ).fetchall():
+        counter = token_cat_counts.get(rule["pattern"])
+        if not counter:
+            # El token ya no aparece en ninguna transacción categorizada.
+            stale.append(rule["id"])
+            continue
+        total = sum(counter.values())
+        support = counter.get(rule["category_id"], 0) / total
+        if support < MIN_CONFIDENCE:
+            stale.append(rule["id"])
+
+    for rule_id in stale:
+        cur.execute("DELETE FROM category_rules WHERE id = ?", (rule_id,))
+    return len(stale)
 
 
 # ====== Aplicación de reglas a transacciones sin categoría ======
 
+def _rule_rank(rule) -> tuple[int, int, int]:
+    """Criterio de desempate cuando varias reglas coinciden, de más a menos peso:
+
+    1. Regla manual — lo que el usuario escribió explícitamente manda.
+    2. Patrón más largo — el más específico gana. Es lo que permite que
+       "REPSOL WAYLET" gane a "REPSOL" en la misma descripción; ordenar solo
+       por frecuencia hacía que el token genérico y repetido se impusiera al
+       específico.
+    3. priority * hits — a igual especificidad, la mejor respaldada.
+    """
+    return (
+        1 if rule["source"] == "manual" else 0,
+        len(rule["pattern"]),
+        rule["priority"] * max(rule["hits"], 1),
+    )
+
+
 def apply_rules_to_uncategorized(cur: sqlite3.Cursor) -> int:
     """
     Para cada transacción con category_id NULL, busca reglas cuyo patrón
-    aparezca en la descripción. Se queda con la de mayor hits*priority.
-    Devuelve el número de transacciones categorizadas.
+    aparezca en la descripción y se queda con la más específica (ver
+    `_rule_rank`). Devuelve el número de transacciones categorizadas.
     """
     rules = cur.execute(
-        "SELECT pattern, category_id, priority, hits FROM category_rules"
+        "SELECT pattern, category_id, priority, hits, source FROM category_rules"
     ).fetchall()
     if not rules:
         return 0
@@ -168,25 +228,26 @@ def apply_rules_to_uncategorized(cur: sqlite3.Cursor) -> int:
     updated = 0
     for tx in uncat:
         up = tx["description"].upper()
-        best = None
-        best_score = 0
-        total_hits = 0
-        for r in rules:
-            if r["pattern"] in up:
-                total_hits += r["hits"]
-                score = r["priority"] * max(r["hits"], 1)
-                if score > best_score:
-                    best_score = score
-                    best = r
-        if best:
-            # Confianza aproximada basada en hits del ganador frente al total coincidente
-            conf = min(1.0, best["hits"] / max(total_hits, 1))
-            cur.execute(
-                "UPDATE transactions SET category_id = ?, auto_categorized = 1, "
-                "confidence = ? WHERE id = ?",
-                (best["category_id"], round(conf, 3), tx["id"]),
-            )
-            updated += 1
+        matching = [r for r in rules if r["pattern"] in up]
+        if not matching:
+            continue
+        best = max(matching, key=_rule_rank)
+
+        # Confianza: qué parte de la evidencia coincidente apoya la categoría
+        # elegida (no solo los hits del ganador).
+        total_hits = sum(max(r["hits"], 1) for r in matching)
+        agree_hits = sum(
+            max(r["hits"], 1) for r in matching
+            if r["category_id"] == best["category_id"]
+        )
+        conf = min(1.0, agree_hits / max(total_hits, 1))
+
+        cur.execute(
+            "UPDATE transactions SET category_id = ?, auto_categorized = 1, "
+            "confidence = ? WHERE id = ?",
+            (best["category_id"], round(conf, 3), tx["id"]),
+        )
+        updated += 1
     return updated
 
 
@@ -215,6 +276,11 @@ _BUILTIN: list[tuple[str, str, int]] = [
     ("LIDL",           "Alimentación|Supermercados y alimentación",   150),
     ("ALCAMPO",        "Alimentación|Supermercados y alimentación",   150),
     ("CARREFOUR",      "Alimentación|Supermercados y alimentación",   150),
+    # Repsol vende carburante y también es comercializadora de luz/gas. El
+    # patrón compuesto desambigua: gana al genérico "REPSOL" por ser más
+    # específico (ver _rule_rank).
+    ("REPSOL WAYLET",  "Transporte|Combustible",             160),
+    ("RECIBO REPSOL",  "Hogar|Luz y gas",                    160),
     ("REPSOL",         "Transporte|Combustible",             150),
     ("CEPSA",          "Transporte|Combustible",             150),
     ("WAYLET",         "Transporte|Combustible",             150),
