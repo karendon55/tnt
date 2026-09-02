@@ -261,7 +261,9 @@ DEFAULT_CATEGORIES: list[tuple[str, str, list[str]]] = [
         "Impuestos", "Comisiones bancarias"
     ]),
     ("Regalos y donaciones", "expense", []),
-    ("Transferencias", "expense", ["Bizum enviado", "Traspaso entre cuentas"]),
+    # "Bizum enviado" vive bajo "Otros gastos" (ver _BUILTIN en categorizer),
+    # no se siembra aquí para no duplicar la misma subcategoría en dos sitios.
+    ("Transferencias", "expense", ["Traspaso entre cuentas"]),
     ("Sin categoría", "expense", []),
 
     ("Nómina y otras prestaciones", "income", [

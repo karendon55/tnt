@@ -265,7 +265,7 @@ _BUILTIN: list[tuple[str, str, int]] = [
     # Bizum: el patrón genérico apunta a Transferencias, que es categoría
     # de GASTO. Un "BIZUM RECIBIDO" es dinero que entra, así que necesita
     # su propia regla o acaba restando en vez de sumar.
-    ("BIZUM ENVIADO",  "Transferencias|Bizum enviado",       160),
+    ("BIZUM ENVIADO",  "Otros gastos|Bizum enviado",         160),
     ("BIZUM RECIBIDO", "Ingresos varios|Bizum recibido",     160),
     ("BIZUM",          "Transferencias",                     150),
     ("NOMINA",         "Nómina y otras prestaciones|Nómina o Pensión", 200),
