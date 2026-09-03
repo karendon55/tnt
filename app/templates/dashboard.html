@@ -3,36 +3,33 @@
 {% block title %}Panel{% endblock %}
 
 {% block content %}
+{# ── Cabecera: título, selector de mes y acciones ─────────────────────── #}
 <div class="page-header">
     <div>
         <h1>Panel</h1>
         <p>
-            {{ month_name|capitalize }} · resumen en vivo.
+            Resumen de <strong>{{ month_name }}</strong>
             {% if showing_latest %}<span class="pill pill-warning">último mes con datos</span>{% endif %}
         </p>
-        <form method="get" action="/" class="row gap-md" style="align-items:center; margin-top:.5rem;">
-            <a class="btn btn-sm btn-ghost" href="/?month={{ prev_ym }}" title="Mes anterior">‹</a>
-            <select name="month" class="select btn-sm" onchange="this.form.submit()"
-                    style="min-width:12rem;">
+        <form method="get" action="/" class="row wrap gap-md mt-md" style="align-items:center;">
+            <a class="btn btn-sm btn-ghost" href="/?month={{ prev_ym }}" title="Mes anterior" aria-label="Mes anterior">‹</a>
+            <select name="month" class="select" onchange="this.form.submit()" style="width:auto; min-width:11rem;">
                 {% set listed = [] %}
                 {% for m in months_for_selector %}
-                    <option value="{{ m.ym }}" {% if m.ym == current_ym %}selected{% endif %}>
-                        {{ m.label|capitalize }}
-                    </option>
+                    <option value="{{ m.ym }}" {% if m.ym == current_ym %}selected{% endif %}>{{ m.label|capitalize }}</option>
                     {% set _ = listed.append(m.ym) %}
                 {% endfor %}
-                {# Si el mes seleccionado no tiene datos aún, lo añadimos suelto #}
                 {% if current_ym not in listed %}
                     <option value="{{ current_ym }}" selected>{{ month_name|capitalize }} (sin datos)</option>
                 {% endif %}
             </select>
-            <a class="btn btn-sm btn-ghost" href="/?month={{ next_ym }}" title="Mes siguiente">›</a>
+            <a class="btn btn-sm btn-ghost" href="/?month={{ next_ym }}" title="Mes siguiente" aria-label="Mes siguiente">›</a>
             <a class="btn btn-sm btn-ghost" href="/" title="Volver al mes actual">hoy</a>
         </form>
     </div>
     <div class="row wrap gap-lg">
-        <a href="/importar" class="btn btn-primary">Importar</a>
         <a href="/movimientos" class="btn">Ver movimientos</a>
+        <a href="/importar" class="btn btn-primary">Importar</a>
     </div>
 </div>
 
@@ -40,57 +37,53 @@
     {% include "_backup_status.html" %}
 </div>
 
-{% if anomalies %}
-<div class="notice notice-info">
-    <strong>Avisos automáticos</strong>
-    <ul class="mt-lg" style="margin-bottom: 0;">
-        {% for a in anomalies %}
-            <li>
-                {% if a.kind == 'duplicate' %}
-                    <span class="pill pill-warning">Duplicado</span>
-                {% elif a.kind == 'price_jump' %}
-                    <span class="pill pill-accent">Subida</span>
+{# ── Hero: la cifra que manda ─────────────────────────────────────────── #}
+<section class="hero mb-md">
+    <div class="row wrap row-between gap-xl items-start">
+        <div>
+            <div class="card-title">Patrimonio total</div>
+            <div class="hero-value tabular">{{ balance | eur }}</div>
+            <div class="row wrap gap-md mt-md">
+                {% if cur_month.net >= 0 %}
+                    <span class="pill pill-success">▲ {{ cur_month.net | eur }} este mes</span>
                 {% else %}
-                    <span class="pill">Aviso</span>
+                    <span class="pill pill-danger">▼ {{ cur_month.net|abs | eur }} este mes</span>
                 {% endif %}
-                {{ a.message }}
-            </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
-
-<div class="grid grid-kpi">
-    <div class="card">
-        <div class="card-title">Saldo total</div>
-        <div class="kpi-value tabular">{{ balance | eur }}</div>
-        <div class="kpi-delta">suma de tus cuentas activas</div>
+                <span class="muted small">{{ accounts|length }} cuenta{{ 's' if accounts|length != 1 }} activa{{ 's' if accounts|length != 1 }}</span>
+            </div>
+        </div>
+        {% if has_series %}
+        <div class="chart-box" style="width:300px; max-width:100%; height:86px;">
+            <canvas id="chartSpark"></canvas>
+        </div>
+        {% endif %}
     </div>
+</section>
 
+{# ── KPIs del mes ─────────────────────────────────────────────────────── #}
+<div class="grid grid-kpi mb-md">
     <div class="card">
         <div class="card-title">Ingresos del mes</div>
         <div class="kpi-value tabular amount-pos">{{ cur_month.income | eur }}</div>
         <div class="kpi-delta {% if delta_income is not none and delta_income >= 0 %}is-positive{% elif delta_income is not none %}is-negative{% endif %}">
             {% if delta_income is not none %}
-                {{ delta_income | pct_signed }} vs mes anterior
+                {{ '▲' if delta_income >= 0 else '▼' }} {{ delta_income|abs|num_es(1) }} % vs mes anterior ({{ prev_month.income | eur }})
             {% else %}
-                sin datos previos
+                sin referencia del mes anterior
             {% endif %}
         </div>
     </div>
-
     <div class="card">
         <div class="card-title">Gastos del mes</div>
         <div class="kpi-value tabular amount-neg">{{ cur_month.expense|abs | eur }}</div>
         <div class="kpi-delta {% if delta_expense is not none and delta_expense <= 0 %}is-positive{% elif delta_expense is not none %}is-negative{% endif %}">
             {% if delta_expense is not none %}
-                {{ delta_expense | pct_signed }} vs mes anterior
+                {{ '▲' if delta_expense >= 0 else '▼' }} {{ delta_expense|abs|num_es(1) }} % vs mes anterior ({{ prev_month.expense|abs | eur }})
             {% else %}
-                sin datos previos
+                sin referencia del mes anterior
             {% endif %}
         </div>
     </div>
-
     <div class="card">
         <div class="card-title">Neto del mes</div>
         <div class="kpi-value tabular {% if cur_month.net >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
@@ -100,48 +93,85 @@
     </div>
 </div>
 
-<div class="grid grid-halves mt-xl">
+{# ── Anomalías ────────────────────────────────────────────────────────── #}
+{% if anomalies %}
+<div class="notice notice-info">
+    <div class="row wrap row-between gap-md">
+        <strong>{{ anomalies|length }} avis{{ 'os' if anomalies|length != 1 else 'o' }} en tus movimientos</strong>
+        <a class="btn btn-sm btn-ghost" href="/movimientos">Revisar</a>
+    </div>
+    <div class="grid grid-halves mt-md small muted">
+        {% for a in anomalies %}
+            <div>
+                {% if a.kind == 'duplicate' %}🔁{% else %}⚠{% endif %}
+                {{ a.message }}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{# ── Gasto por categoría (barras) + evolución del saldo ───────────────── #}
+<div class="grid grid-halves mb-md">
     <div class="card">
-        <h3 class="card-title">Gasto por categoría · {{ month_name }}</h3>
+        <div class="row row-between gap-md">
+            <h3 class="card-title">A dónde fue el dinero · {{ month_name }}</h3>
+            <a class="btn btn-sm btn-ghost" href="/categorias">Ver categorías</a>
+        </div>
         {% if has_categories %}
-            <canvas id="chartDonut" height="220"></canvas>
+            {% for c in cat_bars %}
+            <div class="catrow">
+                <span class="small trunc" title="{{ c.name }}">{{ c.name }}</span>
+                <span class="catbar">
+                    <i style="width: {{ c.width }}%; background: {{ ['#e10600','#ff6b35','#f7b801','#4ade80','#38bdf8','#a78bfa','#f472b6','#94a3b8'][loop.index0 % 8] }};"></i>
+                </span>
+                <span class="cat-amount tabular small">{{ c.total | eur }}</span>
+                <span class="cat-pct small muted" title="{{ c.pct }} % del gasto del mes">
+                    {% if c.delta is not none %}
+                        <span class="{% if c.delta > 0 %}amount-neg{% elif c.delta < 0 %}amount-pos{% endif %}">
+                            {{ c.delta | pct_signed }}
+                        </span>
+                    {% else %}·{% endif %}
+                </span>
+            </div>
+            {% endfor %}
+            <p class="small muted mt-md">Variación frente al mes anterior. Total: {{ cat_bars|sum(attribute='total') | eur }}</p>
         {% else %}
-            <p class="muted small">No hay gasto categorizado este mes todavía.</p>
+            <p class="empty-state">Sin gastos categorizados este mes.</p>
         {% endif %}
     </div>
+
     <div class="card">
         <h3 class="card-title">Evolución del saldo</h3>
         {% if has_series %}
-            <canvas id="chartLine" height="220"></canvas>
+            <div class="chart-box" style="height:250px;"><canvas id="chartLine"></canvas></div>
         {% else %}
-            <p class="muted small">Necesitamos al menos dos meses de datos para mostrar la evolución.</p>
+            <p class="empty-state">Necesitas al menos dos meses de datos.</p>
         {% endif %}
     </div>
 </div>
 
-<div class="grid grid-halves mt-xl">
+{# ── Movimientos + lateral (previsión y cuentas) ──────────────────────── #}
+<div class="grid" style="grid-template-columns: 1.55fr 1fr;">
     <div class="card">
-        <div class="row-between mb-md">
-            <h3 class="card-title" style="margin:0;">Últimos movimientos</h3>
+        <div class="row row-between gap-md">
+            <h3 class="card-title">Últimos movimientos</h3>
             <a class="btn btn-sm btn-ghost" href="/movimientos">Ver todos</a>
         </div>
         {% if last_transactions %}
         <table class="table">
             <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Descripción</th>
-                    <th>Categoría</th>
-                    <th class="num">Importe</th>
-                </tr>
+                <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="num">Importe</th></tr>
             </thead>
             <tbody>
                 {% for t in last_transactions %}
                 <tr>
-                    <td class="tabular">{{ t.date }}</td>
-                    <td>{{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}</td>
-                    <td><span class="pill">{{ t.category }}</span></td>
-                    <td class="num {% if t.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
+                    <td class="tabular muted nowrap">{{ t.date }}</td>
+                    <td class="trunc" style="max-width:240px;">
+                        {{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}
+                    </td>
+                    <td class="muted small trunc" style="max-width:170px;">{{ t.category }}</td>
+                    <td class="num tabular {% if t.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                         {{ t.amount | eur_signed }}
                     </td>
                 </tr>
@@ -149,39 +179,50 @@
             </tbody>
         </table>
         {% else %}
-            <p class="muted small">Sin movimientos todavía.</p>
+            <p class="empty-state">Sin movimientos todavía.</p>
         {% endif %}
     </div>
 
-    <div class="card">
-        <h3 class="card-title">Previsión para el mes siguiente</h3>
-        <div class="kpi-value tabular {% if forecast.projected_balance >= balance %}amount-pos{% else %}amount-neg{% endif %}">
-            {{ forecast.projected_balance | eur }}
+    <div class="col gap-lg">
+        <div class="card">
+            <h3 class="card-title">Previsión para el mes siguiente</h3>
+            <div class="kpi-value tabular {% if forecast.projected_balance >= balance %}amount-pos{% else %}amount-neg{% endif %}">
+                {{ forecast.projected_balance | eur }}
+            </div>
+            <div class="kpi-delta">saldo estimado a fin de mes</div>
+            <table class="table mt-lg">
+                <tbody>
+                    <tr><td class="muted">Saldo actual</td>
+                        <td class="num tabular">{{ forecast.current_balance | eur }}</td></tr>
+                    <tr><td class="muted">Recurrentes estimados</td>
+                        <td class="num tabular {% if forecast.recurring_net < 0 %}amount-neg{% elif forecast.recurring_net > 0 %}amount-pos{% endif %}">
+                            {{ forecast.recurring_net | eur_signed }}</td></tr>
+                    <tr><td class="muted">Gasto variable estimado</td>
+                        <td class="num tabular {% if forecast.variable_net < 0 %}amount-neg{% elif forecast.variable_net > 0 %}amount-pos{% endif %}">
+                            {{ forecast.variable_net | eur_signed }}</td></tr>
+                </tbody>
+            </table>
+            {% if forecast.recurring_items %}
+            <p class="small muted mt-md">Basado en {{ forecast.recurring_items|length }} operaciones recurrentes detectadas.</p>
+            {% endif %}
         </div>
-        <div class="kpi-delta">saldo estimado a fin de mes</div>
-        <table class="table mt-lg">
-            <tbody>
-                <tr>
-                    <td>Saldo actual</td>
-                    <td class="num tabular">{{ forecast.current_balance | eur }}</td>
-                </tr>
-                <tr>
-                    <td>Recurrentes estimados</td>
-                    <td class="num tabular {% if forecast.recurring_net < 0 %}amount-neg{% elif forecast.recurring_net > 0 %}amount-pos{% endif %}">
-                        {{ forecast.recurring_net | eur_signed }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>Gasto variable estimado</td>
-                    <td class="num tabular {% if forecast.variable_net < 0 %}amount-neg{% elif forecast.variable_net > 0 %}amount-pos{% endif %}">
-                        {{ forecast.variable_net | eur_signed }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        {% if forecast.recurring_items %}
-        <p class="small muted mt-lg">Basado en {{ forecast.recurring_items|length }} operaciones recurrentes detectadas.</p>
-        {% endif %}
+
+        <div class="card">
+            <div class="row row-between gap-md">
+                <h3 class="card-title">Tus cuentas</h3>
+                <a class="btn btn-sm btn-ghost" href="/cuentas">Gestionar</a>
+            </div>
+            {% for a in accounts %}
+            <div class="acct">
+                <span class="acct-dot" style="background: {{ a.color }};"></span>
+                <span class="grow trunc small" title="{{ a.name }}">{{ a.name }}</span>
+                <span class="tabular small bold {% if a.balance < 0 %}amount-neg{% endif %}">{{ a.balance | eur }}</span>
+            </div>
+            <div class="bar" style="height:4px;"><i style="width: {{ a.width }}%; background: {{ a.color }};"></i></div>
+            {% else %}
+            <p class="empty-state">No hay cuentas activas.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -189,80 +230,58 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-  (function() {
-    const donutData = {{ donut_json|safe }};
+(function () {
     const lineData = {{ line_json|safe }};
-    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#9a9a9a';
-    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#2a2a2a';
+    const css = getComputedStyle(document.documentElement);
+    const tok = (n, fb) => css.getPropertyValue(n).trim() || fb;
+    const accent = tok('--accent', '#e10600');
+    const text   = tok('--text-muted', '#9a9a9a');
+    const grid   = tok('--chart-grid', 'rgba(255,255,255,.07)');
+    const eur = v => new Intl.NumberFormat('es-ES', {
+        style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
 
-    const donutEl = document.getElementById('chartDonut');
-    if (donutEl && donutData.labels.length) {
-      new Chart(donutEl, {
-        type: 'doughnut',
-        data: {
-          labels: donutData.labels,
-          datasets: [{
-            data: donutData.values,
-            backgroundColor: donutData.colors,
-            borderColor: 'transparent',
-            hoverOffset: 8,
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'right', labels: { color: textColor, font: { size: 12 } } },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${ctx.label}: ${window.formatEUR(ctx.parsed)}`
-              }
-            }
-          },
-          cutout: '62%',
-        }
-      });
+    // maintainAspectRatio:false exige un contenedor con altura fija (.chart-box);
+    // sin él Chart.js agranda el canvas en cada redibujado hasta romper la página.
+    const base = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+    };
+
+    const spark = document.getElementById('chartSpark');
+    if (spark && lineData.labels.length) {
+        new Chart(spark, {
+            type: 'line',
+            data: { labels: lineData.labels, datasets: [{
+                data: lineData.values, borderColor: accent, borderWidth: 2,
+                fill: true, backgroundColor: 'rgba(225,6,0,.11)',
+                tension: .35, pointRadius: 0,
+            }]},
+            options: { ...base, scales: { x: { display: false }, y: { display: false } },
+                plugins: { legend: { display: false },
+                    tooltip: { callbacks: { label: c => eur(c.parsed.y) } } } },
+        });
     }
 
-    const lineEl = document.getElementById('chartLine');
-    if (lineEl && lineData.labels.length > 1) {
-      new Chart(lineEl, {
-        type: 'line',
-        data: {
-          labels: lineData.labels,
-          datasets: [{
-            label: 'Saldo',
-            data: lineData.values,
-            borderColor: '#e10600',
-            backgroundColor: 'rgba(225, 6, 0, 0.12)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#e10600',
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => `${window.formatEUR(ctx.parsed.y)}`
-              }
-            }
-          },
-          scales: {
-            x: { ticks: { color: textColor }, grid: { color: gridColor } },
-            y: {
-              ticks: {
-                color: textColor,
-                callback: (v) => window.formatEUR(v),
-              },
-              grid: { color: gridColor },
-            }
-          }
-        }
-      });
+    const line = document.getElementById('chartLine');
+    if (line && lineData.labels.length) {
+        new Chart(line, {
+            type: 'line',
+            data: { labels: lineData.labels, datasets: [{
+                data: lineData.values, borderColor: accent, borderWidth: 2.5,
+                fill: true, backgroundColor: 'rgba(225,6,0,.08)',
+                tension: .35, pointRadius: 3, pointBackgroundColor: accent,
+            }]},
+            options: { ...base,
+                plugins: { legend: { display: false },
+                    tooltip: { callbacks: { label: c => eur(c.parsed.y) } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: text } },
+                    y: { grid: { color: grid }, ticks: { color: text,
+                         callback: v => (v / 1000).toFixed(0) + 'k' } },
+                } },
+        });
     }
-  })();
+})();
 </script>
 {% endblock %}

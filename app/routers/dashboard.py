@@ -109,6 +109,7 @@ def dashboard(request: Request, month: Optional[str] = None):
         prev_month = month_income_expense(cur, p_start, p_end)
 
         cats = by_category(cur, m_start, m_end, limit=8)
+        prev_cats = {c["id"]: c["total"] for c in by_category(cur, p_start, p_end, limit=50)}
         bal_series = balance_series(cur, months=6)
 
         last_rows = cur.execute(
@@ -134,6 +135,17 @@ def dashboard(request: Request, month: Optional[str] = None):
             for r in last_rows
         ]
 
+        # Desglose de cuentas activas para el lateral del panel.
+        account_rows = cur.execute(
+            """SELECT a.id, a.name,
+                      a.initial_balance + COALESCE(SUM(t.amount), 0) AS bal
+               FROM accounts a
+               LEFT JOIN transactions t ON t.account_id = a.id
+               WHERE a.archived = 0
+               GROUP BY a.id
+               ORDER BY bal DESC"""
+        ).fetchall()
+
         forecast = forecast_next_month(cur)
         anomalies = detect_anomalies(cur)
 
@@ -148,6 +160,34 @@ def dashboard(request: Request, month: Optional[str] = None):
         delta_income = round(
             (cur_month["income"] - prev_month["income"]) / abs(prev_month["income"]) * 100, 1
         )
+
+    # Cuentas: barra proporcional a la mayor, para comparar de un vistazo.
+    top_bal = max((abs(r["bal"]) for r in account_rows), default=0) or 1.0
+    accounts = [
+        {
+            "id": r["id"], "name": r["name"], "balance": r["bal"],
+            "width": round(abs(r["bal"]) / top_bal * 100, 1),
+            "color": _CATEGORY_COLORS[i % len(_CATEGORY_COLORS)],
+        }
+        for i, r in enumerate(account_rows)
+    ]
+
+    # Barras de gasto por categoría: peso relativo y variación mensual.
+    cats_total = sum(c["total"] for c in cats) or 1.0
+    cat_bars = []
+    top_total = cats[0]["total"] if cats else 1.0
+    for c in cats:
+        before = prev_cats.get(c["id"])
+        if before:
+            delta = round((c["total"] - before) / before * 100, 1)
+        else:
+            delta = None          # categoría nueva este mes
+        cat_bars.append({
+            "id": c["id"], "name": c["name"], "total": c["total"],
+            "pct": round(c["total"] / cats_total * 100),
+            "width": round(c["total"] / (top_total or 1) * 100, 1),
+            "delta": delta,
+        })
 
     # Datos para Chart.js
     donut_labels = [c["name"] for c in cats]
@@ -193,6 +233,8 @@ def dashboard(request: Request, month: Optional[str] = None):
             "labels": line_labels,
             "values": line_values,
         }).replace("<", "\\u003c"),
+        "cat_bars": cat_bars,
+        "accounts": accounts,
         "has_categories": len(cats) > 0,
         "has_series": len(bal_series) > 1,
     }

@@ -6,12 +6,16 @@
     <title>{% block title %}{{ app_name }}{% endblock %} · {{ app_tagline }}</title>
     <meta name="description" content="{{ app_name }} — {{ app_tagline }}. Finanzas personales locales.">
     <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
+    <!-- Basecoat: reset + componentes. tnt.css va después y mapea la paleta AC/DC. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
     <link rel="stylesheet" href="/static/css/tnt.css">
     <script>
       // Tema antes de pintar para evitar flash
       (function() {
         var t = localStorage.getItem('tnt-theme') || 'dark';
         document.documentElement.setAttribute('data-theme', t);
+        // Basecoat se apoya en la clase .dark; TNT en data-theme. Mantenemos ambos.
+        document.documentElement.classList.toggle('dark', t === 'dark');
       })();
     </script>
 </head>
