@@ -62,7 +62,22 @@
 
 <div class="card">
     {% if transactions %}
-    <table class="table">
+    <div class="table-scroll">
+    <table class="table table-mov">
+        {# Reparto explícito de anchos: con table-layout:fixed las columnas
+           dejan de competir entre sí y el importe nunca queda fuera. #}
+        <colgroup>
+            <col style="width:86px">   <!-- Fecha        -->
+            <col>                      <!-- Descripción: se queda el resto -->
+            <col style="width:120px">  <!-- Cuenta       -->
+            <col style="width:140px">  <!-- Categoría    -->
+            <col style="width:246px">  <!-- Subcategoría: cabe la más larga
+                                            ("Belleza, peluquería y perfumería"
+                                            necesita 224 px con el control) -->
+            <col style="width:150px">  <!-- Memo         -->
+            <col style="width:116px">  <!-- Importe      -->
+            <col style="width:74px">   <!-- Acciones     -->
+        </colgroup>
         <thead>
             <tr>
                 <th>Fecha</th>
@@ -78,22 +93,22 @@
         <tbody>
             {% for tx in transactions %}
             <tr>
-                <td class="tabular">{{ tx.date }}</td>
-                <td>
+                <td class="tabular nowrap">{{ tx.date }}</td>
+                <td class="trunc" title="{{ tx.description | alias }}">
                     {{ tx.description | alias }}
                     {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                 </td>
-                <td class="muted small">{{ tx.account_name }}</td>
-                <td id="cat-parent-{{ tx.id }}" class="muted small">
+                <td class="muted small trunc" title="{{ tx.account_name }}">{{ tx.account_name }}</td>
+                <td id="cat-parent-{{ tx.id }}" class="muted small trunc" title="{{ tx.category_label }}">
                     {{ tx.category_label }}
                 </td>
                 <td id="cat-{{ tx.id }}">
                     {% include "_category_cell.html" with context %}
                 </td>
-                <td id="memo-{{ tx.id }}" style="min-width:160px;">
+                <td id="memo-{{ tx.id }}">
                     {% include "_memo_cell.html" with context %}
                 </td>
-                <td class="num {% if tx.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
+                <td class="num tabular nowrap {% if tx.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                     {{ tx.amount | eur_signed }}
                 </td>
                 <td>
@@ -111,6 +126,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
     <p class="muted small">No hay movimientos que coincidan con los filtros.</p>
     {% endif %}

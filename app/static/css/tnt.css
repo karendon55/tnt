@@ -183,6 +183,20 @@ select.select,.select{cursor:pointer}
 .table tbody tr:hover,table.t tbody tr:hover{background:var(--muted)}
 .table .num,.table .right{text-align:right}
 
+/* ── Tabla de movimientos ──────────────────────────────────────────────
+   table-layout:fixed hace que se respeten los anchos del <colgroup>: sin
+   él las columnas compiten, la tabla se pasa del contenedor y la tarjeta
+   recorta el importe. El contenedor con scroll es la red de seguridad en
+   pantallas estrechas. */
+.table-scroll{overflow-x:auto;margin:0 -.25rem;padding:0 .25rem}
+.table-mov{table-layout:fixed;min-width:1120px}
+.table-mov td{vertical-align:middle}
+/* Los controles en línea ocupan su celda entera, sin encogerse */
+.table-mov td .select,.table-mov td .input,
+.table-mov td select,.table-mov td input[type=text]{width:100%;min-width:0}
+.table-mov td form{width:100%}
+.table-mov .trunc{max-width:0}   /* fuerza el recorte dentro del ancho fijado */
+
 /* ── Avisos ────────────────────────────────────────────────────────────── */
 .notice{border:1px solid var(--border);border-left:3px solid var(--text-muted);
   border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;background:var(--surface)}
