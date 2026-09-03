@@ -145,6 +145,8 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--muted);
 .btn-ghost{border-color:transparent}
 .btn-ghost:hover{background:var(--muted)}
 .btn-sm{padding:.3rem .6rem;font-size:.78rem}
+.btn.is-active{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.is-active:hover{background:var(--accent-hover);color:#fff}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* ── Formularios ───────────────────────────────────────────────────────── */

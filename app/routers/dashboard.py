@@ -18,6 +18,7 @@ from app.services.analytics import (
     month_income_expense,
     month_label,
     month_range,
+    net_series,
     prev_month_range,
     total_balance,
 )
@@ -111,6 +112,7 @@ def dashboard(request: Request, month: Optional[str] = None):
         cats = by_category(cur, m_start, m_end, limit=8)
         prev_cats = {c["id"]: c["total"] for c in by_category(cur, p_start, p_end, limit=50)}
         bal_series = balance_series(cur, months=6)
+        net_ser = net_series(cur, [p["month"] for p in bal_series])
 
         last_rows = cur.execute(
             """SELECT t.id, t.date, t.amount, t.description,
@@ -196,6 +198,7 @@ def dashboard(request: Request, month: Optional[str] = None):
 
     line_labels = [month_label(p["month"]) for p in bal_series]
     line_values = [p["balance"] for p in bal_series]
+    net_values = [p["net"] for p in net_ser]
 
     # Para el selector de mes
     current_ym = m_start[:7]
@@ -232,6 +235,10 @@ def dashboard(request: Request, month: Optional[str] = None):
         "line_json": json.dumps({
             "labels": line_labels,
             "values": line_values,
+        }).replace("<", "\\u003c"),
+        "net_json": json.dumps({
+            "labels": line_labels,
+            "values": net_values,
         }).replace("<", "\\u003c"),
         "cat_bars": cat_bars,
         "accounts": accounts,

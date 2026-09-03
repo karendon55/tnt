@@ -143,6 +143,38 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
     return result[-months:]
 
 
+def net_series(cur: sqlite3.Cursor, months: list[str]) -> list[dict]:
+    """Ingresos, gastos y neto de cada mes indicado (formato 'YYYY-MM').
+
+    Recibe la lista de meses para poder alinearse exactamente con la serie
+    de saldo del panel y que el eje X no cambie al alternar los gráficos.
+    Excluye traspasos internos, igual que `month_income_expense`.
+    """
+    if not months:
+        return []
+    rows = cur.execute(
+        """SELECT substr(date, 1, 7) AS ym,
+                  COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0) AS income,
+                  COALESCE(SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END), 0) AS expense
+           FROM transactions
+           WHERE transfer_id IS NULL
+           GROUP BY ym"""
+    ).fetchall()
+    by_month = {r["ym"]: r for r in rows}
+    out = []
+    for ym in months:
+        r = by_month.get(ym)
+        income = r["income"] if r else 0.0
+        expense = r["expense"] if r else 0.0
+        out.append({
+            "month": ym,
+            "income": round(income, 2),
+            "expense": round(expense, 2),
+            "net": round(income + expense, 2),
+        })
+    return out
+
+
 def monthly_expense_series(cur: sqlite3.Cursor, months: int = 12) -> list[dict]:
     """Gasto (valor absoluto) por mes."""
     rows = cur.execute(

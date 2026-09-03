@@ -142,9 +142,20 @@
     </div>
 
     <div class="card">
-        <h3 class="card-title">Evolución del saldo</h3>
+        <div class="row row-between gap-md">
+            <h3 class="card-title" id="serieTitulo">Evolución del saldo</h3>
+            {% if has_series %}
+            <div class="row gap-sm" role="group" aria-label="Qué serie mostrar">
+                <button type="button" class="btn btn-sm is-active" data-serie="saldo"
+                        aria-pressed="true">Saldo</button>
+                <button type="button" class="btn btn-sm" data-serie="neto"
+                        aria-pressed="false">Neto mensual</button>
+            </div>
+            {% endif %}
+        </div>
         {% if has_series %}
             <div class="chart-box" style="height:250px;"><canvas id="chartLine"></canvas></div>
+            <p class="small muted mt-md" id="seriePie">Saldo acumulado al cierre de cada mes.</p>
         {% else %}
             <p class="empty-state">Necesitas al menos dos meses de datos.</p>
         {% endif %}
@@ -265,21 +276,63 @@
 
     const line = document.getElementById('chartLine');
     if (line && lineData.labels.length) {
-        new Chart(line, {
-            type: 'line',
-            data: { labels: lineData.labels, datasets: [{
-                data: lineData.values, borderColor: accent, borderWidth: 2.5,
-                fill: true, backgroundColor: 'rgba(225,6,0,.08)',
-                tension: .35, pointRadius: 3, pointBackgroundColor: accent,
-            }]},
-            options: { ...base,
-                plugins: { legend: { display: false },
-                    tooltip: { callbacks: { label: c => eur(c.parsed.y) } } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: text } },
-                    y: { grid: { color: grid }, ticks: { color: text,
-                         callback: v => (v / 1000).toFixed(0) + 'k' } },
-                } },
+        const netData = {{ net_json|safe }};
+        const pos = tok('--success', '#22c55e');
+        const neg = tok('--danger', '#f87171');
+        const ejes = {
+            x: { grid: { display: false }, ticks: { color: text } },
+            y: { grid: { color: grid }, ticks: { color: text,
+                 callback: v => (v / 1000).toFixed(0) + 'k' } },
+        };
+
+        // El saldo es acumulado y siempre positivo: línea con área.
+        // El neto es un valor por mes que puede ser negativo: barras con
+        // color según el signo, que se leen mejor sobre la línea del cero.
+        const series = {
+            saldo: {
+                titulo: 'Evolución del saldo',
+                pie: 'Saldo acumulado al cierre de cada mes.',
+                cfg: { type: 'line',
+                    data: { labels: lineData.labels, datasets: [{
+                        data: lineData.values, borderColor: accent, borderWidth: 2.5,
+                        fill: true, backgroundColor: 'rgba(225,6,0,.08)',
+                        tension: .35, pointRadius: 3, pointBackgroundColor: accent,
+                    }]},
+                    options: { ...base,
+                        plugins: { legend: { display: false },
+                            tooltip: { callbacks: { label: c => eur(c.parsed.y) } } },
+                        scales: ejes } },
+            },
+            neto: {
+                titulo: 'Evolución del neto mensual',
+                pie: 'Ingresos menos gastos de cada mes, sin contar traspasos.',
+                cfg: { type: 'bar',
+                    data: { labels: netData.labels, datasets: [{
+                        data: netData.values, borderRadius: 4,
+                        backgroundColor: netData.values.map(v => v >= 0 ? pos : neg),
+                    }]},
+                    options: { ...base,
+                        plugins: { legend: { display: false },
+                            tooltip: { callbacks: { label: c => eur(c.parsed.y) } } },
+                        scales: { ...ejes, y: { ...ejes.y, beginAtZero: true } } } },
+            },
+        };
+
+        let chart = new Chart(line, series.saldo.cfg);
+        document.querySelectorAll('[data-serie]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const s = series[btn.dataset.serie];
+                if (!s) return;
+                document.querySelectorAll('[data-serie]').forEach(b => {
+                    const on = b === btn;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+                chart.destroy();               // recrear evita mezclar tipos de gráfico
+                chart = new Chart(line, s.cfg);
+                document.getElementById('serieTitulo').textContent = s.titulo;
+                document.getElementById('seriePie').textContent = s.pie;
+            });
         });
     }
 })();
