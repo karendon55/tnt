@@ -189,13 +189,17 @@ select.select,.select{cursor:pointer}
    recorta el importe. El contenedor con scroll es la red de seguridad en
    pantallas estrechas. */
 .table-scroll{overflow-x:auto;margin:0 -.25rem;padding:0 .25rem}
-.table-mov{table-layout:fixed;min-width:1120px}
-.table-mov td{vertical-align:middle}
+.table-fixed{table-layout:fixed}
+.table-fixed td{vertical-align:middle}
 /* Los controles en línea ocupan su celda entera, sin encogerse */
-.table-mov td .select,.table-mov td .input,
-.table-mov td select,.table-mov td input[type=text]{width:100%;min-width:0}
+.table-fixed td .select,.table-fixed td .input,
+.table-fixed td select,.table-fixed td input[type=text]{width:100%;min-width:0}
+/* max-width:0 solo en la celda: obliga a respetar el ancho del <col>.
+   Los elementos de dentro usan el .trunc normal (max-width:100%). */
+.table-fixed>tbody>tr>td.trunc{max-width:0}
+.table-mov{min-width:1120px}
 .table-mov td form{width:100%}
-.table-mov .trunc{max-width:0}   /* fuerza el recorte dentro del ancho fijado */
+.table-trans{min-width:1000px}
 
 /* ── Avisos ────────────────────────────────────────────────────────────── */
 .notice{border:1px solid var(--border);border-left:3px solid var(--text-muted);

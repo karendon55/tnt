@@ -25,7 +25,18 @@
     <h3 class="card-title">Pares emparejados ({{ pairs|length }})</h3>
     <p class="muted small">Cada fila es un traspaso entre dos cuentas. "Desemparejar" deja los dos lados como movimientos independientes (no los borra).</p>
     {% if pairs %}
-    <table class="table">
+    <div class="table-scroll">
+    <table class="table table-fixed table-trans">
+        {# Salida y Entrada se repartían 422 px cada una y empujaban el botón
+           fuera del contenedor; con anchos fijos se quedan con el sobrante. #}
+        <colgroup>
+            <col style="width:86px">    <!-- Fecha    -->
+            <col>                       <!-- Salida   -->
+            <col style="width:118px">   <!-- Importe  -->
+            <col>                       <!-- Entrada  -->
+            <col style="width:118px">   <!-- Importe  -->
+            <col style="width:132px">   <!-- Acciones -->
+        </colgroup>
         <thead>
             <tr>
                 <th>Fecha</th>
@@ -45,17 +56,17 @@
             {% set out_desc = p.left_desc if p.left_amount < 0 else p.right_desc %}
             {% set in_desc  = p.left_desc if p.left_amount > 0 else p.right_desc %}
             <tr>
-                <td class="tabular small">{{ p.left_date }}</td>
-                <td>
-                    <strong>{{ out_acc }}</strong>
-                    <div class="muted small">{{ out_desc | truncate(50) }}</div>
+                <td class="tabular small nowrap">{{ p.left_date }}</td>
+                <td class="trunc" title="{{ out_acc }} · {{ out_desc }}">
+                    <strong class="trunc" style="display:block;">{{ out_acc }}</strong>
+                    <div class="muted small trunc">{{ out_desc }}</div>
                 </td>
-                <td class="num tabular amount-neg">{{ out_amount | eur_signed }}</td>
-                <td>
-                    <strong>{{ in_acc }}</strong>
-                    <div class="muted small">{{ in_desc | truncate(50) }}</div>
+                <td class="num tabular nowrap amount-neg">{{ out_amount | eur_signed }}</td>
+                <td class="trunc" title="{{ in_acc }} · {{ in_desc }}">
+                    <strong class="trunc" style="display:block;">{{ in_acc }}</strong>
+                    <div class="muted small trunc">{{ in_desc }}</div>
                 </td>
-                <td class="num tabular amount-pos">{{ in_amount | eur_signed }}</td>
+                <td class="num tabular nowrap amount-pos">{{ in_amount | eur_signed }}</td>
                 <td>
                     <form method="post" action="/traspasos/{{ p.left_id }}/desemparejar" style="display:inline;"
                           onsubmit="return confirm('¿Desemparejar este traspaso? Los dos movimientos quedan independientes.');">
@@ -66,6 +77,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
     <p class="muted small">No hay traspasos emparejados todavía.</p>
     {% endif %}
@@ -75,7 +87,15 @@
 <div class="card mt-xl">
     <h3 class="card-title">Sugerencias automáticas ({{ suggestions|length }})</h3>
     <p class="muted small">Pares de movimientos sin emparejar con importes opuestos en cuentas distintas y fechas a ±3 días. Pulsa "Emparejar" si son el mismo traspaso.</p>
-    <table class="table">
+    <div class="table-scroll">
+    <table class="table table-fixed table-trans">
+        <colgroup>
+            <col>                       <!-- Salida   -->
+            <col style="width:118px">   <!-- Importe  -->
+            <col>                       <!-- Entrada  -->
+            <col style="width:118px">   <!-- Importe  -->
+            <col style="width:118px">   <!-- Acciones -->
+        </colgroup>
         <thead>
             <tr>
                 <th>Salida (cuenta · fecha)</th>
@@ -88,18 +108,18 @@
         <tbody>
             {% for s in suggestions %}
             <tr>
-                <td>
-                    <strong>{{ s.left_account }}</strong>
-                    <span class="muted small tabular">· {{ s.left_date }}</span>
-                    <div class="muted small">{{ s.left_desc | truncate(50) }}</div>
+                <td class="trunc" title="{{ s.left_account }} · {{ s.left_date }} · {{ s.left_desc }}">
+                    <div class="trunc"><strong>{{ s.left_account }}</strong>
+                        <span class="muted small tabular">· {{ s.left_date }}</span></div>
+                    <div class="muted small trunc">{{ s.left_desc }}</div>
                 </td>
-                <td class="num tabular amount-neg">{{ s.left_amount | eur_signed }}</td>
-                <td>
-                    <strong>{{ s.right_account }}</strong>
-                    <span class="muted small tabular">· {{ s.right_date }}</span>
-                    <div class="muted small">{{ s.right_desc | truncate(50) }}</div>
+                <td class="num tabular nowrap amount-neg">{{ s.left_amount | eur_signed }}</td>
+                <td class="trunc" title="{{ s.right_account }} · {{ s.right_date }} · {{ s.right_desc }}">
+                    <div class="trunc"><strong>{{ s.right_account }}</strong>
+                        <span class="muted small tabular">· {{ s.right_date }}</span></div>
+                    <div class="muted small trunc">{{ s.right_desc }}</div>
                 </td>
-                <td class="num tabular amount-pos">{{ s.right_amount | eur_signed }}</td>
+                <td class="num tabular nowrap amount-pos">{{ s.right_amount | eur_signed }}</td>
                 <td>
                     <form method="post" action="/traspasos/emparejar" style="display:inline;">
                         <input type="hidden" name="left_id" value="{{ s.left_id }}">
@@ -111,6 +131,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 {% endif %}
 
