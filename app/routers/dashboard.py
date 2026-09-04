@@ -13,6 +13,7 @@ from fastapi.responses import HTMLResponse
 
 from app.db import cursor
 from app.services.analytics import (
+    account_balance,
     balance_series,
     by_category,
     month_income_expense,
@@ -137,16 +138,16 @@ def dashboard(request: Request, month: Optional[str] = None):
             for r in last_rows
         ]
 
-        # Desglose de cuentas activas para el lateral del panel.
-        account_rows = cur.execute(
-            """SELECT a.id, a.name,
-                      a.initial_balance + COALESCE(SUM(t.amount), 0) AS bal
-               FROM accounts a
-               LEFT JOIN transactions t ON t.account_id = a.id
-               WHERE a.archived = 0
-               GROUP BY a.id
-               ORDER BY bal DESC"""
-        ).fetchall()
+        # Desglose de cuentas activas para el lateral del panel. El saldo se
+        # pide a account_balance() y no con un SUM(): las cuentas de inversión
+        # valen lo que dice su última valoración, no lo que se ha aportado.
+        account_rows = [
+            {"id": r["id"], "name": r["name"], "bal": account_balance(cur, r["id"])}
+            for r in cur.execute(
+                "SELECT id, name FROM accounts WHERE archived = 0"
+            ).fetchall()
+        ]
+        account_rows.sort(key=lambda r: r["bal"], reverse=True)
 
         forecast = forecast_next_month(cur)
         anomalies = detect_anomalies(cur)

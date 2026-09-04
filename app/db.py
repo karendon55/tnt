@@ -131,6 +131,25 @@ CREATE TABLE IF NOT EXISTS import_batches (
     duplicates   INTEGER NOT NULL DEFAULT 0
 );
 
+-- Valoraciones declaradas de cuentas de inversión (fondos, planes...).
+-- Un fondo cambia de valor sin que haya movimientos: la revalorización no
+-- es un apunte. Por eso su saldo NO se calcula sumando movimientos, sino
+-- tomando la última valoración que el usuario declara al recibir el
+-- informe de la entidad. Los movimientos siguen registrando lo aportado
+-- y lo reembolsado, para poder calcular la rentabilidad.
+CREATE TABLE IF NOT EXISTS account_valuations (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    date       TEXT    NOT NULL,               -- ISO YYYY-MM-DD
+    value      REAL    NOT NULL,               -- valor declarado por la entidad
+    note       TEXT,
+    created_at TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(account_id, date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_valuations_account
+    ON account_valuations(account_id, date DESC);
+
 -- Alias de descripciones: cuando la descripción del banco contiene `pattern`
 -- (subcadena en mayúsculas), se muestra `alias` en la UI. La descripción
 -- original NO se modifica en la BD: el alias es solo cosmético.

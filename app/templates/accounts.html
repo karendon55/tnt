@@ -88,6 +88,7 @@
                                     <option value="bank" {% if a.type == 'bank' %}selected{% endif %}>Banco</option>
                                     <option value="cash" {% if a.type == 'cash' %}selected{% endif %}>Efectivo</option>
                                     <option value="credit" {% if a.type == 'credit' %}selected{% endif %}>Tarjeta de crédito</option>
+                                    <option value="investment" {% if a.type == 'investment' %}selected{% endif %}>Inversión (fondo, plan)</option>
                                 </select>
                             </div>
                             <div class="row wrap gap-lg">
@@ -108,6 +109,107 @@
 {% else %}
 <div class="card">
     <p class="muted small">Aún no hay cuentas. Al importar un extracto, TNT creará la cuenta automáticamente.</p>
+</div>
+{% endif %}
+
+{% set inv_accs = active_accs | selectattr('investment') | list %}
+{% if inv_accs %}
+<div class="card mt-xl">
+    <h3 class="card-title">Inversiones</h3>
+    <p class="muted small">
+        Un fondo cambia de valor sin que haya movimientos, así que su saldo no
+        sale de sumar aportaciones: lo marca el último valor que declares aquí
+        con el informe de la entidad. La rentabilidad no cuenta como ingreso,
+        por lo que no altera los KPIs del panel.
+    </p>
+
+    {% for a in inv_accs %}
+    {% set inv = a.investment %}
+    <div class="card mt-lg" style="background:rgba(0,0,0,.14);">
+        <div class="row wrap row-between gap-lg">
+            <strong>{{ a.name }}</strong>
+            {% if a.bank %}<span class="pill">{{ a.bank }}</span>{% endif %}
+        </div>
+
+        <div class="grid grid-kpi mt-lg">
+            <div>
+                <div class="card-title">Aportado neto</div>
+                <div class="kpi-value tabular">{{ inv.contributed | eur }}</div>
+                <div class="kpi-delta">lo que has puesto menos lo reembolsado</div>
+            </div>
+            <div>
+                <div class="card-title">Valor actual</div>
+                <div class="kpi-value tabular">
+                    {% if inv.value is not none %}{{ inv.value | eur }}{% else %}—{% endif %}
+                </div>
+                <div class="kpi-delta">
+                    {% if inv.valuations %}declarado el {{ inv.valuations[0].date }}
+                    {% else %}sin valoración todavía{% endif %}
+                </div>
+            </div>
+            <div>
+                <div class="card-title">Rentabilidad</div>
+                {% if inv.gain is not none %}
+                <div class="kpi-value tabular {% if inv.gain >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
+                    {{ inv.gain | eur_signed }}
+                </div>
+                <div class="kpi-delta {% if inv.gain >= 0 %}is-positive{% else %}is-negative{% endif %}">
+                    {% if inv.gain_pct is not none %}{{ inv.gain_pct | pct_signed }} sobre lo aportado{% endif %}
+                </div>
+                {% else %}
+                <div class="kpi-value tabular muted">—</div>
+                <div class="kpi-delta">declara un valor para calcularla</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" action="/cuentas/{{ a.id }}/valoracion"
+              class="row wrap gap-lg mt-xl" style="align-items:flex-end;">
+            <div class="field" style="margin:0;">
+                <label for="val-date-{{ a.id }}">Fecha del informe</label>
+                <input class="input" type="date" id="val-date-{{ a.id }}" name="date"
+                       value="{{ today_iso }}" required style="width:auto;">
+            </div>
+            <div class="field" style="margin:0;">
+                <label for="val-value-{{ a.id }}">Valor declarado (€)</label>
+                <input class="input tabular" type="number" step="0.01" id="val-value-{{ a.id }}"
+                       name="value" required placeholder="63334.26" style="width:auto;">
+            </div>
+            <div class="field grow" style="margin:0;">
+                <label for="val-note-{{ a.id }}">Nota (opcional)</label>
+                <input class="input" id="val-note-{{ a.id }}" name="note"
+                       placeholder="p. ej. informe mensual de agosto">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar valoración</button>
+        </form>
+
+        {% if inv.valuations %}
+        <details class="mt-lg">
+            <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">
+                Histórico de valoraciones ({{ inv.valuations|length }})
+            </summary>
+            <table class="table mt-md">
+                <thead><tr><th>Fecha</th><th class="num">Valor</th><th>Nota</th><th></th></tr></thead>
+                <tbody>
+                    {% for v in inv.valuations %}
+                    <tr>
+                        <td class="tabular nowrap">{{ v.date }}</td>
+                        <td class="num tabular">{{ v.value | eur }}</td>
+                        <td class="muted small trunc">{{ v.note or '—' }}</td>
+                        <td>
+                            <form method="post" action="/cuentas/valoracion/{{ v.id }}/borrar"
+                                  onsubmit="return confirm('¿Borrar la valoración del {{ v.date }}?');">
+                                <button type="submit" class="btn btn-sm btn-ghost" title="Borrar">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+        {% endif %}
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
 
@@ -322,6 +424,7 @@
                 <option value="bank">Banco</option>
                 <option value="cash">Efectivo</option>
                 <option value="credit">Tarjeta de crédito</option>
+                <option value="investment">Inversión (fondo, plan)</option>
             </select>
         </div>
         <div class="row wrap gap-lg">

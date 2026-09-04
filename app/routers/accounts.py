@@ -10,7 +10,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.importers.common import normalize_iban
-from app.services.analytics import account_balance
+from app.services.analytics import (
+    INVESTMENT_TYPE, account_balance, contributed, last_valuation,
+)
 from app.templating import templates
 
 router = APIRouter()
@@ -47,8 +49,30 @@ def accounts_list(request: Request):
                     days_since = (today - last_date).days
                 except Exception:
                     days_since = None
+            # Una cuenta de inversión enseña tres cifras que no son la misma:
+            # lo aportado, lo que vale hoy y la diferencia entre ambas.
+            investment = None
+            if r["type"] == INVESTMENT_TYPE:
+                puesto = contributed(cur, r["id"])
+                valor = last_valuation(cur, r["id"])
+                vals = [dict(v) for v in cur.execute(
+                    """SELECT id, date, value, note FROM account_valuations
+                       WHERE account_id = ? ORDER BY date DESC, id DESC""",
+                    (r["id"],),
+                ).fetchall()]
+                gain = round((valor - puesto), 2) if valor is not None else None
+                investment = {
+                    "contributed": puesto,
+                    "value": valor,
+                    "gain": gain,
+                    "gain_pct": (round(gain / puesto * 100, 2)
+                                 if gain is not None and puesto else None),
+                    "valuations": vals,
+                }
+
             accounts.append({
                 "id": r["id"], "name": r["name"], "bank": r["bank"],
+                "investment": investment,
                 "iban": r["iban"], "type": r["type"],
                 "initial_balance": r["initial_balance"],
                 "currency": r["currency"] or "EUR",
@@ -129,4 +153,34 @@ def accounts_archive(account_id: int):
 def accounts_restore(account_id: int):
     with cursor() as cur:
         cur.execute("UPDATE accounts SET archived = 0 WHERE id = ?", (account_id,))
+    return RedirectResponse("/cuentas", status_code=303)
+
+
+@router.post("/cuentas/{account_id}/valoracion")
+def valuation_create(
+    account_id: int,
+    date: str = Form(...),
+    value: float = Form(...),
+    note: str = Form(""),
+):
+    """Registra el valor que la entidad declara para una cuenta de inversión.
+
+    Si ya hay una valoración con esa fecha se sustituye, para poder corregir
+    una cifra mal tecleada sin tener que borrarla antes.
+    """
+    with cursor() as cur:
+        cur.execute(
+            """INSERT INTO account_valuations(account_id, date, value, note)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(account_id, date) DO UPDATE
+                 SET value = excluded.value, note = excluded.note""",
+            (account_id, date.strip(), value, note.strip() or None),
+        )
+    return RedirectResponse("/cuentas", status_code=303)
+
+
+@router.post("/cuentas/valoracion/{valuation_id}/borrar")
+def valuation_delete(valuation_id: int):
+    with cursor() as cur:
+        cur.execute("DELETE FROM account_valuations WHERE id = ?", (valuation_id,))
     return RedirectResponse("/cuentas", status_code=303)

@@ -9,8 +9,14 @@ import unittest
 from datetime import date
 
 from app.services.analytics import (
-    account_balance, account_balance_at, month_income_expense,
-    month_range, prev_month_range, total_balance,
+    account_balance,
+    account_balance_at,
+    contributed,
+    last_valuation,
+    month_income_expense,
+    month_range,
+    prev_month_range,
+    total_balance,
 )
 
 
@@ -22,8 +28,17 @@ def _new_db() -> sqlite3.Connection:
         CREATE TABLE accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT 'bank',
             initial_balance REAL NOT NULL DEFAULT 0,
             archived INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE TABLE account_valuations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            value REAL NOT NULL,
+            note TEXT,
+            UNIQUE(account_id, date)
         );
         CREATE TABLE transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -135,3 +150,72 @@ class TestMonthIncomeExpense(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCuentasDeInversion(unittest.TestCase):
+    """Un fondo cambia de valor sin movimientos: su saldo lo marca la última
+    valoración declarada, no la suma de aportaciones."""
+
+    def setUp(self):
+        self.con = _new_db()
+        self.cur = self.con.cursor()
+        self.cur.execute(
+            "INSERT INTO accounts(id, name, type, initial_balance) "
+            "VALUES (1, 'Indexa Capital', 'investment', 60440.0)"
+        )
+        self.cur.execute(
+            "INSERT INTO accounts(id, name, type, initial_balance) "
+            "VALUES (2, 'Banco', 'bank', 1000.0)"
+        )
+
+    def _valorar(self, fecha, valor, account_id=1):
+        self.cur.execute(
+            "INSERT INTO account_valuations(account_id, date, value) VALUES (?,?,?)",
+            (account_id, fecha, valor),
+        )
+
+    def test_sin_valoracion_usa_lo_aportado(self):
+        self.assertEqual(account_balance(self.cur, 1), 60440.0)
+
+    def test_la_valoracion_manda_sobre_los_movimientos(self):
+        self._valorar("2026-08-31", 63334.26)
+        self.assertEqual(account_balance(self.cur, 1), 63334.26)
+
+    def test_rentabilidad_es_valor_menos_aportado(self):
+        self._valorar("2026-08-31", 63334.26)
+        rent = account_balance(self.cur, 1) - contributed(self.cur, 1)
+        self.assertAlmostEqual(rent, 2894.26, places=2)
+
+    def test_una_aportacion_posterior_no_altera_el_valor_declarado(self):
+        self._valorar("2026-08-31", 63334.26)
+        self.cur.execute(
+            "INSERT INTO transactions(account_id, date, amount, description) "
+            "VALUES (1, '2026-09-05', 500.0, 'Aportación')"
+        )
+        # el valor sigue siendo el declarado; lo aportado sí sube
+        self.assertEqual(account_balance(self.cur, 1), 63334.26)
+        self.assertEqual(contributed(self.cur, 1), 60940.0)
+
+    def test_un_reembolso_resta_de_lo_aportado(self):
+        self.cur.execute(
+            "INSERT INTO transactions(account_id, date, amount, description) "
+            "VALUES (1, '2026-09-10', -1440.0, 'Reembolso')"
+        )
+        self.assertEqual(contributed(self.cur, 1), 59000.0)
+
+    def test_toma_la_valoracion_vigente_en_cada_fecha(self):
+        self._valorar("2026-07-31", 63219.43)
+        self._valorar("2026-08-31", 63334.26)
+        self.assertEqual(account_balance_at(self.cur, 1, "2026-08-15"), 63219.43)
+        self.assertEqual(account_balance_at(self.cur, 1, "2026-08-31"), 63334.26)
+        # antes de la primera valoración, lo aportado
+        self.assertEqual(account_balance_at(self.cur, 1, "2026-06-30"), 60440.0)
+
+    def test_patrimonio_suma_valoracion_y_no_aportaciones(self):
+        self._valorar("2026-08-31", 63334.26)
+        # 63334.26 del fondo + 1000 del banco
+        self.assertEqual(total_balance(self.cur), 64334.26)
+
+    def test_una_cuenta_normal_no_se_ve_afectada(self):
+        self._valorar("2026-08-31", 99999.0, account_id=2)   # valoración espuria
+        self.assertEqual(account_balance(self.cur, 2), 1000.0)

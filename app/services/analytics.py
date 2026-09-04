@@ -7,39 +7,89 @@ import sqlite3
 from datetime import date, timedelta
 
 
-def account_balance(cur: sqlite3.Cursor, account_id: int) -> float:
-    row = cur.execute(
-        """SELECT a.initial_balance + COALESCE(SUM(t.amount), 0) AS bal
-           FROM accounts a LEFT JOIN transactions t ON t.account_id = a.id
-           WHERE a.id = ?""",
-        (account_id,),
-    ).fetchone()
+INVESTMENT_TYPE = "investment"
+
+
+def last_valuation(cur: sqlite3.Cursor, account_id: int,
+                   as_of: str | None = None) -> float | None:
+    """Último valor declarado de una cuenta de inversión, o None si no hay.
+
+    `as_of` limita la búsqueda a valoraciones anteriores o iguales a esa
+    fecha, para poder reconstruir el histórico.
+    """
+    if as_of:
+        row = cur.execute(
+            "SELECT value FROM account_valuations WHERE account_id = ? AND date <= ? "
+            "ORDER BY date DESC, id DESC LIMIT 1", (account_id, as_of),
+        ).fetchone()
+    else:
+        row = cur.execute(
+            "SELECT value FROM account_valuations WHERE account_id = ? "
+            "ORDER BY date DESC, id DESC LIMIT 1", (account_id,),
+        ).fetchone()
+    return row["value"] if row else None
+
+
+def contributed(cur: sqlite3.Cursor, account_id: int,
+                as_of: str | None = None) -> float:
+    """Aportado neto a una cuenta: saldo inicial más movimientos (las
+    aportaciones suman, los reembolsos restan). Es lo que has puesto de tu
+    bolsillo, sin contar lo que haya ganado o perdido."""
+    if as_of:
+        row = cur.execute(
+            """SELECT a.initial_balance +
+                      COALESCE((SELECT SUM(amount) FROM transactions
+                                WHERE account_id = a.id AND date <= ?), 0) AS bal
+               FROM accounts a WHERE a.id = ?""", (as_of, account_id),
+        ).fetchone()
+    else:
+        row = cur.execute(
+            """SELECT a.initial_balance + COALESCE(SUM(t.amount), 0) AS bal
+               FROM accounts a LEFT JOIN transactions t ON t.account_id = a.id
+               WHERE a.id = ?""", (account_id,),
+        ).fetchone()
     return round(row["bal"] if row and row["bal"] is not None else 0, 2)
+
+
+def account_balance(cur: sqlite3.Cursor, account_id: int) -> float:
+    """Saldo de una cuenta.
+
+    En las cuentas de inversión manda la última valoración declarada; si
+    aún no hay ninguna, se recurre a lo aportado.
+    """
+    row = cur.execute("SELECT type FROM accounts WHERE id = ?", (account_id,)).fetchone()
+    if row and row["type"] == INVESTMENT_TYPE:
+        value = last_valuation(cur, account_id)
+        if value is not None:
+            return round(value, 2)
+    return contributed(cur, account_id)
 
 
 def account_balance_at(cur: sqlite3.Cursor, account_id: int, as_of: str) -> float:
     """Saldo de una cuenta en una fecha dada (inclusive). Se usa en la
     reconciliación contra el saldo real del banco."""
-    row = cur.execute(
-        """SELECT a.initial_balance +
-                  COALESCE((SELECT SUM(amount) FROM transactions
-                            WHERE account_id = a.id AND date <= ?), 0) AS bal
-           FROM accounts a WHERE a.id = ?""",
-        (as_of, account_id),
-    ).fetchone()
-    return round(row["bal"] if row and row["bal"] is not None else 0, 2)
+    row = cur.execute("SELECT type FROM accounts WHERE id = ?", (account_id,)).fetchone()
+    if row and row["type"] == INVESTMENT_TYPE:
+        value = last_valuation(cur, account_id, as_of)
+        if value is not None:
+            return round(value, 2)
+    return contributed(cur, account_id, as_of)
 
 
-def total_balance(cur: sqlite3.Cursor) -> float:
-    initial = cur.execute(
-        "SELECT COALESCE(SUM(initial_balance), 0) AS ib FROM accounts WHERE archived = 0"
-    ).fetchone()["ib"]
-    flow = cur.execute(
-        """SELECT COALESCE(SUM(t.amount), 0) AS f
-           FROM transactions t JOIN accounts a ON a.id = t.account_id
-           WHERE a.archived = 0"""
-    ).fetchone()["f"]
-    return round(initial + flow, 2)
+def total_balance(cur: sqlite3.Cursor, as_of: str | None = None) -> float:
+    """Patrimonio: suma de las cuentas activas. Las de inversión aportan su
+    valoración declarada en vez de la suma de sus movimientos."""
+    total = 0.0
+    for r in cur.execute(
+        "SELECT id, type FROM accounts WHERE archived = 0"
+    ).fetchall():
+        if r["type"] == INVESTMENT_TYPE:
+            value = last_valuation(cur, r["id"], as_of)
+            if value is not None:
+                total += value
+                continue
+        total += contributed(cur, r["id"], as_of)
+    return round(total, 2)
 
 
 def month_range(today: date | None = None) -> tuple[str, str]:
@@ -124,6 +174,25 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
     ).fetchall()
     delta_by_month = {r["ym"]: r["delta"] for r in rows}
 
+    # Las cuentas de inversión no siguen la suma de movimientos: su valor lo
+    # marca la última valoración declarada. Se restan de la serie acumulada y
+    # se suman aparte, mes a mes, con la valoración vigente en cada cierre.
+    inv = cur.execute(
+        "SELECT id, initial_balance FROM accounts "
+        "WHERE archived = 0 AND type = ?", (INVESTMENT_TYPE,),
+    ).fetchall()
+    inv_ids = [r["id"] for r in inv]
+    if inv_ids:
+        marks = ",".join("?" * len(inv_ids))
+        initial -= sum(r["initial_balance"] for r in inv)
+        inv_flow = cur.execute(
+            f"""SELECT substr(date, 1, 7) AS ym, SUM(amount) AS delta
+                FROM transactions WHERE account_id IN ({marks})
+                GROUP BY ym""", inv_ids,
+        ).fetchall()
+        for r in inv_flow:
+            delta_by_month[r["ym"]] = delta_by_month.get(r["ym"], 0) - r["delta"]
+
     # Construir series
     result = []
     running = initial
@@ -135,7 +204,15 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
     while (y, m) <= (today.year, today.month):
         ym = f"{y:04d}-{m:02d}"
         running += delta_by_month.get(ym, 0)
-        result.append({"month": ym, "balance": round(running, 2)})
+        total = running
+        if inv_ids:
+            # Último día del mes, para tomar la valoración vigente entonces
+            nxt = date(y + (m == 12), 1 if m == 12 else m + 1, 1)
+            month_end = (nxt - timedelta(days=1)).isoformat()
+            for account_id in inv_ids:
+                value = last_valuation(cur, account_id, month_end)
+                total += value if value is not None else contributed(cur, account_id, month_end)
+        result.append({"month": ym, "balance": round(total, 2)})
         m += 1
         if m == 13:
             m = 1
