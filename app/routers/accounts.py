@@ -3,6 +3,7 @@ Router /cuentas — CRUD simple. El saldo se calcula desde las transacciones.
 """
 from __future__ import annotations
 
+import json
 from datetime import date
 
 from fastapi import APIRouter, Form, Request
@@ -11,7 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.db import cursor
 from app.importers.common import normalize_iban
 from app.services.analytics import (
-    INVESTMENT_TYPE, account_balance, contributed, last_valuation,
+    INVESTMENT_TYPE, MONTHS_ES, account_balance, contributed, last_valuation,
 )
 from app.templating import templates
 
@@ -61,6 +62,15 @@ def accounts_list(request: Request):
                     (r["id"],),
                 ).fetchall()]
                 gain = round((valor - puesto), 2) if valor is not None else None
+                # Serie para el gráfico: valor declarado frente a lo aportado en
+                # esa misma fecha. El hueco entre ambas líneas es la rentabilidad.
+                serie = sorted(vals, key=lambda v: v["date"])
+                chart = {
+                    "labels": [f'{MONTHS_ES[int(v["date"][5:7])][:3]} {v["date"][2:4]}'
+                               for v in serie],
+                    "value": [v["value"] for v in serie],
+                    "contributed": [contributed(cur, r["id"], v["date"]) for v in serie],
+                }
                 investment = {
                     "contributed": puesto,
                     "value": valor,
@@ -68,6 +78,8 @@ def accounts_list(request: Request):
                     "gain_pct": (round(gain / puesto * 100, 2)
                                  if gain is not None and puesto else None),
                     "valuations": vals,
+                    "chart_json": json.dumps(chart, ensure_ascii=False),
+                    "has_chart": len(serie) >= 2,
                 }
 
             accounts.append({

@@ -183,6 +183,18 @@
             <button type="submit" class="btn btn-primary">Guardar valoración</button>
         </form>
 
+        {% if inv.has_chart %}
+        {# El JSON viaja en un atributo: Jinja lo escapa solo y el navegador lo
+           devuelve intacto a JSON.parse, sin necesidad de |safe dentro de <script>. #}
+        <div class="chart-box mt-xl" style="height:230px;">
+            <canvas class="fund-chart" data-serie="{{ inv.chart_json }}"></canvas>
+        </div>
+        <p class="small muted mt-md">
+            La línea roja es lo que vale; la gris, lo que has aportado.
+            El hueco entre ambas es tu rentabilidad.
+        </p>
+        {% endif %}
+
         {% if inv.valuations %}
         <details class="mt-lg">
             <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">
@@ -433,4 +445,50 @@
         </div>
     </form>
 </dialog>
+{% endblock %}
+
+{% block scripts %}
+{% if accounts | selectattr('investment') | list %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    const css = getComputedStyle(document.documentElement);
+    const tok = (n, fb) => css.getPropertyValue(n).trim() || fb;
+    const accent = tok('--accent', '#e10600');
+    const silver = tok('--silver', '#c0c0c0');
+    const text   = tok('--text-muted', '#9a9a9a');
+    const grid   = tok('--chart-grid', 'rgba(255,255,255,.07)');
+    const eur = v => new Intl.NumberFormat('es-ES', {
+        style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+
+    document.querySelectorAll('.fund-chart').forEach(function (cv) {
+        const d = JSON.parse(cv.dataset.serie);
+        new Chart(cv, {
+            type: 'line',
+            data: { labels: d.labels, datasets: [
+                { label: 'Valor', data: d.value, borderColor: accent, borderWidth: 2.5,
+                  fill: '+1', backgroundColor: 'rgba(225,6,0,.10)',
+                  tension: .3, pointRadius: 3, pointBackgroundColor: accent },
+                { label: 'Aportado', data: d.contributed, borderColor: silver,
+                  borderWidth: 1.5, borderDash: [5, 4], fill: false,
+                  tension: .3, pointRadius: 0 },
+            ]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: text, boxWidth: 10, font: { size: 11 } } },
+                    tooltip: { callbacks: { label: c => c.dataset.label + ': ' + eur(c.parsed.y) } },
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: text } },
+                    y: { grid: { color: grid }, ticks: { color: text,
+                         callback: v => (v / 1000).toFixed(1) + 'k' } },
+                },
+            },
+        });
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}
