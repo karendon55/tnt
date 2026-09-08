@@ -3,20 +3,22 @@
 {% block title %}Movimientos{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pagehead">
     <div>
         <h1>Movimientos</h1>
         <p>{{ total }} resultado{{ 's' if total != 1 else '' }} · página {{ page }} de {{ pages }}</p>
     </div>
-    <div class="row wrap gap-lg">
-        <button class="btn" onclick="document.getElementById('newTx').showModal()">+ Nuevo</button>
-        <a class="btn" href="/exportar.csv?{{ request.url.query }}">Exportar CSV</a>
-        <a class="btn btn-primary" href="/importar">Importar</a>
+    <div class="pagehead-actions">
+        <button class="btn" onclick="document.getElementById('newTx').showModal()">Nuevo movimiento</button>
+        <a class="lnk" href="/exportar.csv?{{ request.url.query }}">Exportar CSV</a>
+        <a class="lnk" href="/importar">Importar</a>
     </div>
 </div>
 
-<form method="get" action="/movimientos" class="card mb-md">
-    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+{# La acción en rojo de esta pantalla es Filtrar: es lo que se hace aquí.
+   Importar lleva a otra página, así que va como enlace. #}
+<form method="get" action="/movimientos">
+    <div class="filterbar">
         <div class="field">
             <label for="q">Buscar</label>
             <input class="input" type="text" name="q" id="q" value="{{ filters.q }}" placeholder="ej. mercadona">
@@ -53,30 +55,30 @@
             <label for="date_to">Hasta</label>
             <input class="input" type="date" name="date_to" id="date_to" value="{{ filters.date_to }}">
         </div>
-    </div>
-    <div class="row wrap gap-lg">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
-        <a class="btn btn-ghost" href="/movimientos">Limpiar</a>
+        <div class="filterbar-actions">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a class="lnk" href="/movimientos">Limpiar</a>
+        </div>
     </div>
 </form>
 
-<div class="card">
+<div class="sheet is-last">
     {% if transactions %}
     <div class="table-scroll">
     <table class="table table-fixed table-mov">
         {# Reparto explícito de anchos: con table-layout:fixed las columnas
            dejan de competir entre sí y el importe nunca queda fuera. #}
         <colgroup>
-            <col style="width:86px">   <!-- Fecha        -->
+            <col>   <!-- Fecha        -->
             <col>                      <!-- Descripción: se queda el resto -->
-            <col style="width:120px">  <!-- Cuenta       -->
-            <col style="width:140px">  <!-- Categoría    -->
-            <col style="width:246px">  <!-- Subcategoría: cabe la más larga
+            <col>  <!-- Cuenta       -->
+            <col>  <!-- Categoría    -->
+            <col>  <!-- Subcategoría: cabe la más larga
                                             ("Belleza, peluquería y perfumería"
                                             necesita 224 px con el control) -->
-            <col style="width:150px">  <!-- Memo         -->
-            <col style="width:116px">  <!-- Importe      -->
-            <col style="width:74px">   <!-- Acciones     -->
+            <col>  <!-- Memo         -->
+            <col>  <!-- Importe      -->
+            <col>   <!-- Acciones     -->
         </colgroup>
         <thead>
             <tr>
@@ -112,13 +114,22 @@
                     {{ tx.amount | eur_signed }}
                 </td>
                 <td>
-                    <div class="row" style="gap:.25rem;">
-                        <button type="button" class="btn btn-sm btn-ghost"
-                                title="Editar movimiento"
-                                onclick="document.getElementById('editTx-{{ tx.id }}').showModal()">✎</button>
-                        <form method="post" action="/movimientos/{{ tx.id }}/borrar" style="display:inline;"
+                    <div class="row-actions">
+                        <button type="button" class="icon-btn"
+                                aria-label="Editar el movimiento de {{ tx.date }}, {{ tx.description | alias }}"
+                                onclick="document.getElementById('editTx-{{ tx.id }}').showModal()">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M15 5l4 4"/>
+                            </svg>
+                        </button>
+                        <form method="post" action="/movimientos/{{ tx.id }}/borrar" class="inline-form"
                               onsubmit="return confirm('¿Borrar este movimiento?\n\n{{ tx.date }} · {{ tx.description|truncate(50) }} · {{ tx.amount | eur_signed }}');">
-                            <button type="submit" class="btn btn-sm btn-ghost" title="Borrar movimiento">🗑</button>
+                            <button type="submit" class="icon-btn is-danger"
+                                    aria-label="Borrar el movimiento de {{ tx.date }}, {{ tx.description | alias }}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
+                                </svg>
+                            </button>
                         </form>
                     </div>
                 </td>
@@ -128,27 +139,27 @@
     </table>
     </div>
     {% else %}
-    <p class="muted small">No hay movimientos que coincidan con los filtros.</p>
+    <p class="empty-state">No hay movimientos que coincidan con los filtros. Prueba a quitar alguno o a ampliar las fechas.</p>
     {% endif %}
 
     {% if pages > 1 %}
-    <div class="row wrap gap-lg mt-xl">
+    <nav class="pager" aria-label="Paginación">
         {% set base_args = request.url.include_query_params().query %}
         {% if page > 1 %}
-            <a class="btn btn-sm" href="?{{ base_args }}&page={{ page - 1 }}">← Anterior</a>
+            <a class="lnk" href="?{{ base_args }}&page={{ page - 1 }}">← Anterior</a>
         {% endif %}
-        <span class="small muted">Página {{ page }} de {{ pages }}</span>
+        <span class="muted pager-info">Página {{ page }} de {{ pages }}</span>
         {% if page < pages %}
-            <a class="btn btn-sm" href="?{{ base_args }}&page={{ page + 1 }}">Siguiente →</a>
+            <a class="lnk" href="?{{ base_args }}&page={{ page + 1 }}">Siguiente →</a>
         {% endif %}
-    </div>
+    </nav>
     {% endif %}
 </div>
 
-<dialog id="newTx" class="card" style="max-width:520px; border:1px solid var(--border);">
+<dialog id="newTx" class="card dialog-sm">
     <form method="post" action="/movimientos/nuevo">
         <h3 class="card-title">Nuevo movimiento manual</h3>
-        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem;">
+        <div class="form-2">
             <div class="field">
                 <label>Fecha</label>
                 <input class="input" type="date" name="date" required>
@@ -166,11 +177,11 @@
             <label>Descripción</label>
             <input class="input" name="description" placeholder="p. ej. Café en el bar" required>
         </div>
-        <div class="grid" style="grid-template-columns: 1fr 2fr; gap: .75rem;">
+        <div class="form-1-2">
             <div class="field">
                 <label>Importe (€)</label>
                 <input class="input tabular" type="number" step="0.01" name="amount" required>
-                <p class="muted small" style="margin:.25rem 0 0;">Negativo = gasto</p>
+                <p class="muted small field-hint">Negativo = gasto</p>
             </div>
             <div class="field">
                 <label>Categoría</label>
@@ -197,10 +208,10 @@
 </dialog>
 
 {% for tx in transactions %}
-<dialog id="editTx-{{ tx.id }}" class="card" style="max-width:520px; border:1px solid var(--border);">
+<dialog id="editTx-{{ tx.id }}" class="card dialog-sm">
     <form method="post" action="/movimientos/{{ tx.id }}/editar">
         <h3 class="card-title">Editar movimiento #{{ tx.id }}</h3>
-        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem;">
+        <div class="form-2">
             <div class="field">
                 <label>Fecha</label>
                 <input class="input" type="date" name="date" value="{{ tx.date }}" required>
@@ -218,7 +229,7 @@
             <label>Descripción</label>
             <input class="input" name="description" value="{{ tx.description }}" required>
         </div>
-        <div class="grid" style="grid-template-columns: 1fr 2fr; gap: .75rem;">
+        <div class="form-1-2">
             <div class="field">
                 <label>Importe (€)</label>
                 <input class="input tabular" type="number" step="0.01" name="amount" value="{{ tx.amount }}" required>
@@ -242,7 +253,7 @@
         </div>
         {% if tx.is_transfer %}
         <p class="small muted">
-            ⚠ Este movimiento está enlazado como traspaso. Si cambias fecha, cuenta o importe, el enlace se rompe (los dos lados quedan como movimientos independientes).
+            <strong>Ojo:</strong> este movimiento está enlazado como traspaso. Si cambias fecha, cuenta o importe, el enlace se rompe (los dos lados quedan como movimientos independientes).
         </p>
         {% endif %}
         <div class="row wrap gap-lg">

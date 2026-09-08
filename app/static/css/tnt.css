@@ -342,6 +342,67 @@ select.select,.select{cursor:pointer}
 .bar{height:7px;border-radius:99px;background:var(--muted);overflow:hidden}
 .bar>i{display:block;height:100%;border-radius:99px;background:var(--accent)}
 
+/* ── Cabecera de página (sirve para todas las pantallas migradas) ─────── */
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;
+  flex-wrap:wrap;padding:2.2rem 0 1.2rem}
+.pagehead h1{font-family:var(--font-display);font-size:2rem;font-weight:400;
+  letter-spacing:-.02em;margin:0}
+.pagehead p{margin:.4rem 0 0;color:var(--text-muted);font-size:.85rem}
+.pagehead-actions{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+
+/* ── Movimientos ──────────────────────────────────────────────────────── */
+/* Filtros: una fila cerrada por un filete, no una tarjeta. */
+.filterbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:1rem 1.4rem;align-items:end;padding:0 0 1.3rem;
+  border-bottom:1px solid var(--border);margin-bottom:1.4rem}
+.filterbar .field{margin:0}
+.filterbar-actions{display:flex;align-items:center;gap:1.2rem}
+/* Controles dentro de una celda: callados hasta que los tocas. El selector
+   lleva el nombre del elemento para ganarle a la regla de input[type=text]. */
+input.cell-edit,select.cell-edit{background:transparent;border:1px solid transparent;
+  border-radius:var(--radius-sm);padding:.25rem .35rem;font-size:.82rem;width:100%;
+  min-width:0;color:var(--text);font-family:inherit}
+select.cell-edit{cursor:pointer}
+input.cell-edit::placeholder{color:var(--text-subtle)}
+input.cell-edit:hover,select.cell-edit:hover{border-color:var(--border)}
+input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
+  background:var(--surface-raised);outline:2px solid var(--accent-soft);outline-offset:1px}
+/* Botón de solo icono: 16px, sin caja hasta el hover, y con nombre accesible
+   en el marcado (aria-label), que un icono no se lee solo. */
+.icon-btn{display:inline-grid;place-items:center;width:28px;height:28px;padding:0;
+  background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);
+  color:var(--text-muted);cursor:pointer;transition:color .12s,border-color .12s}
+.icon-btn:hover{color:var(--text);border-color:var(--border)}
+.icon-btn.is-danger:hover{color:var(--danger);border-color:var(--danger)}
+.icon-btn:focus-visible{outline:2px solid var(--accent-soft);outline-offset:1px;
+  border-color:var(--accent)}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.row-actions{display:flex;gap:.15rem}
+/* Paginación: enlaces separados por un filete, no botones. */
+.pager{display:flex;align-items:center;gap:1.5rem;padding:1.2rem 0 0;
+  border-top:1px solid var(--border);margin-top:.2rem;font-size:.85rem}
+.pager-info{margin-left:auto}
+.pager-info+.lnk{margin-left:0}
+/* Diálogos del ancho de siempre, sin el style= en la plantilla */
+.dialog-sm{max-width:520px}
+.inline-form{display:inline}
+.field-hint{margin:.25rem 0 0}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.form-1-2{display:grid;grid-template-columns:1fr 2fr;gap:.75rem}
+@media(max-width:520px){.form-2,.form-1-2{grid-template-columns:1fr}}
+/* Reparto de anchos de la tabla de movimientos. Vive aquí y no en <col
+   style=>: con table-layout:fixed las columnas dejan de competir y el
+   importe nunca queda fuera. La subcategoría necesita 246px, que es lo que
+   ocupa "Belleza, peluquería y perfumería" con su control. */
+.table-mov col:nth-child(1){width:86px}
+.table-mov col:nth-child(3){width:120px}
+.table-mov col:nth-child(4){width:140px}
+.table-mov col:nth-child(5){width:246px}
+.table-mov col:nth-child(6){width:150px}
+.table-mov col:nth-child(7){width:116px}
+.table-mov col:nth-child(8){width:74px}
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
 .bolt-loading{animation:pulse 1s ease-in-out infinite}

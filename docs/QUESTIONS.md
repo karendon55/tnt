@@ -30,3 +30,6 @@ Format:
 - 2026-09-08 [panel] Fase 4: ¿dónde va la franja de copia de seguridad? -> al final de la página; es utilidad, no contenido
 - 2026-09-08 [panel] Fase 4: ¿el segmentado Saldo/Neto sigue en rojo? -> no; el rojo sólido se reserva a la acción principal
 - 2026-09-08 [base] ¿Cómo se marca la pantalla activa en la barra superior? -> subrayado rojo; la píldora roja sólida se reserva a la acción principal
+- 2026-09-08 [movimientos] ¿Cuál es la acción roja de la pantalla? -> Filtrar; Importar pasa a enlace porque lleva a otra página
+- 2026-09-08 [movimientos] ¿Los controles de categoría y memo se ven siempre? -> no; callados hasta el hover, con borde de acento al foco
+- 2026-09-08 [movimientos] ¿Qué hacemos con los iconos ✎ y 🗑? -> SVG en línea con aria-label que nombra fecha y descripción
