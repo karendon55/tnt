@@ -14,6 +14,11 @@ _DB_ENV = os.environ.get("TNT_DB", "").strip()
 DB_PATH = Path(_DB_ENV).expanduser() if _DB_ENV else BASE_DIR / "data" / "tnt.db"
 DATA_DIR = DB_PATH.parent
 
+# Modo demostración: lo enciende ./run.sh --demo. Explícito a propósito —
+# adivinarlo por el nombre del fichero marcaría como "de mentira" cualquier
+# base que no fuera la de siempre.
+DEMO_MODE = os.environ.get("TNT_DEMO") == "1"
+
 TEMPLATES_DIR = BASE_DIR / "app" / "templates"
 STATIC_DIR = BASE_DIR / "app" / "static"
 DEFAULT_EXTRACTS_DIR = BASE_DIR

@@ -66,11 +66,23 @@ if [[ -z "$PY" ]]; then
 fi
 
 # Si ya hay un servidor escuchando en el puerto, asumimos que es nuestro y reutilizamos.
+# Devuelve 0 si en el puerto ya hay un TNT sirviendo NUESTRA base de datos.
+# Comprobar solo que /health responde no basta: un servidor de desarrollo en
+# modo demostración también contesta 200, y reutilizarlo enseña movimientos
+# inventados como si fueran los tuyos.
 already_up() {
-    # /health responde {"status":"ok"} si es TNT
-    local code
-    code=$(curl -fsS -o /dev/null -w "%{http_code}" "http://${HOST}:${PORT}/health" 2>/dev/null || echo "000")
-    [[ "$code" == "200" ]]
+    local body esperada
+    body=$(curl -fsS "http://${HOST}:${PORT}/health" 2>/dev/null) || return 1
+    [[ "$body" == *'"status":"ok"'* ]] || return 1
+    esperada="${TNT_DB:-$APP_DIR/data/tnt.db}"
+    [[ "$body" == *"\"db\":\"$esperada\""* ]]
+}
+
+# ¿Hay algo en el puerto que responde, pero no es lo nuestro?
+puerto_ocupado_por_otro() {
+    local body
+    body=$(curl -fsS "http://${HOST}:${PORT}/health" 2>/dev/null) || return 1
+    ! already_up
 }
 
 start_server() {
@@ -106,6 +118,13 @@ open_browser() {
 if already_up; then
     open_browser
     exit 0
+fi
+
+if puerto_ocupado_por_otro; then
+    msg="En el puerto $PORT hay otro TNT con una base de datos distinta (¿el de desarrollo, en modo demostración?). Ciérralo y vuelve a abrir."
+    notify-send "TNT" "$msg" 2>/dev/null
+    echo "ERROR: $msg" >&2
+    exit 3
 fi
 
 start_server >/dev/null

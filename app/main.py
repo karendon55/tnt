@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import APP_NAME, STATIC_DIR
+from app.config import DB_PATH, DEMO_MODE, APP_NAME, STATIC_DIR
 from app.db import init_db
 from app.routers import accounts, aliases, backup, budgets, categories, dashboard, external_rules, import_page, reconciliations, rules, transactions, transfers
 
@@ -80,4 +80,11 @@ app.include_router(aliases.router)
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    """Además de decir que estamos vivos, decimos *qué base* servimos.
+
+    El lanzador reutiliza un servidor que ya escuche en el puerto. Sin este
+    dato daba por bueno cualquiera: un servidor de desarrollo apuntando a la
+    base de demostración pasaba por TNT y el usuario veía datos inventados
+    creyendo que eran los suyos.
+    """
+    return {"status": "ok", "db": str(DB_PATH), "demo": DEMO_MODE}

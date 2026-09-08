@@ -11,6 +11,7 @@ APP_DIR="$(pwd)"
 # respeta un TNT_DB que ya venga puesto.
 if [[ "${1:-}" == "--demo" ]]; then
     export TNT_DB="$APP_DIR/data/tnt-demo.db"
+    export TNT_DEMO=1
     if [[ ! -f "$TNT_DB" ]]; then
         echo "  No hay base de demostración todavía. Créala con:" >&2
         echo "      TNT_DB=\$PWD/data/tnt-demo.db .venv/bin/python scripts/make_demo_db.py" >&2

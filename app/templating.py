@@ -4,13 +4,14 @@ para heredar los globals (app_name, app_tagline) en base.html.
 """
 from fastapi.templating import Jinja2Templates
 
-from app.config import APP_NAME, APP_TAGLINE, TEMPLATES_DIR
+from app.config import APP_NAME, APP_TAGLINE, DEMO_MODE, TEMPLATES_DIR
 from app.services.aliases import apply_alias
 from app.utils.formatters import eur, eur_signed, num_es, pct_signed
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 templates.env.globals["app_name"] = APP_NAME
 templates.env.globals["app_tagline"] = APP_TAGLINE
+templates.env.globals["demo_mode"] = DEMO_MODE
 
 # Filtros de formato es-ES (miles con '.', decimales con ',').
 templates.env.filters["eur"] = eur

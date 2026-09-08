@@ -36,3 +36,6 @@ Format:
 - 2026-09-08 [movimientos] ¿Cómo se prueba el comportamiento sin arriesgar datos? -> base de demostración generada (scripts/make_demo_db.py) y ./run.sh --demo
 - 2026-09-08 [movimientos] El swap OOB de la celda Categoría no ocurría nunca -> el <template> lo escondía de htmx; pasa a un <span>, con tests que lo fijan
 - 2026-09-08 [movimientos] Los enlaces de paginación duplicaban page= -> include_query_params(page=…) lo reemplaza
+- 2026-09-08 [arranque] TNT del menú mostraba datos de demostración -> el lanzador reutilizaba cualquier servidor que respondiera /health 200; ahora compara qué base sirve
+- 2026-09-08 [arranque] ¿Cómo se sabe a simple vista que la sesión es de mentira? -> píldora "Datos de demostración" en la barra, encendida por TNT_DEMO=1
+- 2026-09-08 [arranque] Reinstalar con TNT abierto dejaba el código viejo en memoria -> install.sh avisa y dice cómo reiniciarlo

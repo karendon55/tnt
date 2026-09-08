@@ -167,6 +167,15 @@ fi
 
 # ---------- comprobación final ----------
 echo
+# Reinstalar con TNT abierto deja el proceso viejo con el código viejo en
+# memoria: parece que no ha pasado nada, y lo que ves es la versión anterior.
+if curl -fsS -o /dev/null "http://127.0.0.1:8000/health" 2>/dev/null; then
+    echo
+    echo "  ⚠ Hay un TNT corriendo con la versión anterior."
+    echo "    Ciérralo y vuelve a abrirlo para ver esta:"
+    echo "        pkill -f 'uvicorn app.main' && tnt-launcher"
+fi
+
 echo "✓ TNT instalado."
 echo
 echo "  Datos del usuario: $APP_DIR/data/  (BD persistente; no se sobrescribe al reinstalar)"
