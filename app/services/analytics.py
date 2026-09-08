@@ -158,21 +158,35 @@ def by_category(cur: sqlite3.Cursor, start: str, end: str, limit: int = 8) -> li
 
 
 def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
-    """Saldo acumulado al final de cada mes durante los últimos N meses."""
-    today = date.today()
+    """Saldo acumulado al cierre de cada uno de los últimos N meses con datos.
+
+    La ventana termina en el último mes que tiene datos —un movimiento o una
+    valoración—, no en el mes actual del calendario. Si los últimos extractos
+    importados son de abril y hoy es septiembre, prolongar la serie hasta hoy
+    la rellena de meses arrastrados que expulsan de la ventana justo los que
+    varían, y la curva sale recta. Es el mismo criterio con el que el panel
+    cae al último mes con datos cuando el mes en curso está vacío.
+
+    Los huecos *dentro* del rango sí se arrastran: un mes sin movimientos
+    cierra con el saldo del mes anterior, no con cero.
+    """
     # Saldo inicial total
     ib_row = cur.execute(
         "SELECT COALESCE(SUM(initial_balance), 0) AS ib FROM accounts WHERE archived = 0"
     ).fetchone()
     initial = ib_row["ib"] or 0
 
-    # Flujo acumulado por mes
+    # Flujo acumulado por mes. Solo cuentas activas: si el saldo inicial de una
+    # archivada no entra en el patrimonio, sus movimientos tampoco pueden mover
+    # la curva.
     rows = cur.execute(
         """SELECT substr(date, 1, 7) AS ym, SUM(amount) AS delta
            FROM transactions
+           WHERE account_id IN (SELECT id FROM accounts WHERE archived = 0)
            GROUP BY ym ORDER BY ym"""
     ).fetchall()
     delta_by_month = {r["ym"]: r["delta"] for r in rows}
+    data_months = {r["ym"] for r in rows}
 
     # Las cuentas de inversión no siguen la suma de movimientos: su valor lo
     # marca la última valoración declarada. Se restan de la serie acumulada y
@@ -192,16 +206,25 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
         ).fetchall()
         for r in inv_flow:
             delta_by_month[r["ym"]] = delta_by_month.get(r["ym"], 0) - r["delta"]
+        # Una valoración nueva mueve el patrimonio sin ningún movimiento
+        # detrás, así que también marca hasta dónde llega la serie.
+        data_months |= {
+            r["ym"] for r in cur.execute(
+                f"""SELECT DISTINCT substr(date, 1, 7) AS ym
+                    FROM account_valuations WHERE account_id IN ({marks})""",
+                inv_ids,
+            ).fetchall()
+        }
 
     # Construir series
+    if not data_months:
+        return []
     result = []
     running = initial
-    # Vamos mes a mes desde el más antiguo al presente
-    if not rows:
-        return []
-    start_ym = rows[0]["ym"]
+    # Vamos mes a mes desde el más antiguo hasta el último con datos
+    start_ym, end_ym = min(data_months), max(data_months)
     y, m = int(start_ym[:4]), int(start_ym[5:7])
-    while (y, m) <= (today.year, today.month):
+    while f"{y:04d}-{m:02d}" <= end_ym:
         ym = f"{y:04d}-{m:02d}"
         running += delta_by_month.get(ym, 0)
         total = running
