@@ -1,19 +1,19 @@
-<div class="row wrap gap-lg" style="align-items:center;">
-    <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
-        <button type="submit" class="btn btn-sm">🔁 Hacer backup</button>
+<div class="row wrap-w gap-lg">
+    <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML">
+        <button type="submit" class="btn btn-sm">Hacer backup</button>
     </form>
-    <a href="/backup" class="btn btn-sm btn-ghost" title="Backup cifrado / restaurar">🔒 Más opciones</a>
+    <a href="/backup" class="lnk" title="Backup cifrado / restaurar">Más opciones</a>
     {% if results is defined and results %}
         {% if ok %}
             <span class="pill pill-success">Backup ok · {{ ts }}</span>
         {% else %}
             <span class="pill pill-warning">Backup parcial · {{ ts }}</span>
         {% endif %}
-        <ul class="small muted" style="list-style:none; padding:0; margin:0;">
+        <ul class="backup-results small muted">
             {% for r in results %}
-                <li style="margin:.1rem 0;">
+                <li>
                     {% if r.ok %}
-                        ✓ <span class="tabular">{{ r.dest }}</span>{% if r.mode == "encrypted" %} · 🔒 cifrado{% endif %} · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
+                        ✓ <span class="tabular">{{ r.dest }}</span>{% if r.mode == "encrypted" %} · cifrado{% endif %} · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
                     {% else %}
                         ✗ <span class="tabular">{{ r.dest }}</span> — {{ r.error }}
                     {% endif %}

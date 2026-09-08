@@ -26,3 +26,6 @@ Format:
 - 2026-09-08 [panel] ¿Mover el selector de mes debajo del hero? -> sí, en una .monthbar cerrada por filete, como el boceto
 - 2026-09-08 [entorno] ¿Cómo arregla run.sh el arranque tras el salto a Python 3.14? -> reusar el pick_python de packaging/tnt-launcher.sh (comprueba que uvicorn+fastapi se importen, no que el fichero exista)
 - 2026-09-08 [entorno] ¿Borrar ~/.local/lib/python3.10 (50 MB huérfanos)? -> sí, a la papelera
+- 2026-09-08 [panel] Fase 4: ¿qué pasa con las barras de colores por categoría? -> fuera; eran ocho literales en la plantilla y el boceto pide filas limpias
+- 2026-09-08 [panel] Fase 4: ¿dónde va la franja de copia de seguridad? -> al final de la página; es utilidad, no contenido
+- 2026-09-08 [panel] Fase 4: ¿el segmentado Saldo/Neto sigue en rojo? -> no; el rojo sólido se reserva a la acción principal

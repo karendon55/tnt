@@ -150,8 +150,10 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--muted);
 .btn-ghost{border-color:transparent}
 .btn-ghost:hover{background:var(--muted)}
 .btn-sm{padding:.3rem .6rem;font-size:.78rem}
-.btn.is-active{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.is-active:hover{background:var(--accent-hover);color:#fff}
+/* Botón activo de un segmentado: sobrio. El rojo sólido queda para la acción
+   principal de la página, no para marcar cuál de dos series estás viendo. */
+.btn.is-active{background:var(--muted);border-color:var(--border-strong);color:var(--text)}
+.btn.is-active:hover{background:var(--surface-hover);color:var(--text)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
 /* ── Diálogos ──────────────────────────────────────────────────────────
@@ -244,10 +246,69 @@ select.select,.select{cursor:pointer}
 .sheet:last-child,.sheet.is-last{border-bottom:0}
 .sheet-title{font-family:var(--font-display);font-size:1.25rem;font-weight:400;
   letter-spacing:-.01em;margin:0}
+/* Etiqueta de sección: versalitas espaciadas. La usan el hero y los KPIs. */
+.lbl{font-size:.72rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--text-subtle);font-weight:600;margin:0}
+/* Cabecera de sección: titulillo serif a la izquierda, acción a la derecha. */
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;
+  gap:1rem;margin-bottom:1.15rem}
+/* Dos columnas con aire de verdad entre ellas (el boceto usa 56px). */
+.sheet-2{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem}
+@media(max-width:900px){.sheet-2{grid-template-columns:1fr;gap:2.2rem}}
+/* Acción secundaria: enlace subrayado, sin caja. El rojo se reserva para la
+   acción principal, la marca y lo negativo. */
+.lnk{display:inline-block;font-size:.85rem;color:var(--text);
+  border-bottom:1px solid var(--border-strong);padding-bottom:1px;
+  transition:color .12s,border-color .12s}
+.lnk:hover{color:var(--accent);border-bottom-color:var(--accent)}
+/* Banda de KPIs: tres columnas separadas por filete, sin tarjetas. */
+.kpiband{display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:1px solid var(--border)}
+.kpiband>div{padding:1.7rem 1.7rem 1.7rem 0;border-right:1px solid var(--border)}
+.kpiband>div+div{padding-left:1.7rem}
+.kpiband>div:last-child{border-right:0;padding-right:0}
+.kpiband .kpi-value{font-family:var(--font-display);font-size:2.15rem;
+  font-weight:400;letter-spacing:-.02em;margin-top:.45rem}
+@media(max-width:860px){
+  .kpiband{grid-template-columns:1fr}
+  .kpiband>div,.kpiband>div+div{padding:1.2rem 0;border-right:0;
+    border-bottom:1px solid var(--border)}
+  .kpiband>div:last-child{border-bottom:0}
+}
+/* Avisos: un punto y una línea de texto. Sin emoji y sin caja de color. */
+.warnline{padding:1rem 0;border-bottom:1px solid var(--border);
+  font-size:.85rem;color:var(--text-muted)}
+.warnline-top{display:flex;align-items:center;gap:.6rem}
+.warnline-top strong{color:var(--text);font-weight:600}
+.warndot{width:6px;height:6px;border-radius:99px;background:var(--accent);flex:none}
+.warnlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+  gap:.15rem 1.5rem;margin-top:.55rem}
+/* Tablas dentro de una hoja: sin acolchado lateral, que manden los filetes. */
+.sheet .table th:first-child,.sheet .table td:first-child{padding-left:0}
+.sheet .table th:last-child,.sheet .table td:last-child{padding-right:0}
+.warnline-top .lnk{margin-left:auto}
+/* Franja de backup: utilidad, no contenido. Va al final y no grita. */
+.backupbar{padding:1.1rem 0 0;border-top:1px solid var(--border);margin-top:1.5rem;
+  font-size:.85rem;color:var(--text-muted)}
+.backupbar form{display:inline}
+.backup-results{list-style:none;padding:0;margin:.4rem 0 0;width:100%}
+.backup-results li{margin:.1rem 0}
+/* Movimientos y lateral: la tabla manda, el lateral acompaña. */
+.sheet-mov{display:grid;grid-template-columns:1.55fr 1fr;gap:3.5rem}
+@media(max-width:1000px){.sheet-mov{grid-template-columns:1fr;gap:2.2rem}}
+/* Fila de dos columnas (previsión, totales), hermana de .acct. */
+.fcrow{display:grid;grid-template-columns:1fr auto;gap:.9rem;align-items:baseline;
+  padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.fcrow:last-of-type{border-bottom:0}
+.fcrow.is-total{border-top:1px solid var(--border);border-bottom:0;margin-top:.4rem;
+  padding-top:.8rem}
+/* Anchos de la tabla de movimientos del panel (vivían en style= ) */
+.mov-desc{max-width:240px}
+.mov-cat{max-width:170px}
+.chart-tall{height:250px}
 /* El hero no lleva filete: el de la barra de mes, justo debajo, hace de cierre. */
 .hero{padding:2.6rem 0 1.5rem}
-.hero .card-title{font-size:.72rem;letter-spacing:.24em;color:var(--text-subtle);margin:0;
-  font-weight:600}
+.hero .lbl{letter-spacing:.24em}
 .hero-value{font-family:var(--font-display);font-size:4rem;font-weight:400;
   letter-spacing:-.025em;line-height:1.02;margin-top:.7rem}
 @media(max-width:640px){.hero-value{font-size:2.5rem}}
@@ -260,16 +321,20 @@ select.select,.select{cursor:pointer}
 /* contenedor de altura fija: sin él Chart.js crece sin límite en cada redibujado */
 .chart-box{position:relative;width:100%}
 .chart-box>canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
-/* barras de gasto por categoría (propuesta B) */
-.catrow{display:grid;grid-template-columns:minmax(96px,150px) 1fr auto auto;
-  align-items:center;gap:.7rem;padding:.42rem 0}
-.catbar{height:9px;border-radius:99px;background:var(--muted);overflow:hidden}
-.catbar>i{display:block;height:100%;border-radius:99px;background:var(--accent)}
-.catrow .cat-amount{min-width:86px;text-align:right;font-weight:600}
-.catrow .cat-pct{min-width:46px;text-align:right}
-/* desglose de cuentas */
-.acct{display:flex;align-items:center;gap:.7rem;padding:.45rem 0 .2rem}
+/* Gasto por categoría: nombre, importe y variación, separados por punteado.
+   Se fueron las barras: eran una paleta de ocho colores literales en la
+   plantilla, y el boceto pide filas limpias. */
+.catrow{display:grid;grid-template-columns:1fr 7rem 4.2rem;gap:.9rem;
+  align-items:baseline;padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.catrow:last-of-type{border-bottom:0}
+.catrow .cat-amount{text-align:right}
+.catrow .cat-pct{text-align:right}
+/* Cuentas: el punto de color viene de la cuenta, no es decoración. */
+.acct{display:grid;grid-template-columns:auto 1fr auto;gap:.7rem;align-items:center;
+  padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.acct:last-of-type{border-bottom:0}
 .acct-dot{width:8px;height:8px;border-radius:99px;flex:none}
+/* .bar la siguen usando los presupuestos */
 .bar{height:7px;border-radius:99px;background:var(--muted);overflow:hidden}
 .bar>i{display:block;height:100%;border-radius:99px;background:var(--accent)}
 
@@ -277,3 +342,12 @@ select.select,.select{cursor:pointer}
 @media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
 .bolt-loading{animation:pulse 1s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Movimiento reducido ───────────────────────────────────────────────
+   Quien lo pida en el sistema no ve ni el pulso del rayo ni las
+   transiciones. Lo exige el listón de accesibilidad del design-system. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

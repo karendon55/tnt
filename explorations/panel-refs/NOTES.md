@@ -23,12 +23,11 @@ Solo el hero del patrimonio, sobre tokens reales de `tnt.css`:
    `.monthbar` (mes, píldora de "último mes con datos" y acciones) cerrada por un filete.
    El `<h1>` ya no es "Panel": lo es la etiqueta "Patrimonio total" del hero, como en el
    boceto, así que la página sigue teniendo un solo h1.
-2. **Botones.** El boceto usa enlaces subrayados; la app tiene botones con caja y un
-   "Importar" en rojo sólido. Decidir cuáles sobreviven: la dirección pide enlace para
-   lo secundario y rojo solo para la acción principal.
-3. **Tarjeta de backup.** Sigue siendo una caja redondeada y lleva emoji, que el
-   design-system prohíbe en interfaz.
-4. **Avisos.** El bloque de anomalías usa el emoji 🔁; hay que sustituirlo.
+2. ~~**Botones.**~~ **Hecho.** Lo secundario pasa a `.lnk` (enlace subrayado); el rojo
+   sólido se queda en "Importar". El segmentado Saldo/Neto deja de ser rojo.
+3. ~~**Tarjeta de backup.**~~ **Hecho.** Deja de ser tarjeta, pierde los emoji y baja al
+   final de la página: es utilidad, no contenido.
+4. ~~**Avisos.**~~ **Hecho.** Un punto rojo y una línea de texto, sin emoji ni caja.
 5. ~~**Sparkline en el hero.**~~ **Retirada el 2026-09-08**, con su bloque de Chart.js.
    Contaba la misma serie que "Evolución del saldo", unos centímetros más abajo.
 
@@ -47,3 +46,16 @@ La marca sigue en Impact.
 
 La serie del saldo devuelve **seis puntos idénticos** (`una cifra de seis dígitos` en los seis meses),
 así que la sparkline dibuja una recta. No es CSS: es el cálculo de la serie. Bug aparte.
+
+## Fase 4, superficie completa (2026-09-08)
+
+KPIs en banda de tres columnas con filete vertical, categorías sin barras, tabla y lateral
+en hoja, gráfico en línea de tinta con el punto rojo solo en el último mes. El brief
+bloqueado está en `briefs/panel.md`.
+
+Comprobado a 1440, 1024, 768 y 375, en tema claro y oscuro. `dashboard.html` se queda con
+**cero** literales de color: la paleta de ocho hex que pintaba las barras de categoría era
+la mayor bolsa de deuda de la plantilla. La app entera baja de 31 hallazgos a 27.
+
+Se añadió también la regla de `prefers-reduced-motion`, que no existía y el listón de
+accesibilidad del design-system exige.

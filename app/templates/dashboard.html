@@ -37,19 +37,15 @@
     </form>
     {% if showing_latest %}<span class="pill pill-warning">último mes con datos</span>{% endif %}
     <div class="monthbar-actions">
-        <a href="/movimientos" class="btn">Ver movimientos</a>
+        <a href="/movimientos" class="lnk">Ver movimientos</a>
         <a href="/importar" class="btn btn-primary">Importar</a>
     </div>
 </div>
 
-<div id="backup-status" class="card mb-md">
-    {% include "_backup_status.html" %}
-</div>
-
-{# ── KPIs del mes ─────────────────────────────────────────────────────── #}
-<div class="grid grid-kpi mb-md">
-    <div class="card">
-        <div class="card-title">Ingresos del mes</div>
+{# ── KPIs del mes: tres columnas separadas por filete, sin tarjetas ───── #}
+<div class="kpiband">
+    <div>
+        <div class="lbl">Ingresos del mes</div>
         <div class="kpi-value tabular amount-pos">{{ cur_month.income | eur }}</div>
         <div class="kpi-delta {% if delta_income is not none and delta_income >= 0 %}is-positive{% elif delta_income is not none %}is-negative{% endif %}">
             {% if delta_income is not none %}
@@ -59,8 +55,8 @@
             {% endif %}
         </div>
     </div>
-    <div class="card">
-        <div class="card-title">Gastos del mes</div>
+    <div>
+        <div class="lbl">Gastos del mes</div>
         <div class="kpi-value tabular amount-neg">{{ cur_month.expense|abs | eur }}</div>
         <div class="kpi-delta {% if delta_expense is not none and delta_expense <= 0 %}is-positive{% elif delta_expense is not none %}is-negative{% endif %}">
             {% if delta_expense is not none %}
@@ -70,8 +66,8 @@
             {% endif %}
         </div>
     </div>
-    <div class="card">
-        <div class="card-title">Neto del mes</div>
+    <div>
+        <div class="lbl">Neto del mes</div>
         <div class="kpi-value tabular {% if cur_month.net >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
             {{ cur_month.net | eur_signed }}
         </div>
@@ -79,39 +75,32 @@
     </div>
 </div>
 
-{# ── Anomalías ────────────────────────────────────────────────────────── #}
+{# ── Anomalías: un punto y una línea, sin caja ────────────────────────── #}
 {% if anomalies %}
-<div class="notice notice-info">
-    <div class="row wrap row-between gap-md">
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot" aria-hidden="true"></span>
         <strong>{{ anomalies|length }} avis{{ 'os' if anomalies|length != 1 else 'o' }} en tus movimientos</strong>
-        <a class="btn btn-sm btn-ghost" href="/movimientos">Revisar</a>
+        <a class="lnk" href="/movimientos">Revisar</a>
     </div>
-    <div class="grid grid-halves mt-md small muted">
-        {% for a in anomalies %}
-            <div>
-                {% if a.kind == 'duplicate' %}🔁{% else %}⚠{% endif %}
-                {{ a.message }}
-            </div>
-        {% endfor %}
+    <div class="warnlist">
+        {% for a in anomalies %}<div>{{ a.message }}</div>{% endfor %}
     </div>
 </div>
 {% endif %}
 
-{# ── Gasto por categoría (barras) + evolución del saldo ───────────────── #}
-<div class="grid grid-halves mb-md">
-    <div class="card">
-        <div class="row row-between gap-md">
-            <h3 class="card-title">A dónde fue el dinero · {{ month_name }}</h3>
-            <a class="btn btn-sm btn-ghost" href="/categorias">Ver categorías</a>
+{# ── Gasto por categoría + evolución del saldo ────────────────────────── #}
+<div class="sheet sheet-2">
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title">A dónde fue el dinero · {{ month_name }}</h2>
+            <a class="lnk" href="/categorias">Ver categorías</a>
         </div>
         {% if has_categories %}
             {% for c in cat_bars %}
             <div class="catrow">
-                <span class="small trunc" title="{{ c.name }}">{{ c.name }}</span>
-                <span class="catbar">
-                    <i style="width: {{ c.width }}%; background: {{ ['#e10600','#ff6b35','#f7b801','#4ade80','#38bdf8','#a78bfa','#f472b6','#94a3b8'][loop.index0 % 8] }};"></i>
-                </span>
-                <span class="cat-amount tabular small">{{ c.total | eur }}</span>
+                <span class="trunc" title="{{ c.name }}">{{ c.name }}</span>
+                <span class="cat-amount tabular">{{ c.total | eur }}</span>
                 <span class="cat-pct small muted" title="{{ c.pct }} % del gasto del mes">
                     {% if c.delta is not none %}
                         <span class="{% if c.delta > 0 %}amount-neg{% elif c.delta < 0 %}amount-pos{% endif %}">
@@ -121,15 +110,15 @@
                 </span>
             </div>
             {% endfor %}
-            <p class="small muted mt-md">Variación frente al mes anterior. Total: {{ cat_bars|sum(attribute='total') | eur }}</p>
+            <p class="small muted mt-lg">Variación frente al mes anterior. Total: {{ cat_bars|sum(attribute='total') | eur }}</p>
         {% else %}
             <p class="empty-state">Sin gastos categorizados este mes.</p>
         {% endif %}
     </div>
 
-    <div class="card">
-        <div class="row row-between gap-md">
-            <h3 class="card-title" id="serieTitulo">Evolución del saldo</h3>
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title" id="serieTitulo">Evolución del saldo</h2>
             {% if has_series %}
             <div class="row gap-sm" role="group" aria-label="Qué serie mostrar">
                 <button type="button" class="btn btn-sm is-active" data-serie="saldo"
@@ -140,8 +129,8 @@
             {% endif %}
         </div>
         {% if has_series %}
-            <div class="chart-box" style="height:250px;"><canvas id="chartLine"></canvas></div>
-            <p class="small muted mt-md" id="seriePie">Saldo acumulado al cierre de cada mes.</p>
+            <div class="chart-box chart-tall"><canvas id="chartLine"></canvas></div>
+            <p class="small muted mt-lg" id="seriePie">Saldo acumulado al cierre de cada mes.</p>
         {% else %}
             <p class="empty-state">Necesitas al menos dos meses de datos.</p>
         {% endif %}
@@ -149,11 +138,11 @@
 </div>
 
 {# ── Movimientos + lateral (previsión y cuentas) ──────────────────────── #}
-<div class="grid" style="grid-template-columns: 1.55fr 1fr;">
-    <div class="card">
-        <div class="row row-between gap-md">
-            <h3 class="card-title">Últimos movimientos</h3>
-            <a class="btn btn-sm btn-ghost" href="/movimientos">Ver todos</a>
+<div class="sheet sheet-mov is-last">
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title">Últimos movimientos</h2>
+            <a class="lnk" href="/movimientos">Ver todos</a>
         </div>
         {% if last_transactions %}
         <table class="table">
@@ -164,10 +153,10 @@
                 {% for t in last_transactions %}
                 <tr>
                     <td class="tabular muted nowrap">{{ t.date }}</td>
-                    <td class="trunc" style="max-width:240px;">
+                    <td class="trunc mov-desc">
                         {{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                     </td>
-                    <td class="muted small trunc" style="max-width:170px;">{{ t.category }}</td>
+                    <td class="muted small trunc mov-cat">{{ t.category }}</td>
                     <td class="num tabular {% if t.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                         {{ t.amount | eur_signed }}
                     </td>
@@ -180,48 +169,47 @@
         {% endif %}
     </div>
 
-    <div class="col gap-lg">
-        <div class="card">
-            <h3 class="card-title">Previsión para el mes siguiente</h3>
-            <div class="kpi-value tabular {% if forecast.projected_balance >= balance %}amount-pos{% else %}amount-neg{% endif %}">
-                {{ forecast.projected_balance | eur }}
-            </div>
-            <div class="kpi-delta">saldo estimado a fin de mes</div>
-            <table class="table mt-lg">
-                <tbody>
-                    <tr><td class="muted">Saldo actual</td>
-                        <td class="num tabular">{{ forecast.current_balance | eur }}</td></tr>
-                    <tr><td class="muted">Recurrentes estimados</td>
-                        <td class="num tabular {% if forecast.recurring_net < 0 %}amount-neg{% elif forecast.recurring_net > 0 %}amount-pos{% endif %}">
-                            {{ forecast.recurring_net | eur_signed }}</td></tr>
-                    <tr><td class="muted">Gasto variable estimado</td>
-                        <td class="num tabular {% if forecast.variable_net < 0 %}amount-neg{% elif forecast.variable_net > 0 %}amount-pos{% endif %}">
-                            {{ forecast.variable_net | eur_signed }}</td></tr>
-                </tbody>
-            </table>
-            {% if forecast.recurring_items %}
-            <p class="small muted mt-md">Basado en {{ forecast.recurring_items|length }} operaciones recurrentes detectadas.</p>
-            {% endif %}
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title">Previsión para el mes siguiente</h2>
         </div>
+        <div class="kpi-value tabular {% if forecast.projected_balance >= balance %}amount-pos{% else %}amount-neg{% endif %}">
+            {{ forecast.projected_balance | eur }}
+        </div>
+        <div class="kpi-delta mb-md">saldo estimado a fin de mes</div>
+        <div class="fcrow"><span class="muted">Saldo actual</span>
+            <span class="tabular">{{ forecast.current_balance | eur }}</span></div>
+        <div class="fcrow"><span class="muted">Recurrentes estimados</span>
+            <span class="tabular {% if forecast.recurring_net < 0 %}amount-neg{% elif forecast.recurring_net > 0 %}amount-pos{% endif %}">
+                {{ forecast.recurring_net | eur_signed }}</span></div>
+        <div class="fcrow"><span class="muted">Gasto variable estimado</span>
+            <span class="tabular {% if forecast.variable_net < 0 %}amount-neg{% elif forecast.variable_net > 0 %}amount-pos{% endif %}">
+                {{ forecast.variable_net | eur_signed }}</span></div>
+        {% if forecast.recurring_items %}
+        <p class="small muted mt-md">Basado en {{ forecast.recurring_items|length }} operaciones recurrentes detectadas.</p>
+        {% endif %}
 
-        <div class="card">
-            <div class="row row-between gap-md">
-                <h3 class="card-title">Tus cuentas</h3>
-                <a class="btn btn-sm btn-ghost" href="/cuentas">Gestionar</a>
-            </div>
-            {% for a in accounts %}
-            <div class="acct">
-                <span class="acct-dot" style="background: {{ a.color }};"></span>
-                <span class="grow trunc small" title="{{ a.name }}">{{ a.name }}</span>
-                <span class="tabular small bold {% if a.balance < 0 %}amount-neg{% endif %}">{{ a.balance | eur }}</span>
-            </div>
-            <div class="bar" style="height:4px;"><i style="width: {{ a.width }}%; background: {{ a.color }};"></i></div>
-            {% else %}
-            <p class="empty-state">No hay cuentas activas.</p>
-            {% endfor %}
+        <div class="sheet-head mt-xl">
+            <h2 class="sheet-title">Tus cuentas</h2>
+            <a class="lnk" href="/cuentas">Gestionar</a>
         </div>
+        {% for a in accounts %}
+        <div class="acct">
+            <span class="acct-dot" style="background: {{ a.color }};"></span>
+            <span class="trunc" title="{{ a.name }}">{{ a.name }}</span>
+            <span class="tabular {% if a.balance < 0 %}amount-neg{% endif %}">{{ a.balance | eur }}</span>
+        </div>
+        {% else %}
+        <p class="empty-state">No hay cuentas activas.</p>
+        {% endfor %}
     </div>
 </div>
+
+{# ── Copia de seguridad: utilidad, al final y sin gritar ──────────────── #}
+<div id="backup-status" class="backupbar">
+    {% include "_backup_status.html" %}
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -233,6 +221,9 @@
     const tok = (n, fb) => css.getPropertyValue(n).trim() || fb;
     const accent = tok('--accent', '#e10600');
     const text   = tok('--text-muted', '#9a9a9a');
+    // sin literal de reserva propio: si --text faltara, cae en el color de
+    // texto apagado, que ya tiene el suyo.
+    const ink    = tok('--text', text);
     const grid   = tok('--chart-grid', 'rgba(255,255,255,.07)');
     const eur = v => new Intl.NumberFormat('es-ES', {
         style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
@@ -268,9 +259,12 @@
                 pie: 'Saldo acumulado al cierre de cada mes.',
                 cfg: { type: 'line',
                     data: { labels: lineData.labels, datasets: [{
-                        data: lineData.values, borderColor: accent, borderWidth: 2.5,
-                        fill: true, backgroundColor: 'rgba(225,6,0,.08)',
-                        tension: .35, pointRadius: 3, pointBackgroundColor: accent,
+                        // papel: la línea sola, en tinta, con el rojo reservado
+                        // al último punto — el mes en el que estás.
+                        data: lineData.values, borderColor: ink, borderWidth: 1.6,
+                        fill: false, tension: .35, pointBackgroundColor: accent,
+                        pointRadius: lineData.values.map(
+                            (_, i, a) => (i === a.length - 1 ? 3.5 : 0)),
                     }]},
                     options: { ...base,
                         plugins: { legend: { display: false },
