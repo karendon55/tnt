@@ -6,6 +6,11 @@ set -euo pipefail
 cd "$(dirname "$0")"
 APP_DIR="$(pwd)"
 
+# Ajustes locales de esta máquina (p. ej. TNT_DB). No se sube a git.
+if [[ -f "$APP_DIR/.env.local" ]]; then
+    set -a; . "$APP_DIR/.env.local"; set +a
+fi
+
 export PYTHONPATH="${PYTHONPATH:-}:$APP_DIR"
 
 # Decidir intérprete: preferimos uno que tenga uvicorn instalado.

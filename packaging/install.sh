@@ -93,13 +93,13 @@ echo "  · Copiando código a $APP_DIR"
 if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete \
         --exclude='.git' --exclude='.venv' --exclude='__pycache__' \
-        --exclude='data/*.db' --exclude='data/*.db-*' \
+        --exclude='data/*.db' --exclude='data/*.db-*' --exclude='.env.local' \
         --exclude='*.pyc' --exclude='logs' --exclude='.pytest_cache' \
         --exclude='packaging/dist' \
         "$SRC_DIR"/ "$APP_DIR"/
 else
     (cd "$SRC_DIR" && tar --exclude='.git' --exclude='.venv' --exclude='__pycache__' \
-        --exclude='data/*.db' --exclude='*.pyc' --exclude='logs' \
+        --exclude='data/*.db' --exclude='*.pyc' --exclude='logs' --exclude='.env.local' \
         --exclude='packaging/dist' \
         -cf - .) | (cd "$APP_DIR" && tar -xf -)
 fi

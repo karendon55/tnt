@@ -39,5 +39,8 @@ __pycache__/
 # Ajustes locales del agente (permisos propios de cada máquina)
 .claude/settings.local.json
 
+# Ajustes locales de la máquina (TNT_DB y demás)
+.env.local
+
 # Mockups de rediseño (no forman parte de la app)
 /mockups/
