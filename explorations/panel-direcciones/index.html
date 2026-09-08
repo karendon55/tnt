@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TNT · Panel — cuatro direcciones</title>
+<style>
+/* ═══ Carcasa de la exploración (no forma parte de ninguna dirección) ═══ */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#111;color:#eee}
+.switch{position:sticky;top:0;z-index:50;display:flex;gap:2px;padding:10px 14px;
+  background:#0b0b0b;border-bottom:1px solid #262626;overflow-x:auto}
+.switch b{align-self:center;margin-right:14px;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:#777;white-space:nowrap}
+.switch button{flex:none;background:transparent;border:1px solid #2a2a2a;color:#9a9a9a;
+  border-radius:4px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;text-align:left}
+.switch button span{display:block;font-size:11px;color:#666;margin-top:2px}
+.switch button:hover{border-color:#3f3f3f;color:#ddd}
+.switch button[aria-selected="true"]{background:#e10600;border-color:#e10600;color:#fff}
+.switch button[aria-selected="true"] span{color:rgba(255,255,255,.75)}
+.dir{display:none;min-height:100vh}
+.dir.is-on{display:block}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ══════════════════════════════════════════════════════════════════════
+   D1 · SALA DE MÁQUINAS
+   Negro, denso, rojo AC/DC como único acento. Radios cortos, sin sombras,
+   el borde hace todo el trabajo. Cifras grandes y tabulares.
+   ══════════════════════════════════════════════════════════════════════ */
+#d1{--bg:#0a0a0a;--surface:#131313;--line:#242424;--line-2:#333;
+  --txt:#f2f2f2;--mut:#9a9a9a;--sub:#6e6e6e;--acc:#e10600;--pos:#22c55e;--neg:#f87171;
+  --r:5px;background:var(--bg);color:var(--txt)}
+#d1 .wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+#d1 .top{display:flex;align-items:center;gap:22px;padding:13px 22px;border-bottom:1px solid var(--line);
+  position:sticky;top:53px;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);z-index:20}
+#d1 .brand{display:flex;align-items:center;gap:8px;font-family:Impact,"Arial Narrow Bold",sans-serif;
+  font-size:22px;letter-spacing:.07em}
+#d1 .bolt{width:15px;height:21px;fill:var(--acc)}
+#d1 nav{display:flex;gap:2px;flex:1}
+#d1 nav a{padding:6px 11px;border-radius:var(--r);color:var(--mut);text-decoration:none;font-size:13.5px}
+#d1 nav a:hover{background:#1b1b1b;color:var(--txt)}
+#d1 nav a.on{color:var(--txt);box-shadow:inset 0 -2px 0 var(--acc)}
+#d1 .head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;
+  flex-wrap:wrap;padding:26px 0 18px}
+#d1 h1{margin:0;font-size:27px;font-weight:700;letter-spacing:-.02em}
+#d1 .sub{color:var(--mut);font-size:13.5px;margin-top:3px}
+#d1 .mon{display:flex;align-items:center;gap:6px;margin-top:12px}
+#d1 .mon button,#d1 .mon .sel{background:#151515;border:1px solid var(--line);color:var(--txt);
+  border-radius:var(--r);padding:6px 11px;font:inherit;font-size:13px;cursor:pointer}
+#d1 .mon .sel{min-width:170px}
+#d1 .btn{background:#161616;border:1px solid var(--line-2);color:var(--txt);border-radius:var(--r);
+  padding:8px 15px;font:inherit;font-size:13.5px;cursor:pointer;transition:border-color .12s,background .12s}
+#d1 .btn:hover{border-color:#4a4a4a;background:#1c1c1c}
+#d1 .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+#d1 .btn.pri:hover{background:#ff1a1a;border-color:#ff1a1a}
+#d1 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:17px 19px}
+#d1 .ct{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-bottom:9px}
+#d1 .hero{display:flex;justify-content:space-between;align-items:flex-start;gap:26px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--acc);
+  border-radius:var(--r);padding:22px 24px;margin-bottom:14px}
+#d1 .hval{font-size:47px;font-weight:700;letter-spacing:-.03em;line-height:1}
+#d1 .pill{display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;border:1px solid var(--line-2)}
+#d1 .pill.up{color:var(--pos);border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+#d1 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+#d1 .kv{font-size:31px;font-weight:650;letter-spacing:-.02em;line-height:1.15}
+#d1 .kd{font-size:12.5px;color:var(--sub);margin-top:5px}
+#d1 .pos{color:var(--pos)}#d1 .neg{color:var(--neg)}
+#d1 .warn{background:var(--surface);border:1px solid var(--line);border-left:3px solid #d97706;
+  border-radius:var(--r);padding:14px 18px;margin-bottom:14px;display:flex;
+  justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+#d1 .warn ul{margin:8px 0 0;padding-left:17px;color:var(--mut);font-size:13px;width:100%}
+#d1 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+#d1 .crow{display:grid;grid-template-columns:118px 1fr 84px 56px;align-items:center;gap:11px;padding:5px 0}
+#d1 .cbar{height:9px;background:#1e1e1e;border-radius:2px;overflow:hidden}
+#d1 .cbar i{display:block;height:100%;background:var(--acc)}
+#d1 .crow:nth-child(2) .cbar i{opacity:.85}#d1 .crow:nth-child(3) .cbar i{opacity:.7}
+#d1 .crow:nth-child(4) .cbar i{opacity:.58}#d1 .crow:nth-child(5) .cbar i{opacity:.46}
+#d1 .crow:nth-child(6) .cbar i{opacity:.36}#d1 .crow:nth-child(7) .cbar i{opacity:.26}
+#d1 table{width:100%;border-collapse:collapse;font-size:13.5px}
+#d1 th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);
+  font-weight:500;padding:0 0 9px;border-bottom:1px solid var(--line)}
+#d1 td{padding:9px 0;border-bottom:1px solid #1c1c1c}
+#d1 tr:last-child td{border-bottom:0}
+#d1 .g21{display:grid;grid-template-columns:1.55fr 1fr;gap:14px}
+#d1 .acct{display:flex;align-items:center;gap:9px;padding:7px 0}
+#d1 .dot{width:8px;height:8px;border-radius:50%;flex:none}
+#d1 .abar{height:3px;background:#1e1e1e;border-radius:2px;overflow:hidden;margin-bottom:5px}
+#d1 .r{text-align:right}
+#d1 .seg{display:flex;gap:2px}
+#d1 .seg button{background:#151515;border:1px solid var(--line);color:var(--mut);border-radius:var(--r);
+  padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+#d1 .seg button.on{background:#1f1f1f;color:var(--txt);border-color:var(--line-2)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   D2 · PAPEL
+   Hueso, serif para cifras y titulares, cero tarjetas: solo filetes y aire.
+   El rojo aparece únicamente en lo negativo. Radios 0. Densidad baja.
+   ══════════════════════════════════════════════════════════════════════ */
+#d2{--bg:#f6f3ed;--ink:#1c1a17;--mut:#6b6560;--sub:#948d85;--rule:#ddd6cb;--acc:#a8231b;--pos:#2f6b3f;
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#d2 .wrap{max-width:1080px;margin:0 auto;padding:0 34px}
+#d2 .serif{font-family:Georgia,"Iowan Old Style","Times New Roman",serif}
+#d2 .top{display:flex;align-items:baseline;gap:26px;padding:20px 34px;border-bottom:1px solid var(--rule)}
+#d2 .brand{font-family:Georgia,serif;font-size:20px;letter-spacing:.02em;font-weight:700}
+#d2 .brand em{font-style:normal;color:var(--acc)}
+#d2 nav{display:flex;gap:20px;flex:1}
+#d2 nav a{color:var(--mut);text-decoration:none;font-size:13px;padding-bottom:2px}
+#d2 nav a:hover{color:var(--ink)}
+#d2 nav a.on{color:var(--ink);border-bottom:1.5px solid var(--acc)}
+#d2 .head{padding:44px 0 12px}
+#d2 h1{margin:0;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:var(--sub);font-weight:600}
+#d2 .hval{font-size:62px;line-height:1.05;letter-spacing:-.025em;margin:10px 0 0;font-weight:400}
+#d2 .hmeta{display:flex;gap:18px;align-items:baseline;color:var(--mut);font-size:13.5px;margin-top:10px}
+#d2 .up{color:var(--pos)}#d2 .dn{color:var(--acc)}
+#d2 .mon{display:flex;align-items:baseline;gap:14px;margin-top:26px;padding-bottom:18px;
+  border-bottom:1px solid var(--rule)}
+#d2 .mon a{color:var(--mut);text-decoration:none;font-size:14px}
+#d2 .mon a:hover{color:var(--acc)}
+#d2 .mon strong{font-size:14px;letter-spacing:.04em}
+#d2 .mon .sp{flex:1}
+#d2 .lnk{color:var(--ink);text-decoration:none;font-size:13.5px;border-bottom:1px solid var(--acc);padding-bottom:1px}
+#d2 .lnk:hover{color:var(--acc)}
+#d2 .three{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1px solid var(--rule)}
+#d2 .three>div{padding:26px 26px 26px 0;border-right:1px solid var(--rule)}
+#d2 .three>div:last-child{border-right:0;padding-right:0}
+#d2 .three>div+div{padding-left:26px}
+#d2 .lbl{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--sub)}
+#d2 .kv{font-size:33px;letter-spacing:-.02em;margin-top:8px;font-weight:400}
+#d2 .kd{font-size:12.5px;color:var(--mut);margin-top:6px}
+#d2 .sec{padding:34px 0;border-bottom:1px solid var(--rule)}
+#d2 .sech{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:18px}
+#d2 h2{margin:0;font-size:19px;font-weight:400;letter-spacing:-.01em}
+#d2 .g2{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+#d2 .crow{display:grid;grid-template-columns:1fr 92px 62px;gap:14px;align-items:baseline;
+  padding:9px 0;border-bottom:1px dotted var(--rule)}
+#d2 .crow:last-child{border-bottom:0}
+#d2 .cname{font-size:14.5px}
+#d2 .cnum{text-align:right;font-size:15px}
+#d2 .cpct{text-align:right;font-size:12.5px;color:var(--mut)}
+#d2 table{width:100%;border-collapse:collapse;font-size:14px}
+#d2 th{text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--sub);padding:0 0 10px}
+#d2 td{padding:11px 0;border-top:1px solid var(--rule)}
+#d2 .r{text-align:right}
+#d2 .mut{color:var(--mut)}
+#d2 .fc{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 0;
+  border-bottom:1px dotted var(--rule);font-size:14px}
+#d2 .warn{padding:16px 0;border-bottom:1px solid var(--rule);color:var(--mut);font-size:13.5px}
+#d2 .warn strong{color:var(--ink);font-weight:600}
+
+/* ══════════════════════════════════════════════════════════════════════
+   D3 · INSTRUMENTO
+   Grafito, superficies elevadas, cifras en monoespaciada como un cuadro de
+   mandos. Plata manda; el rojo solo cuando algo va mal. Radios amplios.
+   ══════════════════════════════════════════════════════════════════════ */
+#d3{--bg:#131519;--surf:#1a1d22;--surf2:#202428;--line:#2b3037;--txt:#e8eaed;--mut:#98a0aa;
+  --sub:#6b737d;--silver:#c8ccd2;--acc:#e10600;--pos:#4ade80;--neg:#f87171;--r:13px;
+  background:var(--bg);color:var(--txt)}
+#d3 .wrap{max-width:1300px;margin:0 auto;padding:0 26px}
+#d3 .mono{font-family:"SFMono-Regular",Menlo,Consolas,monospace;letter-spacing:-.02em}
+#d3 .top{display:flex;align-items:center;gap:24px;padding:15px 26px}
+#d3 .brand{display:flex;align-items:center;gap:9px;font-family:Impact,"Arial Narrow Bold",sans-serif;
+  font-size:21px;letter-spacing:.08em;color:var(--silver)}
+#d3 .bolt{width:14px;height:20px;fill:var(--acc)}
+#d3 nav{display:flex;gap:4px;flex:1}
+#d3 nav a{padding:8px 14px;border-radius:9px;color:var(--mut);text-decoration:none;font-size:13.5px}
+#d3 nav a:hover{background:var(--surf)}
+#d3 nav a.on{background:var(--surf2);color:var(--txt)}
+#d3 .head{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 0 20px}
+#d3 h1{margin:0;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--sub);font-weight:600}
+#d3 .btn{background:var(--surf2);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+  padding:9px 16px;font:inherit;font-size:13.5px;cursor:pointer}
+#d3 .btn:hover{background:#262b31}
+#d3 .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+#d3 .mon{display:flex;align-items:center;gap:8px}
+#d3 .mon .sel{background:var(--surf);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+  padding:8px 14px;font:inherit;font-size:13.5px;min-width:175px;cursor:pointer}
+#d3 .mon button{background:var(--surf);border:1px solid var(--line);color:var(--mut);border-radius:10px;
+  width:34px;height:34px;font:inherit;cursor:pointer}
+#d3 .gauge{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center;
+  background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:26px 30px;margin-bottom:16px}
+#d3 .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sub)}
+#d3 .hval{font-size:52px;line-height:1;margin-top:10px;color:var(--silver)}
+#d3 .hmeta{display:flex;gap:16px;align-items:center;margin-top:14px;font-size:13px;color:var(--mut)}
+#d3 .tag{padding:4px 11px;border-radius:99px;font-size:12.5px;background:rgba(74,222,128,.1);
+  color:var(--pos);border:1px solid rgba(74,222,128,.25)}
+#d3 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+#d3 .card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px}
+#d3 .kv{font-size:35px;line-height:1.1;margin-top:11px}
+#d3 .meter{height:5px;border-radius:99px;background:#262b31;overflow:hidden;margin-top:15px}
+#d3 .meter i{display:block;height:100%;border-radius:99px}
+#d3 .kd{font-size:12.5px;color:var(--sub);margin-top:9px}
+#d3 .pos{color:var(--pos)}#d3 .neg{color:var(--neg)}#d3 .sil{color:var(--silver)}
+#d3 .warn{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px;
+  margin-bottom:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#d3 .warn .dotw{width:9px;height:9px;border-radius:50%;background:var(--acc);flex:none}
+#d3 .warn ul{margin:0;padding-left:18px;color:var(--mut);font-size:13px;flex:1 1 100%}
+#d3 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+#d3 .sech{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:16px}
+#d3 h3{margin:0;font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+#d3 .crow{display:grid;grid-template-columns:110px 1fr 88px 58px;gap:12px;align-items:center;padding:7px 0}
+#d3 .cbar{height:7px;border-radius:99px;background:#252a30;overflow:hidden}
+#d3 .cbar i{display:block;height:100%;border-radius:99px;background:var(--silver)}
+#d3 .crow:first-of-type .cbar i{background:var(--acc)}
+#d3 table{width:100%;border-collapse:collapse;font-size:13.5px}
+#d3 th{text-align:left;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);
+  font-weight:500;padding:0 0 11px}
+#d3 td{padding:11px 0;border-top:1px solid var(--line)}
+#d3 .g21{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+#d3 .acct{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line)}
+#d3 .dot{width:9px;height:9px;border-radius:50%;flex:none}
+#d3 .r{text-align:right}
+#d3 .seg{display:flex;background:var(--surf2);border-radius:99px;padding:3px}
+#d3 .seg button{background:transparent;border:0;color:var(--mut);border-radius:99px;padding:5px 13px;
+  font:inherit;font-size:12.5px;cursor:pointer}
+#d3 .seg button.on{background:var(--bg);color:var(--txt)}
+
+/* ══════════════════════════════════════════════════════════════════════
+   D4 · LISTA
+   Casi sin cromo: ni tarjetas ni fondos. Una sola columna de filas,
+   jerarquía puramente tipográfica, densidad máxima, radios 0.
+   ══════════════════════════════════════════════════════════════════════ */
+#d4{--bg:#fbfbfa;--ink:#101010;--mut:#6f6f6f;--sub:#9b9b9b;--line:#e8e8e6;--acc:#e10600;
+  --pos:#12803c;--neg:#c31d1d;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#d4 .wrap{max-width:940px;margin:0 auto;padding:0 28px}
+#d4 .top{display:flex;align-items:center;gap:18px;padding:12px 28px;border-bottom:1px solid var(--line);
+  position:sticky;top:53px;background:rgba(251,251,250,.94);backdrop-filter:blur(8px);z-index:20}
+#d4 .brand{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:650;letter-spacing:-.01em}
+#d4 .bolt{width:11px;height:15px;fill:var(--acc)}
+#d4 nav{display:flex;gap:3px;flex:1}
+#d4 nav a{padding:4px 9px;border-radius:4px;color:var(--mut);text-decoration:none;font-size:13px}
+#d4 nav a:hover{background:#f0f0ee;color:var(--ink)}
+#d4 nav a.on{color:var(--ink);font-weight:550}
+#d4 .head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:30px 0 6px;flex-wrap:wrap}
+#d4 h1{margin:0;font-size:21px;font-weight:650;letter-spacing:-.02em}
+#d4 .mon{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut)}
+#d4 .mon a{color:var(--mut);text-decoration:none}#d4 .mon a:hover{color:var(--ink)}
+#d4 .band{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  padding:16px 0 20px;border-bottom:1px solid var(--line)}
+#d4 .hval{font-size:38px;font-weight:600;letter-spacing:-.035em;line-height:1}
+#d4 .hlbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);width:100%}
+#d4 .pos{color:var(--pos)}#d4 .neg{color:var(--neg)}
+#d4 .mut{color:var(--mut)}
+#d4 .strip{display:flex;gap:34px;flex-wrap:wrap;padding:15px 0;border-bottom:1px solid var(--line)}
+#d4 .strip div{min-width:150px}
+#d4 .lbl{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub)}
+#d4 .kv{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-top:3px}
+#d4 .kd{font-size:12px;color:var(--sub);margin-top:2px}
+#d4 .sec{padding:22px 0 6px}
+#d4 .sech{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+#d4 h2{margin:0;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);font-weight:600}
+#d4 .lnk{color:var(--mut);text-decoration:none;font-size:12.5px}
+#d4 .lnk:hover{color:var(--acc)}
+#d4 .li{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+#d4 .li:hover{background:#f4f4f2;box-shadow:-8px 0 0 #f4f4f2,8px 0 0 #f4f4f2}
+#d4 .lmeta{color:var(--sub);font-size:12.5px}
+#d4 .crow{display:grid;grid-template-columns:150px 1fr 84px 54px;gap:12px;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+#d4 .cbar{height:2px;background:var(--line)}
+#d4 .cbar i{display:block;height:100%;background:var(--ink)}
+#d4 .crow:first-of-type .cbar i{background:var(--acc)}
+#d4 .r{text-align:right}
+#d4 .warn{display:flex;gap:10px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line);
+  font-size:13px;color:var(--mut)}
+#d4 .warn b{color:var(--ink);font-weight:600}
+#d4 .warn .d{width:6px;height:6px;border-radius:50%;background:var(--acc);flex:none;align-self:center}
+#d4 .foot{padding:26px 0 60px;color:var(--sub);font-size:12px}
+</style>
+</head>
+<body>
+
+<nav class="switch" role="tablist" aria-label="Direcciones de diseño">
+  <b>TNT · Panel</b>
+  <button role="tab" aria-selected="true"  data-t="d1">1 · Sala de máquinas<span>Negro, denso, rojo único</span></button>
+  <button role="tab" aria-selected="false" data-t="d2">2 · Papel<span>Hueso, serif, filetes, mucho aire</span></button>
+  <button role="tab" aria-selected="false" data-t="d3">3 · Instrumento<span>Grafito, mono, plata manda</span></button>
+  <button role="tab" aria-selected="false" data-t="d4">4 · Lista<span>Sin cromo, densidad máxima</span></button>
+</nav>
+
+<!-- ═══════════════════ D1 · SALA DE MÁQUINAS ═══════════════════ -->
+<section class="dir is-on" id="d1">
+  <div class="top">
+    <div class="brand"><svg class="bolt" viewBox="0 0 10 14"><path d="M6 0 0 8h3l-1 6 6-8H5z"/></svg>TNT</div>
+    <nav>
+      <a href="#" class="on">Panel</a><a href="#">Movimientos</a><a href="#">Categorías</a>
+      <a href="#">Cuentas</a><a href="#">Presupuestos</a><a href="#">Importar</a>
+    </nav>
+    <button class="btn">Copia de seguridad</button>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1>Panel</h1>
+        <div class="sub">Resumen de septiembre 2026</div>
+        <div class="mon">
+          <button aria-label="Mes anterior">‹</button>
+          <select class="sel"><option>Septiembre 2026</option><option>Agosto 2026</option></select>
+          <button aria-label="Mes siguiente">›</button>
+          <button>Hoy</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px">
+        <button class="btn">Ver movimientos</button>
+        <button class="btn pri">Importar</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div>
+        <div class="ct">Patrimonio total</div>
+        <div class="hval num">24.318,42 €</div>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:13px">
+          <span class="pill up">▲ 612,80 € este mes</span>
+          <span style="color:var(--sub);font-size:12.5px">3 cuentas activas</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 300 86" width="300" height="86" preserveAspectRatio="none" aria-label="Saldo, últimos 12 meses">
+        <polyline fill="none" stroke="#e10600" stroke-width="2"
+          points="0,72 27,66 55,58 82,54 109,45 136,40 164,34 191,27 218,25 245,17 273,11 300,6"/>
+      </svg>
+    </div>
+
+    <div class="grid3">
+      <div class="card">
+        <div class="ct">Ingresos del mes</div>
+        <div class="kv num pos">2.940,00 €</div>
+        <div class="kd">▲ 4,1 % vs mes anterior (2.824,00 €)</div>
+      </div>
+      <div class="card">
+        <div class="ct">Gastos del mes</div>
+        <div class="kv num neg">2.327,20 €</div>
+        <div class="kd">▼ 6,3 % vs mes anterior (2.483,90 €)</div>
+      </div>
+      <div class="card">
+        <div class="ct">Neto del mes</div>
+        <div class="kv num pos">+612,80 €</div>
+        <div class="kd">Ingresos menos gastos</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>2 avisos en tus movimientos</strong>
+      <button class="btn">Revisar</button>
+      <ul>
+        <li>Posible duplicado: MERCADONA VALDEMORO, 86,42 € el 05/09</li>
+        <li>Ocio y viajes va un 18 % por encima de tu media de seis meses</li>
+      </ul>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+          <div class="ct" style="margin:0">A dónde fue el dinero · septiembre</div>
+          <button class="btn" style="padding:5px 11px;font-size:12.5px">Ver categorías</button>
+        </div>
+        <div class="crow"><span>Hogar</span><span class="cbar"><i style="width:100%"></i></span><span class="num r">742,10 €</span><span class="r neg" style="font-size:12.5px">+3,1 %</span></div>
+        <div class="crow"><span>Alimentación</span><span class="cbar"><i style="width:66%"></i></span><span class="num r">486,55 €</span><span class="r pos" style="font-size:12.5px">−4,8 %</span></div>
+        <div class="crow"><span>Ocio y viajes</span><span class="cbar"><i style="width:43%"></i></span><span class="num r">318,20 €</span><span class="r neg" style="font-size:12.5px">+18,4 %</span></div>
+        <div class="crow"><span>Gasolina</span><span class="cbar"><i style="width:28%"></i></span><span class="num r">204,90 €</span><span class="r pos" style="font-size:12.5px">−2,2 %</span></div>
+        <div class="crow"><span>Luz</span><span class="cbar"><i style="width:19%"></i></span><span class="num r">143,60 €</span><span class="r neg" style="font-size:12.5px">+9,7 %</span></div>
+        <div class="crow"><span>Compras</span><span class="cbar"><i style="width:16%"></i></span><span class="num r">121,85 €</span><span class="r pos" style="font-size:12.5px">−31,0 %</span></div>
+        <div class="crow"><span>Otros</span><span class="cbar"><i style="width:42%"></i></span><span class="num r">310,00 €</span><span class="r" style="font-size:12.5px;color:var(--sub)">·</span></div>
+        <div class="kd" style="margin-top:13px">Variación frente al mes anterior. Total: 2.327,20 €</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+          <div class="ct" style="margin:0">Evolución del saldo</div>
+          <div class="seg"><button class="on">Saldo</button><button>Neto mensual</button></div>
+        </div>
+        <svg viewBox="0 0 560 230" width="100%" height="230" aria-label="Saldo acumulado por mes">
+          <g stroke="#1e1e1e" stroke-width="1">
+            <line x1="0" y1="20" x2="560" y2="20"/><line x1="0" y1="72" x2="560" y2="72"/>
+            <line x1="0" y1="124" x2="560" y2="124"/><line x1="0" y1="176" x2="560" y2="176"/>
+          </g>
+          <polyline fill="none" stroke="#e10600" stroke-width="2.2"
+            points="10,190 60,178 110,160 160,152 210,135 260,124 310,113 360,100 410,96 460,80 510,70 550,62"/>
+          <circle cx="550" cy="62" r="3.5" fill="#e10600"/>
+        </svg>
+        <div class="kd" style="margin-top:11px">Saldo acumulado al cierre de cada mes.</div>
+      </div>
+    </div>
+
+    <div class="g21" style="padding-bottom:44px">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+          <div class="ct" style="margin:0">Últimos movimientos</div>
+          <button class="btn" style="padding:5px 11px;font-size:12.5px">Ver todos</button>
+        </div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="r">Importe</th></tr></thead>
+          <tbody>
+            <tr><td class="num" style="color:var(--mut)">05/09</td><td>Mercadona Valdemoro</td><td style="color:var(--mut)">Alimentación</td><td class="num r neg">−86,42 €</td></tr>
+            <tr><td class="num" style="color:var(--mut)">04/09</td><td>Repsol Waylet</td><td style="color:var(--mut)">Gasolina</td><td class="num r neg">−62,10 €</td></tr>
+            <tr><td class="num" style="color:var(--mut)">03/09</td><td>Prest. desempleo</td><td style="color:var(--mut)">Nómina Jesús</td><td class="num r pos">+1.180,00 €</td></tr>
+            <tr><td class="num" style="color:var(--mut)">02/09</td><td>App CRTM</td><td style="color:var(--mut)">Bonometro</td><td class="num r neg">−54,60 €</td></tr>
+            <tr><td class="num" style="color:var(--mut)">01/09</td><td>Recibo Repsol</td><td style="color:var(--mut)">Luz</td><td class="num r neg">−71,35 €</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="ct">Previsión para el mes siguiente</div>
+          <div class="kv num pos">24.780,10 €</div>
+          <div class="kd">Saldo estimado a fin de mes</div>
+          <table style="margin-top:15px">
+            <tbody>
+              <tr><td style="color:var(--mut)">Saldo actual</td><td class="num r">24.318,42 €</td></tr>
+              <tr><td style="color:var(--mut)">Recurrentes estimados</td><td class="num r pos">+1.768,00 €</td></tr>
+              <tr><td style="color:var(--mut)">Gasto variable estimado</td><td class="num r neg">−1.306,32 €</td></tr>
+            </tbody>
+          </table>
+          <div class="kd" style="margin-top:11px">Basado en 9 operaciones recurrentes detectadas.</div>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+            <div class="ct" style="margin:0">Tus cuentas</div>
+            <button class="btn" style="padding:5px 11px;font-size:12.5px">Gestionar</button>
+          </div>
+          <div class="acct"><span class="dot" style="background:#e10600"></span><span style="flex:1">ING Nómina</span><span class="num" style="font-weight:600">8.412,30 €</span></div>
+          <div class="abar"><i style="display:block;height:100%;width:70%;background:#e10600"></i></div>
+          <div class="acct"><span class="dot" style="background:#8a8a8a"></span><span style="flex:1">CaixaBank Común</span><span class="num" style="font-weight:600">3.906,12 €</span></div>
+          <div class="abar"><i style="display:block;height:100%;width:33%;background:#8a8a8a"></i></div>
+          <div class="acct"><span class="dot" style="background:#4a4a4a"></span><span style="flex:1">ING Ahorro</span><span class="num" style="font-weight:600">12.000,00 €</span></div>
+          <div class="abar"><i style="display:block;height:100%;width:100%;background:#4a4a4a"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ D2 · PAPEL ═══════════════════ -->
+<section class="dir" id="d2">
+  <div class="top">
+    <div class="brand">TNT<em>.</em></div>
+    <nav>
+      <a href="#" class="on">Panel</a><a href="#">Movimientos</a><a href="#">Categorías</a>
+      <a href="#">Cuentas</a><a href="#">Presupuestos</a><a href="#">Importar</a>
+    </nav>
+    <a href="#" class="lnk">Copia de seguridad</a>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>Patrimonio total</h1>
+      <div class="hval serif num">24.318,42 €</div>
+      <div class="hmeta">
+        <span class="up">▲ 612,80 € este mes</span>
+        <span>3 cuentas activas</span>
+      </div>
+    </div>
+
+    <div class="mon">
+      <a href="#">‹</a>
+      <strong>Septiembre 2026</strong>
+      <a href="#">›</a>
+      <a href="#">hoy</a>
+      <span class="sp"></span>
+      <a href="#" class="lnk">Ver movimientos</a>
+      <a href="#" class="lnk">Importar</a>
+    </div>
+
+    <div class="three">
+      <div>
+        <div class="lbl">Ingresos</div>
+        <div class="kv serif num up">2.940,00 €</div>
+        <div class="kd">▲ 4,1 % vs agosto (2.824,00 €)</div>
+      </div>
+      <div>
+        <div class="lbl">Gastos</div>
+        <div class="kv serif num dn">2.327,20 €</div>
+        <div class="kd">▼ 6,3 % vs agosto (2.483,90 €)</div>
+      </div>
+      <div>
+        <div class="lbl">Neto</div>
+        <div class="kv serif num up">+612,80 €</div>
+        <div class="kd">Ingresos menos gastos</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>2 avisos.</strong>
+      Posible duplicado: Mercadona Valdemoro, 86,42 € el 05/09. Ocio y viajes va un 18 % por
+      encima de tu media de seis meses. <a href="#" class="lnk">Revisar</a>
+    </div>
+
+    <div class="sec">
+      <div class="g2">
+        <div>
+          <div class="sech">
+            <h2 class="serif">A dónde fue el dinero</h2>
+            <a href="#" class="lnk">Ver categorías</a>
+          </div>
+          <div class="crow"><span class="cname">Hogar</span><span class="cnum serif num">742,10 €</span><span class="cpct dn">+3,1 %</span></div>
+          <div class="crow"><span class="cname">Alimentación</span><span class="cnum serif num">486,55 €</span><span class="cpct up">−4,8 %</span></div>
+          <div class="crow"><span class="cname">Ocio y viajes</span><span class="cnum serif num">318,20 €</span><span class="cpct dn">+18,4 %</span></div>
+          <div class="crow"><span class="cname">Gasolina</span><span class="cnum serif num">204,90 €</span><span class="cpct up">−2,2 %</span></div>
+          <div class="crow"><span class="cname">Luz</span><span class="cnum serif num">143,60 €</span><span class="cpct dn">+9,7 %</span></div>
+          <div class="crow"><span class="cname">Compras</span><span class="cnum serif num">121,85 €</span><span class="cpct up">−31,0 %</span></div>
+          <div class="crow"><span class="cname">Otros</span><span class="cnum serif num">310,00 €</span><span class="cpct">·</span></div>
+          <div class="kd" style="margin-top:14px">Variación frente al mes anterior. Total: 2.327,20 €</div>
+        </div>
+        <div>
+          <div class="sech">
+            <h2 class="serif">Evolución del saldo</h2>
+            <span class="kd">Saldo · Neto mensual</span>
+          </div>
+          <svg viewBox="0 0 470 250" width="100%" height="250" aria-label="Saldo acumulado por mes">
+            <g stroke="#ddd6cb" stroke-width="1">
+              <line x1="0" y1="30" x2="470" y2="30"/><line x1="0" y1="90" x2="470" y2="90"/>
+              <line x1="0" y1="150" x2="470" y2="150"/><line x1="0" y1="210" x2="470" y2="210"/>
+            </g>
+            <polyline fill="none" stroke="#1c1a17" stroke-width="1.4"
+              points="8,205 50,192 92,172 134,163 176,145 218,132 260,120 302,106 344,101 386,84 428,73 462,64"/>
+            <circle cx="462" cy="64" r="3" fill="#a8231b"/>
+          </svg>
+          <div class="kd" style="margin-top:10px">Saldo acumulado al cierre de cada mes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sech">
+        <h2 class="serif">Últimos movimientos</h2>
+        <a href="#" class="lnk">Ver todos</a>
+      </div>
+      <table>
+        <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="r">Importe</th></tr></thead>
+        <tbody>
+          <tr><td class="num mut">05/09</td><td>Mercadona Valdemoro</td><td class="mut">Alimentación</td><td class="num r serif dn">−86,42 €</td></tr>
+          <tr><td class="num mut">04/09</td><td>Repsol Waylet</td><td class="mut">Gasolina</td><td class="num r serif dn">−62,10 €</td></tr>
+          <tr><td class="num mut">03/09</td><td>Prest. desempleo</td><td class="mut">Nómina Jesús</td><td class="num r serif up">+1.180,00 €</td></tr>
+          <tr><td class="num mut">02/09</td><td>App CRTM</td><td class="mut">Bonometro</td><td class="num r serif dn">−54,60 €</td></tr>
+          <tr><td class="num mut">01/09</td><td>Recibo Repsol</td><td class="mut">Luz</td><td class="num r serif dn">−71,35 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec" style="border-bottom:0;padding-bottom:70px">
+      <div class="g2">
+        <div>
+          <div class="sech"><h2 class="serif">Previsión para octubre</h2></div>
+          <div class="hval serif num" style="font-size:38px">24.780,10 €</div>
+          <div class="kd" style="margin-bottom:16px">Saldo estimado a fin de mes</div>
+          <div class="fc"><span class="mut">Saldo actual</span><span class="num serif">24.318,42 €</span></div>
+          <div class="fc"><span class="mut">Recurrentes estimados</span><span class="num serif up">+1.768,00 €</span></div>
+          <div class="fc"><span class="mut">Gasto variable estimado</span><span class="num serif dn">−1.306,32 €</span></div>
+          <div class="kd" style="margin-top:12px">Basado en 9 operaciones recurrentes detectadas.</div>
+        </div>
+        <div>
+          <div class="sech"><h2 class="serif">Tus cuentas</h2><a href="#" class="lnk">Gestionar</a></div>
+          <div class="fc"><span>ING Nómina</span><span class="num serif">8.412,30 €</span></div>
+          <div class="fc"><span>CaixaBank Común</span><span class="num serif">3.906,12 €</span></div>
+          <div class="fc"><span>ING Ahorro</span><span class="num serif">12.000,00 €</span></div>
+          <div class="fc" style="border-bottom:0"><span class="lbl" style="align-self:center">Total</span><span class="num serif">24.318,42 €</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ D3 · INSTRUMENTO ═══════════════════ -->
+<section class="dir" id="d3">
+  <div class="top">
+    <div class="brand"><svg class="bolt" viewBox="0 0 10 14"><path d="M6 0 0 8h3l-1 6 6-8H5z"/></svg>TNT</div>
+    <nav>
+      <a href="#" class="on">Panel</a><a href="#">Movimientos</a><a href="#">Categorías</a>
+      <a href="#">Cuentas</a><a href="#">Presupuestos</a><a href="#">Importar</a>
+    </nav>
+    <button class="btn">Copia de seguridad</button>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <div class="mon">
+        <button aria-label="Mes anterior">‹</button>
+        <select class="sel"><option>Septiembre 2026</option><option>Agosto 2026</option></select>
+        <button aria-label="Mes siguiente">›</button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn">Ver movimientos</button>
+        <button class="btn pri">Importar</button>
+      </div>
+    </div>
+
+    <div class="gauge">
+      <svg viewBox="0 0 150 150" width="150" height="150" aria-label="Neto del mes sobre los ingresos">
+        <circle cx="75" cy="75" r="62" fill="none" stroke="#262b31" stroke-width="11"/>
+        <circle cx="75" cy="75" r="62" fill="none" stroke="#c8ccd2" stroke-width="11"
+          stroke-linecap="round" stroke-dasharray="390" stroke-dashoffset="309"
+          transform="rotate(-90 75 75)"/>
+        <text x="75" y="70" text-anchor="middle" fill="#e8eaed"
+          style="font:600 27px 'SFMono-Regular',Menlo,monospace">21%</text>
+        <text x="75" y="92" text-anchor="middle" fill="#6b737d"
+          style="font:11px -apple-system,sans-serif;letter-spacing:.1em">AHORRADO</text>
+      </svg>
+      <div>
+        <div class="lbl">Patrimonio total</div>
+        <div class="hval mono">24.318,42 €</div>
+        <div class="hmeta">
+          <span class="tag">▲ 612,80 € este mes</span>
+          <span>3 cuentas activas</span>
+          <span>Septiembre 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="g3">
+      <div class="card">
+        <div class="lbl">Ingresos del mes</div>
+        <div class="kv mono sil">2.940,00 €</div>
+        <div class="meter"><i style="width:100%;background:#c8ccd2"></i></div>
+        <div class="kd">▲ 4,1 % vs agosto · 2.824,00 €</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Gastos del mes</div>
+        <div class="kv mono sil">2.327,20 €</div>
+        <div class="meter"><i style="width:79%;background:#e10600"></i></div>
+        <div class="kd">▼ 6,3 % vs agosto · 2.483,90 €</div>
+      </div>
+      <div class="card">
+        <div class="lbl">Neto del mes</div>
+        <div class="kv mono pos">+612,80 €</div>
+        <div class="meter"><i style="width:21%;background:#4ade80"></i></div>
+        <div class="kd">Ingresos menos gastos</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <span class="dotw"></span>
+      <strong style="flex:1">2 avisos en tus movimientos</strong>
+      <button class="btn">Revisar</button>
+      <ul>
+        <li>Posible duplicado: Mercadona Valdemoro, 86,42 € el 05/09</li>
+        <li>Ocio y viajes va un 18 % por encima de tu media de seis meses</li>
+      </ul>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="sech">
+          <h3>A dónde fue el dinero · septiembre</h3>
+          <button class="btn" style="padding:6px 12px;font-size:12.5px">Ver categorías</button>
+        </div>
+        <div class="crow"><span>Hogar</span><span class="cbar"><i style="width:100%"></i></span><span class="mono r">742,10 €</span><span class="r neg" style="font-size:12.5px">+3,1 %</span></div>
+        <div class="crow"><span>Alimentación</span><span class="cbar"><i style="width:66%"></i></span><span class="mono r">486,55 €</span><span class="r pos" style="font-size:12.5px">−4,8 %</span></div>
+        <div class="crow"><span>Ocio y viajes</span><span class="cbar"><i style="width:43%"></i></span><span class="mono r">318,20 €</span><span class="r neg" style="font-size:12.5px">+18,4 %</span></div>
+        <div class="crow"><span>Gasolina</span><span class="cbar"><i style="width:28%"></i></span><span class="mono r">204,90 €</span><span class="r pos" style="font-size:12.5px">−2,2 %</span></div>
+        <div class="crow"><span>Luz</span><span class="cbar"><i style="width:19%"></i></span><span class="mono r">143,60 €</span><span class="r neg" style="font-size:12.5px">+9,7 %</span></div>
+        <div class="crow"><span>Compras</span><span class="cbar"><i style="width:16%"></i></span><span class="mono r">121,85 €</span><span class="r pos" style="font-size:12.5px">−31,0 %</span></div>
+        <div class="crow"><span>Otros</span><span class="cbar"><i style="width:42%"></i></span><span class="mono r">310,00 €</span><span class="r" style="font-size:12.5px;color:var(--sub)">·</span></div>
+        <div class="kd" style="margin-top:14px">Variación frente al mes anterior. Total: 2.327,20 €</div>
+      </div>
+
+      <div class="card">
+        <div class="sech">
+          <h3>Evolución del saldo</h3>
+          <div class="seg"><button class="on">Saldo</button><button>Neto mensual</button></div>
+        </div>
+        <svg viewBox="0 0 560 232" width="100%" height="232" aria-label="Saldo acumulado por mes">
+          <g stroke="#252a30" stroke-width="1">
+            <line x1="0" y1="24" x2="560" y2="24"/><line x1="0" y1="76" x2="560" y2="76"/>
+            <line x1="0" y1="128" x2="560" y2="128"/><line x1="0" y1="180" x2="560" y2="180"/>
+          </g>
+          <polyline fill="none" stroke="#c8ccd2" stroke-width="2"
+            points="10,192 60,180 110,162 160,154 210,137 260,126 310,115 360,102 410,98 460,82 510,72 550,64"/>
+          <circle cx="550" cy="64" r="4" fill="#e10600"/>
+        </svg>
+        <div class="kd" style="margin-top:12px">Saldo acumulado al cierre de cada mes.</div>
+      </div>
+    </div>
+
+    <div class="g21" style="padding-bottom:48px">
+      <div class="card">
+        <div class="sech">
+          <h3>Últimos movimientos</h3>
+          <button class="btn" style="padding:6px 12px;font-size:12.5px">Ver todos</button>
+        </div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="r">Importe</th></tr></thead>
+          <tbody>
+            <tr><td class="mono" style="color:var(--sub)">05/09</td><td>Mercadona Valdemoro</td><td style="color:var(--mut)">Alimentación</td><td class="mono r neg">−86,42 €</td></tr>
+            <tr><td class="mono" style="color:var(--sub)">04/09</td><td>Repsol Waylet</td><td style="color:var(--mut)">Gasolina</td><td class="mono r neg">−62,10 €</td></tr>
+            <tr><td class="mono" style="color:var(--sub)">03/09</td><td>Prest. desempleo</td><td style="color:var(--mut)">Nómina Jesús</td><td class="mono r pos">+1.180,00 €</td></tr>
+            <tr><td class="mono" style="color:var(--sub)">02/09</td><td>App CRTM</td><td style="color:var(--mut)">Bonometro</td><td class="mono r neg">−54,60 €</td></tr>
+            <tr><td class="mono" style="color:var(--sub)">01/09</td><td>Recibo Repsol</td><td style="color:var(--mut)">Luz</td><td class="mono r neg">−71,35 €</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+          <div class="lbl">Previsión para octubre</div>
+          <div class="kv mono pos">24.780,10 €</div>
+          <div class="kd">Saldo estimado a fin de mes</div>
+          <table style="margin-top:16px">
+            <tbody>
+              <tr><td style="color:var(--mut)">Saldo actual</td><td class="mono r">24.318,42 €</td></tr>
+              <tr><td style="color:var(--mut)">Recurrentes</td><td class="mono r pos">+1.768,00 €</td></tr>
+              <tr><td style="color:var(--mut)">Gasto variable</td><td class="mono r neg">−1.306,32 €</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="sech"><h3>Tus cuentas</h3><button class="btn" style="padding:6px 12px;font-size:12.5px">Gestionar</button></div>
+          <div class="acct" style="border-top:0"><span class="dot" style="background:#e10600"></span><span style="flex:1">ING Nómina</span><span class="mono">8.412,30 €</span></div>
+          <div class="acct"><span class="dot" style="background:#c8ccd2"></span><span style="flex:1">CaixaBank Común</span><span class="mono">3.906,12 €</span></div>
+          <div class="acct"><span class="dot" style="background:#6b737d"></span><span style="flex:1">ING Ahorro</span><span class="mono">12.000,00 €</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ D4 · LISTA ═══════════════════ -->
+<section class="dir" id="d4">
+  <div class="top">
+    <div class="brand"><svg class="bolt" viewBox="0 0 10 14"><path d="M6 0 0 8h3l-1 6 6-8H5z"/></svg>TNT</div>
+    <nav>
+      <a href="#" class="on">Panel</a><a href="#">Movimientos</a><a href="#">Categorías</a>
+      <a href="#">Cuentas</a><a href="#">Presupuestos</a><a href="#">Importar</a>
+    </nav>
+    <a href="#" class="lnk">Importar</a>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>Panel</h1>
+      <div class="mon"><a href="#">‹</a> <span>Septiembre 2026</span> <a href="#">›</a> <a href="#">hoy</a></div>
+    </div>
+
+    <div class="band">
+      <span class="hlbl">Patrimonio total</span>
+      <span class="hval num">24.318,42 €</span>
+      <span class="pos">▲ 612,80 € este mes</span>
+      <span class="mut" style="font-size:13px">3 cuentas activas</span>
+    </div>
+
+    <div class="strip">
+      <div><div class="lbl">Ingresos</div><div class="kv num pos">2.940,00 €</div><div class="kd">▲ 4,1 % vs agosto</div></div>
+      <div><div class="lbl">Gastos</div><div class="kv num neg">2.327,20 €</div><div class="kd">▼ 6,3 % vs agosto</div></div>
+      <div><div class="lbl">Neto</div><div class="kv num">+612,80 €</div><div class="kd">Ingresos menos gastos</div></div>
+      <div><div class="lbl">Previsión octubre</div><div class="kv num">24.780,10 €</div><div class="kd">Saldo estimado a fin de mes</div></div>
+    </div>
+
+    <div class="warn"><span class="d"></span><span><b>2 avisos.</b> Posible duplicado: Mercadona Valdemoro, 86,42 € el 05/09. Ocio y viajes va un 18 % por encima de tu media.</span><a href="#" class="lnk" style="margin-left:auto">Revisar</a></div>
+
+    <div class="sec">
+      <div class="sech"><h2>A dónde fue el dinero</h2><a href="#" class="lnk">Ver categorías</a></div>
+      <div class="crow"><span>Hogar</span><span class="cbar"><i style="width:100%"></i></span><span class="num r">742,10 €</span><span class="r neg" style="font-size:12px">+3,1 %</span></div>
+      <div class="crow"><span>Alimentación</span><span class="cbar"><i style="width:66%"></i></span><span class="num r">486,55 €</span><span class="r pos" style="font-size:12px">−4,8 %</span></div>
+      <div class="crow"><span>Ocio y viajes</span><span class="cbar"><i style="width:43%"></i></span><span class="num r">318,20 €</span><span class="r neg" style="font-size:12px">+18,4 %</span></div>
+      <div class="crow"><span>Gasolina</span><span class="cbar"><i style="width:28%"></i></span><span class="num r">204,90 €</span><span class="r pos" style="font-size:12px">−2,2 %</span></div>
+      <div class="crow"><span>Luz</span><span class="cbar"><i style="width:19%"></i></span><span class="num r">143,60 €</span><span class="r neg" style="font-size:12px">+9,7 %</span></div>
+      <div class="crow"><span>Compras</span><span class="cbar"><i style="width:16%"></i></span><span class="num r">121,85 €</span><span class="r pos" style="font-size:12px">−31,0 %</span></div>
+      <div class="crow"><span>Otros</span><span class="cbar"><i style="width:42%"></i></span><span class="num r">310,00 €</span><span class="r mut" style="font-size:12px">·</span></div>
+      <div class="kd" style="margin-top:10px">Variación frente al mes anterior. Total: 2.327,20 €</div>
+    </div>
+
+    <div class="sec">
+      <div class="sech"><h2>Evolución del saldo</h2><span class="lnk">Saldo · Neto mensual</span></div>
+      <svg viewBox="0 0 880 150" width="100%" height="150" aria-label="Saldo acumulado por mes">
+        <polyline fill="none" stroke="#101010" stroke-width="1.5"
+          points="6,128 86,119 166,104 246,97 326,84 406,75 486,66 566,55 646,51 726,38 806,29 872,22"/>
+        <circle cx="872" cy="22" r="3" fill="#e10600"/>
+        <line x1="0" y1="149" x2="880" y2="149" stroke="#e8e8e6"/>
+      </svg>
+      <div class="kd" style="margin-top:6px">Saldo acumulado al cierre de cada mes.</div>
+    </div>
+
+    <div class="sec">
+      <div class="sech"><h2>Últimos movimientos</h2><a href="#" class="lnk">Ver todos</a></div>
+      <div class="li"><span>Mercadona Valdemoro <span class="lmeta">· 05/09 · Alimentación</span></span><span class="num neg">−86,42 €</span></div>
+      <div class="li"><span>Repsol Waylet <span class="lmeta">· 04/09 · Gasolina</span></span><span class="num neg">−62,10 €</span></div>
+      <div class="li"><span>Prest. desempleo <span class="lmeta">· 03/09 · Nómina Jesús</span></span><span class="num pos">+1.180,00 €</span></div>
+      <div class="li"><span>App CRTM <span class="lmeta">· 02/09 · Bonometro</span></span><span class="num neg">−54,60 €</span></div>
+      <div class="li"><span>Recibo Repsol <span class="lmeta">· 01/09 · Luz</span></span><span class="num neg">−71,35 €</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="sech"><h2>Tus cuentas</h2><a href="#" class="lnk">Gestionar</a></div>
+      <div class="li"><span>ING Nómina <span class="lmeta">· ING</span></span><span class="num">8.412,30 €</span></div>
+      <div class="li"><span>CaixaBank Común <span class="lmeta">· CaixaBank</span></span><span class="num">3.906,12 €</span></div>
+      <div class="li"><span>ING Ahorro <span class="lmeta">· ING</span></span><span class="num">12.000,00 €</span></div>
+      <div class="foot">Saldo estimado a fin de octubre 24.780,10 € · basado en 9 operaciones recurrentes detectadas.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const tabs = [...document.querySelectorAll('.switch button')];
+  const show = id => {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.t === id)));
+    document.querySelectorAll('.dir').forEach(d => d.classList.toggle('is-on', d.id === id));
+    location.hash = id;
+    window.scrollTo(0, 0);
+  };
+  tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.t)));
+  document.addEventListener('keydown', e => {
+    if (e.key >= '1' && e.key <= '4') show('d' + e.key);
+  });
+  if (/^#d[1-4]$/.test(location.hash)) show(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>

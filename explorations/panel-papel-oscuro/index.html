@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TNT · Papel en oscuro — parejas tipográficas</title>
+<style>
+/* ═══ Carcasa de la exploración (no forma parte de la dirección) ═══ */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0b0b0b}
+.switch{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:2px;padding:10px 14px;
+  background:#080808;border-bottom:1px solid #242424;overflow-x:auto}
+.switch b{margin-right:14px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:#777;white-space:nowrap}
+.switch button{flex:none;background:transparent;border:1px solid #2a2a2a;color:#9a9a9a;border-radius:4px;
+  padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;text-align:left}
+.switch button span{display:block;font-size:11px;color:#666;margin-top:2px}
+.switch button:hover{border-color:#3f3f3f;color:#ddd}
+.switch button[aria-selected="true"]{background:#e10600;border-color:#e10600;color:#fff}
+.switch button[aria-selected="true"] span{color:rgba(255,255,255,.75)}
+.switch .sep{width:1px;height:34px;background:#242424;margin:0 12px;flex:none}
+.switch .tog{border-radius:4px}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PAPEL EN OSCURO
+   La estructura de la dirección 2 —sin tarjetas, filetes, mucho aire,
+   serif en lo que importa— sobre el fondo oscuro que ya tiene TNT.
+   El rojo solo aparece en lo negativo y en la marca.
+   ══════════════════════════════════════════════════════════════════════ */
+#sheet{
+  /* fondo cálido (por defecto) */
+  --bg:#131110;--ink:#ece7dd;--mut:#a29a8f;--sub:#78716a;--rule:#2a2622;--rule-2:#3a342e;
+  --acc:#e10600;--neg:#ef6a62;--pos:#74c17c;
+  /* parejas: se sobreescriben por clase */
+  --f-display:Georgia,"Noto Serif",serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --f-num:Georgia,"Noto Serif",serif;
+  --num-size:1em;--num-track:0;
+  background:var(--bg);color:var(--ink);font-family:var(--f-body);min-height:100vh}
+#sheet.neutro{--bg:#0d0d0d;--ink:#ebeaea;--mut:#9c9a9a;--sub:#747272;--rule:#262626;--rule-2:#363636}
+
+#sheet.pb{--f-display:"Noto Serif",Georgia,serif;--f-num:"Noto Serif",Georgia,serif;--num-size:.96em}
+#sheet.pc{--f-num:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--num-track:-.01em}
+#sheet.pd{--f-num:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  --num-size:.92em;--num-track:-.02em}
+/* E: serif en hero, titulares y KPI; sans tabular solo en tablas y categorías */
+#sheet.pe{--f-num:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;--num-track:-.01em}
+
+#sheet .wrap{max-width:1080px;margin:0 auto;padding:0 34px}
+#sheet .serif{font-family:var(--f-display)}
+#sheet .num{font-family:var(--f-num);font-variant-numeric:tabular-nums;
+  font-feature-settings:"tnum";font-size:var(--num-size);letter-spacing:var(--num-track)}
+#sheet .mut{color:var(--mut)}
+#sheet .up{color:var(--pos)}
+#sheet .dn{color:var(--neg)}
+#sheet .r{text-align:right}
+
+#sheet .top{display:flex;align-items:center;gap:26px;padding:18px 34px;border-bottom:1px solid var(--rule)}
+#sheet .brand{display:flex;align-items:center;gap:8px;font-family:var(--f-display);
+  font-size:20px;font-weight:700;letter-spacing:.02em}
+#sheet .bolt{width:13px;height:18px;fill:var(--acc)}
+#sheet nav{display:flex;gap:20px;flex:1}
+#sheet nav a{color:var(--mut);text-decoration:none;font-size:13.5px;padding-bottom:3px;
+  transition:color .12s}
+#sheet nav a:hover{color:var(--ink)}
+#sheet nav a.on{color:var(--ink);border-bottom:1.5px solid var(--acc)}
+#sheet .lnk{color:var(--ink);text-decoration:none;font-size:13.5px;
+  border-bottom:1px solid var(--rule-2);padding-bottom:1px;transition:border-color .12s,color .12s}
+#sheet .lnk:hover{color:var(--acc);border-bottom-color:var(--acc)}
+
+#sheet .head{padding:48px 0 14px}
+#sheet h1{margin:0;font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--sub);font-weight:600}
+#sheet .hval{font-family:var(--f-display);font-size:64px;line-height:1.02;letter-spacing:-.025em;
+  margin:12px 0 0;font-weight:400;font-variant-numeric:tabular-nums}
+#sheet .hmeta{display:flex;gap:20px;align-items:baseline;color:var(--mut);font-size:13.5px;margin-top:12px}
+
+#sheet .mon{display:flex;align-items:center;gap:14px;margin-top:30px;padding-bottom:18px;
+  border-bottom:1px solid var(--rule)}
+#sheet .mon a{color:var(--mut);text-decoration:none;font-size:14px}
+#sheet .mon a:hover{color:var(--acc)}
+#sheet .mon strong{font-size:14px;letter-spacing:.05em;font-weight:600}
+#sheet .mon .sp{flex:1}
+
+#sheet .three{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--rule)}
+#sheet .three>div{padding:28px 28px 28px 0;border-right:1px solid var(--rule)}
+#sheet .three>div+div{padding-left:28px}
+#sheet .three>div:last-child{border-right:0;padding-right:0}
+#sheet .lbl{font-size:11.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--sub)}
+#sheet .kv{font-family:var(--f-display);font-size:34px;letter-spacing:-.02em;margin-top:9px;
+  font-weight:400;font-variant-numeric:tabular-nums}
+#sheet.pc .kv,#sheet.pd .kv{font-family:var(--f-num);font-size:31px}
+#sheet .kd{font-size:12.5px;color:var(--mut);margin-top:7px}
+
+#sheet .warn{padding:16px 0;border-bottom:1px solid var(--rule);color:var(--mut);font-size:13.5px;
+  display:flex;gap:11px;align-items:baseline}
+#sheet .warn .d{width:6px;height:6px;border-radius:50%;background:var(--acc);flex:none;align-self:center}
+#sheet .warn strong{color:var(--ink);font-weight:600}
+
+#sheet .sec{padding:36px 0;border-bottom:1px solid var(--rule)}
+#sheet .sec:last-of-type{border-bottom:0;padding-bottom:72px}
+#sheet .sech{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:20px}
+#sheet h2{margin:0;font-family:var(--f-display);font-size:20px;font-weight:400;letter-spacing:-.01em}
+#sheet .g2{display:grid;grid-template-columns:1fr 1fr;gap:56px}
+
+#sheet .crow{display:grid;grid-template-columns:1fr 96px 64px;gap:14px;align-items:baseline;
+  padding:10px 0;border-bottom:1px dotted var(--rule-2)}
+#sheet .crow:last-of-type{border-bottom:0}
+#sheet .cname{font-size:14.5px}
+#sheet .cnum{text-align:right;font-size:15px}
+#sheet .cpct{text-align:right;font-size:12.5px;color:var(--mut)}
+
+#sheet table{width:100%;border-collapse:collapse;font-size:14px}
+#sheet th{text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--sub);padding:0 0 11px}
+#sheet td{padding:12px 0;border-top:1px solid var(--rule)}
+#sheet tbody tr:hover td{color:var(--ink)}
+#sheet .fc{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;
+  border-bottom:1px dotted var(--rule-2);font-size:14px}
+#sheet .fc:last-of-type{border-bottom:0}
+</style>
+</head>
+<body>
+
+<nav class="switch" role="tablist" aria-label="Parejas tipográficas">
+  <b>Papel en oscuro</b>
+  <button role="tab" aria-selected="false" data-p="pa">A · Georgia<span>Titulares y cifras en Georgia</span></button>
+  <button role="tab" aria-selected="false" data-p="pb">B · Noto Serif<span>Más neutra, aguanta mejor en pequeño</span></button>
+  <button role="tab" aria-selected="false" data-p="pc">C · Serif + sans<span>Serif solo en titulares; cifras en sans</span></button>
+  <button role="tab" aria-selected="false" data-p="pd">D · Serif + mono<span>Serif en titulares; cifras monoespaciadas</span></button>
+  <button role="tab" aria-selected="true"  data-p="pe">E · Serif salvo la tabla<span>Hero y KPI en Georgia; tablas en sans</span></button>
+  <span class="sep"></span>
+  <button class="tog" id="tog" aria-pressed="true">Fondo neutro<span>Cambiar a cálido</span></button>
+</nav>
+
+<div id="sheet" class="pe neutro">
+  <div class="top">
+    <div class="brand"><svg class="bolt" viewBox="0 0 10 14"><path d="M6 0 0 8h3l-1 6 6-8H5z"/></svg>TNT</div>
+    <nav>
+      <a href="#" class="on">Panel</a><a href="#">Movimientos</a><a href="#">Categorías</a>
+      <a href="#">Cuentas</a><a href="#">Presupuestos</a><a href="#">Importar</a>
+    </nav>
+    <a href="#" class="lnk">Copia de seguridad</a>
+  </div>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>Patrimonio total</h1>
+      <div class="hval">24.318,42 €</div>
+      <div class="hmeta">
+        <span class="up">▲ 612,80 € este mes</span>
+        <span>3 cuentas activas</span>
+      </div>
+    </div>
+
+    <div class="mon">
+      <a href="#" aria-label="Mes anterior">‹</a>
+      <strong>Septiembre 2026</strong>
+      <a href="#" aria-label="Mes siguiente">›</a>
+      <a href="#">hoy</a>
+      <span class="sp"></span>
+      <a href="#" class="lnk">Ver movimientos</a>
+      <a href="#" class="lnk">Importar</a>
+    </div>
+
+    <div class="three">
+      <div>
+        <div class="lbl">Ingresos</div>
+        <div class="kv up">2.940,00 €</div>
+        <div class="kd">▲ 4,1 % vs agosto (2.824,00 €)</div>
+      </div>
+      <div>
+        <div class="lbl">Gastos</div>
+        <div class="kv dn">2.327,20 €</div>
+        <div class="kd">▼ 6,3 % vs agosto (2.483,90 €)</div>
+      </div>
+      <div>
+        <div class="lbl">Neto</div>
+        <div class="kv up">+612,80 €</div>
+        <div class="kd">Ingresos menos gastos</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <span class="d"></span>
+      <span><strong>2 avisos.</strong> Posible duplicado: Mercadona Valdemoro, 86,42 € el 05/09.
+      Ocio y viajes va un 18 % por encima de tu media de seis meses.</span>
+      <a href="#" class="lnk" style="margin-left:auto;white-space:nowrap">Revisar</a>
+    </div>
+
+    <div class="sec">
+      <div class="g2">
+        <div>
+          <div class="sech">
+            <h2>A dónde fue el dinero</h2>
+            <a href="#" class="lnk">Ver categorías</a>
+          </div>
+          <div class="crow"><span class="cname">Hogar</span><span class="cnum num">742,10 €</span><span class="cpct dn">+3,1 %</span></div>
+          <div class="crow"><span class="cname">Alimentación</span><span class="cnum num">486,55 €</span><span class="cpct up">−4,8 %</span></div>
+          <div class="crow"><span class="cname">Ocio y viajes</span><span class="cnum num">318,20 €</span><span class="cpct dn">+18,4 %</span></div>
+          <div class="crow"><span class="cname">Gasolina</span><span class="cnum num">204,90 €</span><span class="cpct up">−2,2 %</span></div>
+          <div class="crow"><span class="cname">Luz</span><span class="cnum num">143,60 €</span><span class="cpct dn">+9,7 %</span></div>
+          <div class="crow"><span class="cname">Compras</span><span class="cnum num">121,85 €</span><span class="cpct up">−31,0 %</span></div>
+          <div class="crow"><span class="cname">Otros</span><span class="cnum num">310,00 €</span><span class="cpct">·</span></div>
+          <div class="kd" style="margin-top:15px">Variación frente al mes anterior. Total: 2.327,20 €</div>
+        </div>
+        <div>
+          <div class="sech">
+            <h2>Evolución del saldo</h2>
+            <span class="kd">Saldo · Neto mensual</span>
+          </div>
+          <svg viewBox="0 0 470 252" width="100%" height="252" aria-label="Saldo acumulado al cierre de cada mes">
+            <g stroke="currentColor" stroke-width="1" opacity=".16">
+              <line x1="0" y1="30" x2="470" y2="30"/><line x1="0" y1="90" x2="470" y2="90"/>
+              <line x1="0" y1="150" x2="470" y2="150"/><line x1="0" y1="210" x2="470" y2="210"/>
+            </g>
+            <polyline fill="none" stroke="currentColor" stroke-width="1.4" opacity=".9"
+              points="8,205 50,192 92,172 134,163 176,145 218,132 260,120 302,106 344,101 386,84 428,73 462,64"/>
+            <circle cx="462" cy="64" r="3.5" fill="#e10600"/>
+          </svg>
+          <div class="kd" style="margin-top:11px">Saldo acumulado al cierre de cada mes.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sech">
+        <h2>Últimos movimientos</h2>
+        <a href="#" class="lnk">Ver todos</a>
+      </div>
+      <table>
+        <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="r">Importe</th></tr></thead>
+        <tbody>
+          <tr><td class="num mut">05/09</td><td>Mercadona Valdemoro</td><td class="mut">Alimentación</td><td class="num r dn">−86,42 €</td></tr>
+          <tr><td class="num mut">04/09</td><td>Repsol Waylet</td><td class="mut">Gasolina</td><td class="num r dn">−62,10 €</td></tr>
+          <tr><td class="num mut">03/09</td><td>Prest. desempleo</td><td class="mut">Nómina Jesús</td><td class="num r up">+1.180,00 €</td></tr>
+          <tr><td class="num mut">02/09</td><td>App CRTM</td><td class="mut">Bonometro</td><td class="num r dn">−54,60 €</td></tr>
+          <tr><td class="num mut">01/09</td><td>Recibo Repsol</td><td class="mut">Luz</td><td class="num r dn">−71,35 €</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="g2">
+        <div>
+          <div class="sech"><h2>Previsión para octubre</h2></div>
+          <div class="hval" style="font-size:38px;margin-top:0">24.780,10 €</div>
+          <div class="kd" style="margin-bottom:18px">Saldo estimado a fin de mes</div>
+          <div class="fc"><span class="mut">Saldo actual</span><span class="num">24.318,42 €</span></div>
+          <div class="fc"><span class="mut">Recurrentes estimados</span><span class="num up">+1.768,00 €</span></div>
+          <div class="fc"><span class="mut">Gasto variable estimado</span><span class="num dn">−1.306,32 €</span></div>
+          <div class="kd" style="margin-top:13px">Basado en 9 operaciones recurrentes detectadas.</div>
+        </div>
+        <div>
+          <div class="sech"><h2>Tus cuentas</h2><a href="#" class="lnk">Gestionar</a></div>
+          <div class="fc"><span>ING Nómina</span><span class="num">8.412,30 €</span></div>
+          <div class="fc"><span>CaixaBank Común</span><span class="num">3.906,12 €</span></div>
+          <div class="fc"><span>ING Ahorro</span><span class="num">12.000,00 €</span></div>
+          <div class="fc" style="border-top:1px solid var(--rule);margin-top:6px;padding-top:14px">
+            <span class="lbl" style="align-self:center">Total</span><span class="num">24.318,42 €</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const sheet = document.getElementById('sheet');
+  const tabs = [...document.querySelectorAll('.switch button[data-p]')];
+  const show = p => {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.p === p)));
+    sheet.classList.remove('pa', 'pb', 'pc', 'pd', 'pe');
+    sheet.classList.add(p);
+    location.hash = p;
+  };
+  tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.p)));
+  document.addEventListener('keydown', e => {
+    const k = { '1': 'pa', '2': 'pb', '3': 'pc', '4': 'pd', '5': 'pe' }[e.key];
+    if (k) show(k);
+    if (e.key.toLowerCase() === 'f') tog.click();
+  });
+  const tog = document.getElementById('tog');
+  tog.addEventListener('click', () => {
+    const neutro = sheet.classList.toggle('neutro');
+    tog.setAttribute('aria-pressed', String(neutro));
+    tog.innerHTML = neutro
+      ? 'Fondo neutro<span>Cambiar a cálido</span>'
+      : 'Fondo cálido<span>Cambiar a neutro</span>';
+  });
+  if (/^#p[a-e]$/.test(location.hash)) show(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
