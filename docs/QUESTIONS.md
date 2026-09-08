@@ -39,3 +39,7 @@ Format:
 - 2026-09-08 [arranque] TNT del menú mostraba datos de demostración -> el lanzador reutilizaba cualquier servidor que respondiera /health 200; ahora compara qué base sirve
 - 2026-09-08 [arranque] ¿Cómo se sabe a simple vista que la sesión es de mentira? -> píldora "Datos de demostración" en la barra, encendida por TNT_DEMO=1
 - 2026-09-08 [arranque] Reinstalar con TNT abierto dejaba el código viejo en memoria -> install.sh avisa y dice cómo reiniciarlo
+- 2026-09-08 [nav] ¿Traspasos arriba o dentro de Configuración? -> arriba; se revisa cada mes tras importar. Sus reglas automáticas sí bajan a Reglas
+- 2026-09-08 [nav] Issue 1: ¿las secciones de Configuración cambian de URL? -> no; conservan la suya y comparten subnavegación
+- 2026-09-08 [nav] Issue 2: ¿las cuentas de inversión siguen en Cuentas? -> sí, con su saldo; a Inversiones se muda la gestión del valor
+- 2026-09-08 [nav] Issue 3: ¿tests de rutas? -> sí, con httpx2 en requirements-dev.txt; 11 tests de navegación

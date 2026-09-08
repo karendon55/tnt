@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración{% endblock %}
+
+{% block content %}
+{% include "_settings_nav.html" %}
+
+<div class="pagehead">
+    <div>
+        <h1>Configuración</h1>
+        <p>Lo que se cambia de vez en cuando. Lo del día a día vive en la barra de arriba.</p>
+    </div>
+</div>
+
+<div class="settings-list">
+    {% for s in secciones %}
+    <a class="settings-row" href="{{ s.url }}">
+        <span class="settings-row-title">{{ s.titulo }}</span>
+        <span class="settings-row-text">{{ s.resumen }}</span>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

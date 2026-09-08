@@ -350,6 +350,30 @@ select.select,.select{cursor:pointer}
 .pagehead p{margin:.4rem 0 0;color:var(--text-muted);font-size:.85rem}
 .pagehead-actions{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
 
+/* Tarjeta de fondo dentro de Inversiones: se distingue del fondo con un token,
+   no con un rgba a mano. (Pendiente de migrar a hoja y filete.) */
+.fund-card{background:var(--surface-hover)}
+
+/* ── Configuración ────────────────────────────────────────────────────── */
+/* Subnavegación: la hermana pequeña de la barra de arriba, mismo idioma. */
+.subnav{display:flex;gap:1.1rem;flex-wrap:wrap;padding:.2rem 0 .9rem;
+  border-bottom:1px solid var(--border)}
+.subnav-link{font-size:.85rem;color:var(--text-muted);padding:.15rem 0;
+  border-bottom:1.5px solid transparent;transition:color .12s,border-color .12s}
+.subnav-link:hover{color:var(--text)}
+.subnav-link.is-active{color:var(--text);border-bottom-color:var(--accent)}
+/* Portada de Configuración: filas separadas por filete, no tarjetas. */
+.settings-row{display:grid;grid-template-columns:13rem 1fr;gap:1.5rem;
+  align-items:baseline;padding:1.05rem 0;border-bottom:1px solid var(--border);
+  color:var(--text)}
+.settings-row:last-child{border-bottom:0}
+.settings-row:hover{color:var(--text)}
+.settings-row:hover .settings-row-title{color:var(--accent)}
+.settings-row-title{font-family:var(--font-display);font-size:1.15rem;font-weight:400;
+  transition:color .12s}
+.settings-row-text{color:var(--text-muted);font-size:.88rem}
+@media(max-width:640px){.settings-row{grid-template-columns:1fr;gap:.15rem}}
+
 /* ── Movimientos ──────────────────────────────────────────────────────── */
 /* Filtros: una fila cerrada por un filete, no una tarjeta. */
 .filterbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));

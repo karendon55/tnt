@@ -1,0 +1,9 @@
+{# Subnavegación de Configuración. La incluye cada sección; se marca sola
+   comparando su clave con el `active` que pasa cada router. #}
+<nav class="subnav" aria-label="Secciones de configuración">
+    {% for s in secciones_config %}
+    <a href="{{ s.url }}"
+       class="subnav-link {% if active == s.key %}is-active{% endif %}"
+       {% if active == s.key %}aria-current="page"{% endif %}>{{ s.titulo }}</a>
+    {% endfor %}
+</nav>

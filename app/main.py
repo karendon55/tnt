@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import DB_PATH, DEMO_MODE, APP_NAME, STATIC_DIR
 from app.db import init_db
-from app.routers import accounts, aliases, backup, budgets, categories, dashboard, external_rules, import_page, reconciliations, rules, transactions, transfers
+from app.routers import accounts, aliases, backup, budgets, categories, dashboard, external_rules, import_page, investments, reconciliations, rules, settings, transactions, transfers
 
 
 @asynccontextmanager
@@ -76,6 +76,8 @@ app.include_router(rules.router)
 app.include_router(reconciliations.router)
 app.include_router(transfers.router)
 app.include_router(aliases.router)
+app.include_router(settings.router)
+app.include_router(investments.router)
 
 
 @app.get("/health")

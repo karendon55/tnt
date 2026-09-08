@@ -1,9 +1,13 @@
 """
-Router /cuentas — CRUD simple. El saldo se calcula desde las transacciones.
+Router /cuentas — alta, baja y conciliación. El saldo sale de los movimientos.
+
+Lo que era de inversiones (valor, aportado, valoraciones) vive en
+app/routers/investments.py, y las reglas de transferencias externas en
+app/routers/rules.py: esta pantalla se había convertido en un cajón de sastre
+de 495 líneas.
 """
 from __future__ import annotations
 
-import json
 from datetime import date
 
 from fastapi import APIRouter, Form, Request
@@ -11,9 +15,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.importers.common import normalize_iban
-from app.services.analytics import (
-    INVESTMENT_TYPE, MONTHS_ES, account_balance, contributed, last_valuation,
-)
+from app.services.analytics import account_balance
 from app.templating import templates
 
 router = APIRouter()
@@ -50,41 +52,8 @@ def accounts_list(request: Request):
                     days_since = (today - last_date).days
                 except Exception:
                     days_since = None
-            # Una cuenta de inversión enseña tres cifras que no son la misma:
-            # lo aportado, lo que vale hoy y la diferencia entre ambas.
-            investment = None
-            if r["type"] == INVESTMENT_TYPE:
-                puesto = contributed(cur, r["id"])
-                valor = last_valuation(cur, r["id"])
-                vals = [dict(v) for v in cur.execute(
-                    """SELECT id, date, value, note FROM account_valuations
-                       WHERE account_id = ? ORDER BY date DESC, id DESC""",
-                    (r["id"],),
-                ).fetchall()]
-                gain = round((valor - puesto), 2) if valor is not None else None
-                # Serie para el gráfico: valor declarado frente a lo aportado en
-                # esa misma fecha. El hueco entre ambas líneas es la rentabilidad.
-                serie = sorted(vals, key=lambda v: v["date"])
-                chart = {
-                    "labels": [f'{MONTHS_ES[int(v["date"][5:7])][:3]} {v["date"][2:4]}'
-                               for v in serie],
-                    "value": [v["value"] for v in serie],
-                    "contributed": [contributed(cur, r["id"], v["date"]) for v in serie],
-                }
-                investment = {
-                    "contributed": puesto,
-                    "value": valor,
-                    "gain": gain,
-                    "gain_pct": (round(gain / puesto * 100, 2)
-                                 if gain is not None and puesto else None),
-                    "valuations": vals,
-                    "chart_json": json.dumps(chart, ensure_ascii=False),
-                    "has_chart": len(serie) >= 2,
-                }
-
             accounts.append({
                 "id": r["id"], "name": r["name"], "bank": r["bank"],
-                "investment": investment,
                 "iban": r["iban"], "type": r["type"],
                 "initial_balance": r["initial_balance"],
                 "currency": r["currency"] or "EUR",
@@ -96,24 +65,12 @@ def accounts_list(request: Request):
                 "days_since_recon": days_since,
             })
 
-        # Reglas de transferencias externas (plan de pensiones, etc.)
-        rule_rows = cur.execute(
-            """SELECT r.id, r.pattern, r.source_account_id, r.target_account_id,
-                      r.active, r.note,
-                      sa.name AS source_name, ta.name AS target_name
-               FROM external_transfer_rules r
-               LEFT JOIN accounts sa ON sa.id = r.source_account_id
-               LEFT JOIN accounts ta ON ta.id = r.target_account_id
-               ORDER BY r.active DESC, r.pattern"""
-        ).fetchall()
-        rules = [dict(r) for r in rule_rows]
 
     return templates.TemplateResponse(
         request, "accounts.html",
         {
             "active": "accounts",
             "accounts": accounts,
-            "rules": rules,
             "today_iso": today.isoformat(),
         },
     )
@@ -165,34 +122,4 @@ def accounts_archive(account_id: int):
 def accounts_restore(account_id: int):
     with cursor() as cur:
         cur.execute("UPDATE accounts SET archived = 0 WHERE id = ?", (account_id,))
-    return RedirectResponse("/cuentas", status_code=303)
-
-
-@router.post("/cuentas/{account_id}/valoracion")
-def valuation_create(
-    account_id: int,
-    date: str = Form(...),
-    value: float = Form(...),
-    note: str = Form(""),
-):
-    """Registra el valor que la entidad declara para una cuenta de inversión.
-
-    Si ya hay una valoración con esa fecha se sustituye, para poder corregir
-    una cifra mal tecleada sin tener que borrarla antes.
-    """
-    with cursor() as cur:
-        cur.execute(
-            """INSERT INTO account_valuations(account_id, date, value, note)
-               VALUES (?, ?, ?, ?)
-               ON CONFLICT(account_id, date) DO UPDATE
-                 SET value = excluded.value, note = excluded.note""",
-            (account_id, date.strip(), value, note.strip() or None),
-        )
-    return RedirectResponse("/cuentas", status_code=303)
-
-
-@router.post("/cuentas/valoracion/{valuation_id}/borrar")
-def valuation_delete(valuation_id: int):
-    with cursor() as cur:
-        cur.execute("DELETE FROM account_valuations WHERE id = ?", (valuation_id,))
     return RedirectResponse("/cuentas", status_code=303)

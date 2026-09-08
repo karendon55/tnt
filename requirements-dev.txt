@@ -1,0 +1,5 @@
+# Dependencias solo para los tests. La app no las necesita, y packaging/install.sh
+# instala únicamente requirements.txt.
+-r requirements.txt
+httpx2>=0.28         # TestClient de FastAPI: tests de ruta y de navegación
+                     # (starlette avisa si usas httpx a secas)

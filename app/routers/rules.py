@@ -35,6 +35,23 @@ def rules_list(request: Request):
 
         cat_tree = category_tree(cur)  # árbol de categorías para el selector
 
+        # Reglas de transferencias externas (plan de pensiones, etc.). Vivían
+        # en /cuentas; son reglas, así que su sitio es este.
+        transfer_rows = cur.execute(
+            """SELECT r.id, r.pattern, r.source_account_id, r.target_account_id,
+                      r.active, r.note,
+                      sa.name AS source_name, ta.name AS target_name
+               FROM external_transfer_rules r
+               LEFT JOIN accounts sa ON sa.id = r.source_account_id
+               LEFT JOIN accounts ta ON ta.id = r.target_account_id
+               ORDER BY r.active DESC, r.pattern"""
+        ).fetchall()
+        transfer_rules = [dict(r) for r in transfer_rows]
+        # Las cuentas alimentan los selectores del formulario de regla nueva.
+        accounts = [dict(a) for a in cur.execute(
+            "SELECT id, name, bank, archived FROM accounts ORDER BY archived, name"
+        )]
+
     rules = []
     for r in rows:
         label = r["parent_name"] + " · " + r["cat_name"] if r["parent_name"] else (r["cat_name"] or "—")
@@ -46,7 +63,8 @@ def rules_list(request: Request):
 
     return templates.TemplateResponse(
         request, "rules.html",
-        {"active": "rules", "rules": rules, "cat_tree": cat_tree},
+        {"active": "rules", "rules": rules, "cat_tree": cat_tree,
+         "transfer_rules": transfer_rules, "accounts": accounts},
     )
 
 

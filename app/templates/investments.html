@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Inversiones{% endblock %}
+
+{% block content %}
+<div class="pagehead">
+    <div>
+        <h1>Inversiones</h1>
+        <p>
+            Un fondo cambia de valor sin que haya movimientos, así que su saldo no sale de
+            sumar aportaciones: lo marca el último valor que declares aquí con el informe de
+            la entidad. La rentabilidad no cuenta como ingreso, así que no altera los KPIs
+            del panel.
+        </p>
+    </div>
+</div>
+
+{% if inv_accs %}
+{% for a in inv_accs %}
+    {% set inv = a.investment %}
+    <div class="card fund-card mt-lg">
+        <div class="row wrap row-between gap-lg">
+            <strong>{{ a.name }}</strong>
+            {% if a.bank %}<span class="pill">{{ a.bank }}</span>{% endif %}
+        </div>
+
+        <div class="grid grid-kpi mt-lg">
+            <div>
+                <div class="card-title">Aportado neto</div>
+                <div class="kpi-value tabular">{{ inv.contributed | eur }}</div>
+                <div class="kpi-delta">lo que has puesto menos lo reembolsado</div>
+            </div>
+            <div>
+                <div class="card-title">Valor actual</div>
+                <div class="kpi-value tabular">
+                    {% if inv.value is not none %}{{ inv.value | eur }}{% else %}—{% endif %}
+                </div>
+                <div class="kpi-delta">
+                    {% if inv.valuations %}declarado el {{ inv.valuations[0].date }}
+                    {% else %}sin valoración todavía{% endif %}
+                </div>
+            </div>
+            <div>
+                <div class="card-title">Rentabilidad</div>
+                {% if inv.gain is not none %}
+                <div class="kpi-value tabular {% if inv.gain >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
+                    {{ inv.gain | eur_signed }}
+                </div>
+                <div class="kpi-delta {% if inv.gain >= 0 %}is-positive{% else %}is-negative{% endif %}">
+                    {% if inv.gain_pct is not none %}{{ inv.gain_pct | pct_signed }} sobre lo aportado{% endif %}
+                </div>
+                {% else %}
+                <div class="kpi-value tabular muted">—</div>
+                <div class="kpi-delta">declara un valor para calcularla</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" action="/cuentas/{{ a.id }}/valoracion"
+              class="row wrap gap-lg mt-xl" style="align-items:flex-end;">
+            <div class="field" style="margin:0;">
+                <label for="val-date-{{ a.id }}">Fecha del informe</label>
+                <input class="input" type="date" id="val-date-{{ a.id }}" name="date"
+                       value="{{ today_iso }}" required style="width:auto;">
+            </div>
+            <div class="field" style="margin:0;">
+                <label for="val-value-{{ a.id }}">Valor declarado (€)</label>
+                <input class="input tabular" type="number" step="0.01" id="val-value-{{ a.id }}"
+                       name="value" required placeholder="12500,00" style="width:auto;">
+            </div>
+            <div class="field grow" style="margin:0;">
+                <label for="val-note-{{ a.id }}">Nota (opcional)</label>
+                <input class="input" id="val-note-{{ a.id }}" name="note"
+                       placeholder="p. ej. informe mensual de agosto">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar valoración</button>
+        </form>
+
+        {% if inv.has_chart %}
+        {# El JSON viaja en un atributo: Jinja lo escapa solo y el navegador lo
+           devuelve intacto a JSON.parse, sin necesidad de |safe dentro de <script>. #}
+        <div class="chart-box mt-xl" style="height:230px;">
+            <canvas class="fund-chart" data-serie="{{ inv.chart_json }}"></canvas>
+        </div>
+        <p class="small muted mt-md">
+            La línea roja es lo que vale; la gris, lo que has aportado.
+            El hueco entre ambas es tu rentabilidad.
+        </p>
+        {% endif %}
+
+        {% if inv.valuations %}
+        <details class="mt-lg">
+            <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">
+                Histórico de valoraciones ({{ inv.valuations|length }})
+            </summary>
+            <table class="table mt-md">
+                <thead><tr><th>Fecha</th><th class="num">Valor</th><th>Nota</th><th></th></tr></thead>
+                <tbody>
+                    {% for v in inv.valuations %}
+                    <tr>
+                        <td class="tabular nowrap">{{ v.date }}</td>
+                        <td class="num tabular">{{ v.value | eur }}</td>
+                        <td class="muted small trunc">{{ v.note or '—' }}</td>
+                        <td>
+                            <form method="post" action="/cuentas/valoracion/{{ v.id }}/borrar"
+                                  onsubmit="return confirm('¿Borrar la valoración del {{ v.date }}?');">
+                                <button type="submit" class="btn btn-sm btn-ghost" title="Borrar">🗑</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+        {% endif %}
+    </div>
+    {% endfor %}
+{% else %}
+<p class="empty-state">
+    No hay cuentas de inversión. Crea una en Configuración · Cuentas con el tipo
+    «Inversión (fondo, plan)» y aquí podrás declarar su valor.
+</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if inv_accs %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    const css = getComputedStyle(document.documentElement);
+    // Sin colores de reserva escritos a mano: si faltara un token, se hereda
+    // el color del texto, que es lo sensato y además no es un literal.
+    const tok = (n, fb = 'currentColor') => css.getPropertyValue(n).trim() || fb;
+    const accent = tok('--accent');
+    const silver = tok('--silver');
+    const text   = tok('--text-muted');
+    const grid   = tok('--chart-grid');
+    const eur = v => new Intl.NumberFormat('es-ES', {
+        style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+
+    document.querySelectorAll('.fund-chart').forEach(function (cv) {
+        const d = JSON.parse(cv.dataset.serie);
+        new Chart(cv, {
+            type: 'line',
+            data: { labels: d.labels, datasets: [
+                { label: 'Valor', data: d.value, borderColor: accent, borderWidth: 2,
+                  fill: false,   // papel: la línea sola; el hueco con «Aportado» ya cuenta la historia
+                  tension: .3, pointRadius: 3, pointBackgroundColor: accent },
+                { label: 'Aportado', data: d.contributed, borderColor: silver,
+                  borderWidth: 1.5, borderDash: [5, 4], fill: false,
+                  tension: .3, pointRadius: 0 },
+            ]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: text, boxWidth: 10, font: { size: 11 } } },
+                    tooltip: { callbacks: { label: c => c.dataset.label + ': ' + eur(c.parsed.y) } },
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: text } },
+                    y: { grid: { color: grid }, ticks: { color: text,
+                         callback: v => (v / 1000).toFixed(1) + 'k' } },
+                },
+            },
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}
