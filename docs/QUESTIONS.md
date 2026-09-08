@@ -29,3 +29,4 @@ Format:
 - 2026-09-08 [panel] Fase 4: ¿qué pasa con las barras de colores por categoría? -> fuera; eran ocho literales en la plantilla y el boceto pide filas limpias
 - 2026-09-08 [panel] Fase 4: ¿dónde va la franja de copia de seguridad? -> al final de la página; es utilidad, no contenido
 - 2026-09-08 [panel] Fase 4: ¿el segmentado Saldo/Neto sigue en rojo? -> no; el rojo sólido se reserva a la acción principal
+- 2026-09-08 [base] ¿Cómo se marca la pantalla activa en la barra superior? -> subrayado rojo; la píldora roja sólida se reserva a la acción principal

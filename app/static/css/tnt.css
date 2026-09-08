@@ -16,6 +16,7 @@
   --muted:#f4f4f4; --muted-foreground:#5a5a5a;
   --accent-bg:#f4f4f4; --accent-foreground:#0a0a0a;
   --destructive:#dc2626; --border:#e5e5e5; --input:#e5e5e5; --ring:#e10600;
+  --danger-foreground:#ffffff; --backdrop:rgba(0,0,0,.55);
   --radius:.65rem;
   /* alias propios de TNT */
   --bg:var(--background); --surface:var(--card); --surface-raised:#ffffff;
@@ -45,7 +46,7 @@
   --surface-raised:#1a1a1a; --surface-hover:#1f1f1f; --border-strong:#3a3a3a;
   --text-muted:#a1a1a1; --text-subtle:#7a7a7a;
   --silver:#c0c0c0; --success:#22c55e; --warning:#f59e0b; --danger:#f87171;
-  --chart-grid:rgba(255,255,255,.07);
+  --chart-grid:rgba(255,255,255,.07); --backdrop:rgba(0,0,0,.7);
   --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 6px 20px rgba(0,0,0,.5);
 }
 
@@ -77,11 +78,13 @@ body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transpare
 .brand-name{font-family:var(--font-brand);font-size:1.4rem;letter-spacing:.06em}
 .brand-tagline{color:var(--text-subtle);font-size:.78rem;display:none}
 @media(min-width:1100px){.brand-tagline{display:inline}}
-.nav{display:flex;gap:.15rem;flex:1;flex-wrap:wrap}
-.nav-link{padding:.4rem .7rem;border-radius:var(--radius);color:var(--text-muted);
-  font-size:.85rem;font-weight:500}
-.nav-link:hover{background:var(--muted);color:var(--text)}
-.nav-link.is-active{background:var(--accent);color:#fff}
+/* La navegación se marca con un subrayado, no con una píldora roja: el rojo
+   sólido está reservado a la acción principal de cada pantalla. */
+.nav{display:flex;gap:1.15rem;flex:1;flex-wrap:wrap}
+.nav-link{padding:.35rem 0;color:var(--text-muted);font-size:.85rem;font-weight:500;
+  border-bottom:1.5px solid transparent;transition:color .12s,border-color .12s}
+.nav-link:hover{color:var(--text)}
+.nav-link.is-active{color:var(--text);border-bottom-color:var(--accent)}
 .theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text);
   border-radius:var(--radius);width:34px;height:34px;display:grid;place-items:center;cursor:pointer;flex:none}
 .theme-toggle:hover{background:var(--muted)}
@@ -143,10 +146,11 @@ code{font-family:var(--font-mono);font-size:.85em;background:var(--muted);
   padding:.45rem .8rem;font-size:.85rem;font-weight:500;cursor:pointer;
   font-family:inherit;line-height:1.4;transition:background .12s,border-color .12s}
 .btn:hover{background:var(--muted);color:var(--text)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
-.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-.btn-danger:hover{filter:brightness(1.1);color:#fff}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--primary-foreground)}
+.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);
+  color:var(--primary-foreground)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:var(--danger-foreground)}
+.btn-danger:hover{filter:brightness(1.1);color:var(--danger-foreground)}
 .btn-ghost{border-color:transparent}
 .btn-ghost:hover{background:var(--muted)}
 .btn-sm{padding:.3rem .6rem;font-size:.78rem}
@@ -168,7 +172,7 @@ dialog{max-width:min(calc(100vw - 2rem),560px);width:100%;
   margin:auto;max-height:calc(100vh - 3rem);overflow:auto;
   border:1px solid var(--border);border-radius:var(--radius-lg);
   background:var(--surface-raised);color:var(--text);box-shadow:var(--shadow-md)}
-dialog::backdrop{background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
+dialog::backdrop{background:var(--backdrop);backdrop-filter:blur(2px)}
 
 /* ── Formularios ───────────────────────────────────────────────────────── */
 .field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem}

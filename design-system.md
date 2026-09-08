@@ -90,7 +90,11 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 ## Botones
 
 - Primario: sólido sobre `--accent`, sin degradado y sin sombra. Secundario: contorno.
-  Terciario: fantasma.
+  Terciario: fantasma. Enlace de acción (`.lnk`): subrayado fino, sin caja.
+- **Una sola acción en rojo sólido por pantalla.** Marcar el estado —la pantalla activa
+  de la navegación, la serie que estás viendo— no es una acción: eso va subrayado o en
+  gris. El texto sobre sólido usa `--primary-foreground` / `--danger-foreground`, nunca
+  `#fff` a pelo.
 - Nunca: botones con degradado, sombra en botones, radios enormes, glow en las llamadas a la acción.
 
 ## Iconos
