@@ -42,5 +42,10 @@ __pycache__/
 # Ajustes locales de la máquina (TNT_DB y demás)
 .env.local
 
+# Capturas de la app con datos de verdad (saldos, cuentas, comercios).
+# Los bocetos sí se suben: llevan datos inventados.
+explorations/**/our-build-*.png
+explorations/**/diff-*.png
+
 # Mockups de rediseño (no forman parte de la app)
 /mockups/

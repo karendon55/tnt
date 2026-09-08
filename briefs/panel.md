@@ -49,7 +49,9 @@ y punto de aviso; `--success` / `--danger` en importes.
 
 ## Validación (2026-09-08)
 
-- [x] Comparación con el boceto: `explorations/panel-refs/our-build-2026-09-08.png`
+- [x] Comparación con el boceto: `explorations/panel-refs/our-build-<fecha>.png`,
+      que se queda **solo en local** — sale de la app con saldos y comercios reales,
+      y `.gitignore` lo excluye
 - [x] 1440, 1024, 768 y 375 en navegador real, sin scroll horizontal
 - [x] Tema claro y tema oscuro
 - [x] `prefers-reduced-motion` respetado (regla global al final de `tnt.css`)

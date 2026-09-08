@@ -2,7 +2,9 @@
 
 Referencia: `explorations/panel-papel-oscuro/index.html`, que ya abre en el estado
 bloqueado (pareja E, fondo neutro). Capturas de esta fecha en este mismo directorio:
-`boceto-2026-09-08.png`, `our-build-2026-09-08.png` y el montaje `diff-hero-2026-09-08.png`.
+`boceto-2026-09-08.png` (el boceto, con datos inventados) y, solo en local,
+`our-build-*.png` y `diff-hero-*.png`: esas salen de la app con datos reales y las
+ignora git.
 
 ## Qué se ha construido
 
@@ -44,7 +46,7 @@ La marca sigue en Impact.
 
 ## Hallazgo ajeno al rediseño
 
-La serie del saldo devuelve **seis puntos idénticos** (`una cifra de seis dígitos` en los seis meses),
+La serie del saldo devuelve **seis puntos idénticos** (el saldo actual repetido en los seis meses),
 así que la sparkline dibuja una recta. No es CSS: es el cálculo de la serie. Bug aparte.
 
 ## Fase 4, superficie completa (2026-09-08)
