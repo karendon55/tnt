@@ -27,7 +27,10 @@
   --radius-sm:.4rem; --radius-md:.65rem; --radius-lg:.9rem;
   --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 4px 14px rgba(0,0,0,.10);
   --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-  --font-display:"Impact","Haettenschweiler","Arial Narrow Bold",sans-serif;
+  /* serif editorial: hero, titulares de sección y KPIs (ver design-system.md) */
+  --font-display:Georgia,"Noto Serif",serif;
+  /* la marca AC/DC se queda en Impact */
+  --font-brand:"Impact","Haettenschweiler","Arial Narrow Bold",sans-serif;
   --font-mono:"SFMono-Regular",Menlo,Consolas,monospace;
 }
 /* ── Tokens: oscuro (data-theme para TNT, .dark para Basecoat) ─────────── */
@@ -71,7 +74,7 @@ body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transpare
   padding-right:max(1.5rem,calc(50vw - 640px + 1.5rem))}
 .brand{display:flex;align-items:center;gap:.5rem}
 .brand-bolt,.bolt{width:17px;height:23px;fill:var(--accent);flex:none}
-.brand-name{font-family:var(--font-display);font-size:1.4rem;letter-spacing:.06em}
+.brand-name{font-family:var(--font-brand);font-size:1.4rem;letter-spacing:.06em}
 .brand-tagline{color:var(--text-subtle);font-size:.78rem;display:none}
 @media(min-width:1100px){.brand-tagline{display:inline}}
 .nav{display:flex;gap:.15rem;flex:1;flex-wrap:wrap}
@@ -97,6 +100,8 @@ body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transpare
 .row{display:flex;align-items:center}
 .col{display:flex;flex-direction:column}
 .row-between,.between{justify-content:space-between}
+/* OJO: .wrap es también el contenedor de 1280px de arriba, con width:100%.
+   Dentro de un flex row usa .wrap-w, o el hijo ocupará la fila entera. */
 .wrap-w,.wrap{flex-wrap:wrap}
 .items-start{align-items:flex-start}.items-end{align-items:flex-end}
 .grow{flex:1}.full{width:100%}
@@ -232,13 +237,26 @@ select.select,.select{cursor:pointer}
 .kpi-delta.is-negative{color:var(--danger)}
 
 /* ── Panel: piezas del rediseño ────────────────────────────────────────── */
-.hero{background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius-lg);padding:1.6rem 1.75rem;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;inset:0 0 auto auto;width:280px;height:100%;
-  background:radial-gradient(circle at 80% 40%,color-mix(in srgb,var(--accent) 13%,transparent),transparent 70%);
-  pointer-events:none}
-.hero-value{font-size:3.1rem;font-weight:800;letter-spacing:-.03em;line-height:1.05}
-@media(max-width:640px){.hero-value{font-size:2.2rem}}
+/* Papel en oscuro: una sección del panel no es una tarjeta, es una hoja
+   separada por un filete. .card sigue intacta para las once pantallas que
+   todavía no han migrado. */
+.sheet{padding:2.1rem 0;border-bottom:1px solid var(--border)}
+.sheet:last-child,.sheet.is-last{border-bottom:0}
+.sheet-title{font-family:var(--font-display);font-size:1.25rem;font-weight:400;
+  letter-spacing:-.01em;margin:0}
+/* El hero no lleva filete: el de la barra de mes, justo debajo, hace de cierre. */
+.hero{padding:2.6rem 0 1.5rem}
+.hero .card-title{font-size:.72rem;letter-spacing:.24em;color:var(--text-subtle);margin:0;
+  font-weight:600}
+.hero-value{font-family:var(--font-display);font-size:4rem;font-weight:400;
+  letter-spacing:-.025em;line-height:1.02;margin-top:.7rem}
+@media(max-width:640px){.hero-value{font-size:2.5rem}}
+/* Barra de mes y acciones: debajo del hero, como en el boceto. */
+.monthbar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:.9rem 0 1.1rem;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+.monthbar form{align-items:center}
+.monthbar-actions{display:flex;gap:.6rem;margin-left:auto}
+.select-month{width:auto;min-width:11rem}
 /* contenedor de altura fija: sin él Chart.js crece sin límite en cada redibujado */
 .chart-box{position:relative;width:100%}
 .chart-box>canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
