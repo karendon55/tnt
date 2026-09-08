@@ -33,13 +33,16 @@
             onclick="this.closest('.rule-suggestion').remove()">Descartar</button>
 </div>
 {% endif %}
-{# Actualiza la celda hermana "Categoría" (padre) via HTMX OOB swap.
-   Solo se incluye en respuestas HTMX (recategorize), no en el render inicial
-   de la tabla — si no, el id estaría duplicado dentro de un <template>. #}
+{# Actualiza la celda hermana "Categoría" (padre) por OOB swap.
+
+   Va sobre un <span>, no sobre el <td>: htmx busca los elementos OOB con
+   querySelectorAll, que NO entra en el contenido de un <template>, así que un
+   <td> envuelto (lo único que el parser deja pasar suelto) queda invisible y
+   el swap no ocurría nunca. Un <span> no tiene esa restricción.
+
+   Solo se incluye en las respuestas HTMX, no en el render inicial de la
+   tabla; si no, el id estaría duplicado. #}
 {% if oob_subcat %}
-<template>
-    <td id="cat-parent-{{ tx.id }}" hx-swap-oob="true" class="muted small">
-        {{ tx.category_label }}
-    </td>
-</template>
+<span id="cat-parent-{{ tx.id }}" hx-swap-oob="true"
+      title="{{ tx.category_label }}">{{ tx.category_label }}</span>
 {% endif %}

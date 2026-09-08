@@ -44,9 +44,18 @@ regla del sistema es alcanzar el patrón antes que inventar uno.
 - [x] Estado vacío con copy que dice qué hacer
 - [x] 88 tests en verde
 
-**No se probó interactuando**: el servidor de desarrollo apunta a la base real, así que
-cambiar una categoría o pulsar la papelera habría escrito de verdad. La verificación fue
-de render. Antes de tocar el comportamiento de esta pantalla, conviene una base de demo.
+### Comportamiento (2026-09-08, sobre la base de demostración)
+
+Probado contra `data/tnt-demo.db` con `./run.sh --demo`, sin tocar un solo euro real:
+
+- [x] Categorizar: el `select` guarda por htmx y la celda hermana "Categoría" se actualiza
+- [x] Sugerencia de regla tras categorizar, y "Crear regla" la crea y recategoriza en bloque
+- [x] Memo: escribir y salir del campo guarda
+- [x] Filtrar: `q=Gasolinera` devuelve 59 de 489, paginados de 50 en 50
+- [x] Paginación: adelante y atrás, con la URL limpia
+- [x] Diálogo de nuevo movimiento: abre, crea con categoría y memo, y cerrado no se ve
+- [x] Borrar: confirma y borra
+- [x] La base real quedó en 947 movimientos, intacta, durante toda la prueba
 
 ## Qué NO hacer aquí
 

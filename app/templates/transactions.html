@@ -101,8 +101,10 @@
                     {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                 </td>
                 <td class="muted small trunc" title="{{ tx.account_name }}">{{ tx.account_name }}</td>
-                <td id="cat-parent-{{ tx.id }}" class="muted small trunc" title="{{ tx.category_label }}">
-                    {{ tx.category_label }}
+                <td class="muted small trunc">
+                    {# El objetivo del swap OOB es el span, no la celda: htmx no ve
+                       dentro de un <template>, y un <td> suelto sí necesitaría uno. #}
+                    <span id="cat-parent-{{ tx.id }}" title="{{ tx.category_label }}">{{ tx.category_label }}</span>
                 </td>
                 <td id="cat-{{ tx.id }}">
                     {% include "_category_cell.html" with context %}
@@ -144,13 +146,15 @@
 
     {% if pages > 1 %}
     <nav class="pager" aria-label="Paginación">
-        {% set base_args = request.url.include_query_params().query %}
+        {# include_query_params(page=…) REEMPLAZA el parámetro. Concatenar
+           "&page=N" a la query actual lo duplicaba, y la URL crecía un
+           page= por cada clic. #}
         {% if page > 1 %}
-            <a class="lnk" href="?{{ base_args }}&page={{ page - 1 }}">← Anterior</a>
+            <a class="lnk" href="?{{ request.url.include_query_params(page=page - 1).query }}">← Anterior</a>
         {% endif %}
         <span class="muted pager-info">Página {{ page }} de {{ pages }}</span>
         {% if page < pages %}
-            <a class="lnk" href="?{{ base_args }}&page={{ page + 1 }}">Siguiente →</a>
+            <a class="lnk" href="?{{ request.url.include_query_params(page=page + 1).query }}">Siguiente →</a>
         {% endif %}
     </nav>
     {% endif %}

@@ -33,3 +33,6 @@ Format:
 - 2026-09-08 [movimientos] ¿Cuál es la acción roja de la pantalla? -> Filtrar; Importar pasa a enlace porque lleva a otra página
 - 2026-09-08 [movimientos] ¿Los controles de categoría y memo se ven siempre? -> no; callados hasta el hover, con borde de acento al foco
 - 2026-09-08 [movimientos] ¿Qué hacemos con los iconos ✎ y 🗑? -> SVG en línea con aria-label que nombra fecha y descripción
+- 2026-09-08 [movimientos] ¿Cómo se prueba el comportamiento sin arriesgar datos? -> base de demostración generada (scripts/make_demo_db.py) y ./run.sh --demo
+- 2026-09-08 [movimientos] El swap OOB de la celda Categoría no ocurría nunca -> el <template> lo escondía de htmx; pasa a un <span>, con tests que lo fijan
+- 2026-09-08 [movimientos] Los enlaces de paginación duplicaban page= -> include_query_params(page=…) lo reemplaza
