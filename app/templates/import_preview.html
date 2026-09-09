@@ -76,7 +76,7 @@
         <tbody>
             {% for r in p.rows %}
             <tr {% if not r.will_insert %}class="is-dim"{% endif %}>
-                <td class="tabular">{{ r.date }}</td>
+                <td class="tabular">{{ r.date | fecha }}</td>
                 <td>{{ r.description | truncate(60) }}</td>
                 <td class="muted small">{{ r.source_hint or '—' }}</td>
                 <td class="num tabular {% if r.amount < 0 %}amount-neg{% else %}amount-pos{% endif %}">

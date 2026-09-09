@@ -55,11 +55,11 @@
                 <td class="small">
                     {% if a.last_recon %}
                         {% if a.last_recon.diff == 0 %}
-                            <span class="amount-pos" title="Coincide con el banco a fecha {{ a.last_recon.date }}">
+                            <span class="amount-pos" title="Coincide con el banco a fecha {{ a.last_recon.date | fecha }}">
                                 cuadra{% if a.days_since_recon == 0 %}, hoy{% elif a.days_since_recon == 1 %}, ayer{% else %}, hace {{ a.days_since_recon }} d{% endif %}
                             </span>
                         {% else %}
-                            <span class="warnc" title="Difiere {{ a.last_recon.diff | eur_signed }} a fecha {{ a.last_recon.date }}">
+                            <span class="warnc" title="Difiere {{ a.last_recon.diff | eur_signed }} a fecha {{ a.last_recon.date | fecha }}">
                                 difiere {{ a.last_recon.diff | eur_signed }}
                             </span>
                         {% endif %}
@@ -202,7 +202,7 @@
         <tbody>
             {% for rec in a.recons %}
             <tr>
-                <td class="tabular">{{ rec.date }}</td>
+                <td class="tabular">{{ rec.date | fecha }}</td>
                 <td class="num tabular">{{ rec.bank_balance | eur }}</td>
                 <td class="num tabular">{{ rec.tnt_balance | eur }}</td>
                 <td class="num tabular {% if rec.diff < 0 %}amount-neg{% elif rec.diff > 0 %}amount-pos{% endif %}">
@@ -211,9 +211,9 @@
                 <td class="small muted">{{ rec.note or '—' }}</td>
                 <td>
                     <form method="post" action="/conciliar/{{ rec.id }}/borrar" class="inline-form"
-                          onsubmit="return confirm('¿Borrar la conciliación del {{ rec.date }}?');">
+                          onsubmit="return confirm('¿Borrar la conciliación del {{ rec.date | fecha }}?');">
                         <button type="submit" class="icon-btn is-danger"
-                                aria-label="Borrar la conciliación del {{ rec.date }} de {{ a.name }}">
+                                aria-label="Borrar la conciliación del {{ rec.date | fecha }} de {{ a.name }}">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
                             </svg>

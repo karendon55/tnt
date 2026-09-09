@@ -152,7 +152,7 @@
             <tbody>
                 {% for t in last_transactions %}
                 <tr>
-                    <td class="tabular muted nowrap">{{ t.date }}</td>
+                    <td class="tabular muted nowrap">{{ t.date | fecha }}</td>
                     <td class="trunc mov-desc">
                         {{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                     </td>

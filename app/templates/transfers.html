@@ -69,7 +69,7 @@
             {% set out_desc = p.left_desc if p.left_amount < 0 else p.right_desc %}
             {% set in_desc  = p.left_desc if p.left_amount > 0 else p.right_desc %}
             <tr>
-                <td class="tabular small nowrap">{{ p.left_date }}</td>
+                <td class="tabular small nowrap">{{ p.left_date | fecha }}</td>
                 <td class="trunc" title="{{ out_acc }} · {{ out_desc }}">
                     <strong class="trunc block">{{ out_acc }}</strong>
                     <div class="muted small trunc">{{ out_desc }}</div>
@@ -123,15 +123,15 @@
         <tbody>
             {% for s in suggestions %}
             <tr>
-                <td class="trunc" title="{{ s.left_account }} · {{ s.left_date }} · {{ s.left_desc }}">
+                <td class="trunc" title="{{ s.left_account }} · {{ s.left_date | fecha }} · {{ s.left_desc }}">
                     <div class="trunc"><strong>{{ s.left_account }}</strong>
-                        <span class="muted small tabular">· {{ s.left_date }}</span></div>
+                        <span class="muted small tabular">· {{ s.left_date | fecha }}</span></div>
                     <div class="muted small trunc">{{ s.left_desc }}</div>
                 </td>
                 <td class="num tabular nowrap amount-neg">{{ s.left_amount | eur_signed }}</td>
-                <td class="trunc" title="{{ s.right_account }} · {{ s.right_date }} · {{ s.right_desc }}">
+                <td class="trunc" title="{{ s.right_account }} · {{ s.right_date | fecha }} · {{ s.right_desc }}">
                     <div class="trunc"><strong>{{ s.right_account }}</strong>
-                        <span class="muted small tabular">· {{ s.right_date }}</span></div>
+                        <span class="muted small tabular">· {{ s.right_date | fecha }}</span></div>
                     <div class="muted small trunc">{{ s.right_desc }}</div>
                 </td>
                 <td class="num tabular nowrap amount-pos">{{ s.right_amount | eur_signed }}</td>
@@ -163,7 +163,7 @@
                     <option value="" disabled selected>Elige movimiento…</option>
                     {% for u in unlinked %}
                     <option value="{{ u.id }}">
-                        {{ u.date }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
+                        {{ u.date | fecha }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
                     </option>
                     {% endfor %}
                 </select>
@@ -174,7 +174,7 @@
                     <option value="" disabled selected>Elige movimiento…</option>
                     {% for u in unlinked %}
                     <option value="{{ u.id }}">
-                        {{ u.date }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
+                        {{ u.date | fecha }} · {{ u.account_name }} · {{ u.amount | eur_signed }} · {{ u.description | truncate(40) }}
                     </option>
                     {% endfor %}
                 </select>

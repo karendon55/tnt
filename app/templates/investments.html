@@ -36,7 +36,7 @@
                 {% if inv.value is not none %}{{ inv.value | eur }}{% else %}—{% endif %}
             </div>
             <div class="kpi-delta">
-                {% if inv.valuations %}declarado el {{ inv.valuations[0].date }}
+                {% if inv.valuations %}declarado el {{ inv.valuations[0].date | fecha }}
                 {% else %}sin valoración todavía{% endif %}
             </div>
         </div>
@@ -101,15 +101,15 @@
             <tbody>
                 {% for v in inv.valuations %}
                 <tr>
-                    <td class="tabular nowrap">{{ v.date }}</td>
+                    <td class="tabular nowrap">{{ v.date | fecha }}</td>
                     <td class="num tabular">{{ v.value | eur }}</td>
                     <td class="muted small trunc">{{ v.note or '—' }}</td>
                     <td>
                         <form method="post" action="/cuentas/valoracion/{{ v.id }}/borrar"
                               class="inline-form"
-                              onsubmit="return confirm('¿Borrar la valoración del {{ v.date }}?');">
+                              onsubmit="return confirm('¿Borrar la valoración del {{ v.date | fecha }}?');">
                             <button type="submit" class="icon-btn is-danger"
-                                    aria-label="Borrar la valoración del {{ v.date }} de {{ a.name }}">
+                                    aria-label="Borrar la valoración del {{ v.date | fecha }} de {{ a.name }}">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
                                 </svg>

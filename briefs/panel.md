@@ -60,8 +60,9 @@ y punto de aviso; `--success` / `--danger` en importes.
 
 ## Pendiente
 
-- La fecha de la tabla sale en ISO (`2026-08-31`); el boceto usa `31/08`. Es formato del
-  router, no diseño.
+- ~~La fecha en ISO~~ **resuelto el 2026-09-09**: filtro `| fecha` → `31/08/2026`.
+  El boceto usaba `31/08` sin año, pero se eligió un único formato para toda la app:
+  ocupa lo mismo que el ISO y no hay dos reglas que recordar.
 - Las otras once pantallas siguen en `.card`. Migran cuando les toque, una a una.
 
 ## Decisiones

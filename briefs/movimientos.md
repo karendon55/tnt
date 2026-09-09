@@ -65,6 +65,7 @@ Probado contra `data/tnt-demo.db` con `./run.sh --demo`, sin tocar un solo euro 
 
 ## Pendiente
 
-- La fecha sale en ISO (`2026-08-31`); pega más `31/08`. Es formato del router.
+- ~~La fecha en ISO~~ **resuelto el 2026-09-09**: filtro `| fecha` → `31/08/2026`, que
+  además es el formato que ya pedían los propios filtros de la pantalla.
 - Hay descripciones con mojibake en la base (`Demary FruterÃ­a`), de alguna importación
   antigua. Es dato, no diseño.

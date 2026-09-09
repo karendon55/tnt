@@ -41,7 +41,7 @@
             {% for b in batches %}
             <tr>
                 <td class="tabular">#{{ b.id }}</td>
-                <td class="tabular small">{{ b.created_at }}</td>
+                <td class="tabular small">{{ b.created_at | fecha }}</td>
                 <td class="small">
                     {% for f in b.files %}
                         <div>

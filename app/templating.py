@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from app.config import APP_NAME, APP_TAGLINE, DEMO_MODE, STATIC_DIR, TEMPLATES_DIR
 from app.navigation import ACTIVOS_CONFIG, SECCIONES_CONFIG
 from app.services.aliases import apply_alias
-from app.utils.formatters import eur, eur_signed, num_es, pct_signed
+from app.utils.formatters import eur, eur_signed, fecha, num_es, pct_signed
 
 def _version_estaticos() -> str:
     """Sello para romper la caché del navegador cuando cambian CSS o JS.
@@ -39,5 +39,7 @@ templates.env.filters["eur"] = eur
 templates.env.filters["eur_signed"] = eur_signed
 templates.env.filters["pct_signed"] = pct_signed
 templates.env.filters["num_es"] = num_es
+# Fechas: ISO en la base, dd/mm/aaaa en la pantalla.
+templates.env.filters["fecha"] = fecha
 # Alias cosméticos de descripción (BARCO COMPRA EN DEMARY → Demary Fruterías)
 templates.env.filters["alias"] = apply_alias

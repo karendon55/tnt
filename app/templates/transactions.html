@@ -95,7 +95,7 @@
         <tbody>
             {% for tx in transactions %}
             <tr>
-                <td class="tabular nowrap">{{ tx.date }}</td>
+                <td class="tabular nowrap">{{ tx.date | fecha }}</td>
                 <td class="trunc" title="{{ tx.description | alias }}">
                     {{ tx.description | alias }}
                     {% if tx.is_transfer %} <span class="pill">transfer.</span>{% endif %}
@@ -118,16 +118,16 @@
                 <td>
                     <div class="row-actions">
                         <button type="button" class="icon-btn"
-                                aria-label="Editar el movimiento de {{ tx.date }}, {{ tx.description | alias }}"
+                                aria-label="Editar el movimiento de {{ tx.date | fecha }}, {{ tx.description | alias }}"
                                 onclick="document.getElementById('editTx-{{ tx.id }}').showModal()">
                             <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M15 5l4 4"/>
                             </svg>
                         </button>
                         <form method="post" action="/movimientos/{{ tx.id }}/borrar" class="inline-form"
-                              onsubmit="return confirm('¿Borrar este movimiento?\n\n{{ tx.date }} · {{ tx.description|truncate(50) }} · {{ tx.amount | eur_signed }}');">
+                              onsubmit="return confirm('¿Borrar este movimiento?\n\n{{ tx.date | fecha }} · {{ tx.description|truncate(50) }} · {{ tx.amount | eur_signed }}');">
                             <button type="submit" class="icon-btn is-danger"
-                                    aria-label="Borrar el movimiento de {{ tx.date }}, {{ tx.description | alias }}">
+                                    aria-label="Borrar el movimiento de {{ tx.date | fecha }}, {{ tx.description | alias }}">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
                                 </svg>
