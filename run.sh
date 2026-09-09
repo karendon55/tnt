@@ -46,9 +46,13 @@ MSG
     exit 1
 fi
 
+# El puerto se puede cambiar (PORT=8001 ./run.sh --demo) para levantar la base
+# de pruebas sin echar abajo la app instalada, que vive en el 8000.
+PORT="${PORT:-8000}"
+
 echo ""
 echo "  ⚡ TNT — Tus Números Tranquilos"
-echo "  Abriendo http://127.0.0.1:8000"
+echo "  Abriendo http://127.0.0.1:$PORT"
 echo ""
 
-exec "$PY" -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+exec "$PY" -m uvicorn app.main:app --host 127.0.0.1 --port "$PORT" --reload

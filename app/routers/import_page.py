@@ -192,10 +192,13 @@ def import_confirm(request: Request, token: str = Form(...)):
             cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
 
     rules_created = 0
-    auto_applied = 0
+    auto_applied = 0        # de este lote
+    auto_applied_otros = 0  # movimientos antiguos que las reglas rescataron de paso
     if results:
         with cursor() as cur:
-            rules_created, auto_applied = retrain_and_apply(cur)
+            rules_created, aplicadas, auto_applied = retrain_and_apply(
+                cur, batch_id=batch_id)
+            auto_applied_otros = aplicadas - auto_applied
 
     total_inserted = sum(r["inserted"] for r in results)
     total_dup = sum(r["duplicates"] for r in results)
@@ -216,6 +219,7 @@ def import_confirm(request: Request, token: str = Form(...)):
                 "categorized_hint": total_hint,
                 "rules_created": rules_created,
                 "auto_applied": auto_applied,
+                "auto_applied_otros": auto_applied_otros,
             },
             "confetti": total_inserted > 0,
         },

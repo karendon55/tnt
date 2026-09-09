@@ -82,8 +82,15 @@
             {% endfor %}
         </tbody>
     </table>
-    {% if summary.rules_created %}
-    <p class="small muted mt-lg">Se aprendieron <strong>{{ summary.rules_created }}</strong> reglas nuevas a partir de tus movimientos conocidos.</p>
+    {% if summary.rules_created or summary.auto_applied_otros %}
+    <p class="small muted mt-lg">
+        {%- if summary.rules_created %}
+        Se aprendi{{ 'eron' if summary.rules_created != 1 else 'ó' }} <strong>{{ summary.rules_created }}</strong> regla{{ 's' if summary.rules_created != 1 }} nueva{{ 's' if summary.rules_created != 1 }} a partir de tus movimientos conocidos.
+        {%- endif %}
+        {%- if summary.auto_applied_otros %}
+        {{ 'De paso, las' if summary.rules_created else 'Las' }} reglas categorizaron <strong>{{ summary.auto_applied_otros }}</strong> movimiento{{ 's' if summary.auto_applied_otros != 1 }} anterior{{ 'es' if summary.auto_applied_otros != 1 }} que seguía{{ 'n' if summary.auto_applied_otros != 1 }} sin categoría.
+        {%- endif %}
+    </p>
     {% endif %}
 </div>
 {% endif %}

@@ -174,12 +174,20 @@ class TestPaginasBienFormadas(unittest.TestCase):
         self.assertIn('id="newTransferRule"', html)
 
     def test_cada_boton_abre_un_dialogo_que_existe(self):
-        """Un getElementById a un id inexistente falla en silencio."""
+        """`getElementById('x').showModal()` sobre un id inexistente revienta en
+        la consola y el botón no hace nada visible.
+
+        Se mira solo `.showModal()`, no cualquier `getElementById`: hay búsquedas
+        que se guardan en una variable y se comprueban antes de usarlas (el
+        `<canvas>` del panel, que solo existe si hay dos meses de datos). Esas son
+        correctas, y meterlas aquí hacía que el test dependiera de si la base de
+        pruebas tenía movimientos o no."""
         for url in self.TODAS:
             with self.subTest(pagina=url):
                 html = client.get(url).text
                 ids = set(re.findall(r'\sid="([^"]+)"', html))
-                for objetivo in re.findall(r"getElementById\('([^']+)'\)", html):
+                abiertos = re.findall(r"getElementById\('([^']+)'\)\.showModal\(\)", html)
+                for objetivo in abiertos:
                     self.assertIn(objetivo, ids,
                                   f"{url}: un botón abre '{objetivo}', que no existe")
 

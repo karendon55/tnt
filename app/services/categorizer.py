@@ -209,23 +209,35 @@ def _rule_rank(rule) -> tuple[int, int, int]:
     )
 
 
-def apply_rules_to_uncategorized(cur: sqlite3.Cursor) -> int:
+def apply_rules_to_uncategorized(
+    cur: sqlite3.Cursor, batch_id: int | None = None
+) -> tuple[int, int]:
     """
     Para cada transacción con category_id NULL, busca reglas cuyo patrón
     aparezca en la descripción y se queda con la más específica (ver
-    `_rule_rank`). Devuelve el número de transacciones categorizadas.
+    `_rule_rank`).
+
+    Recorre TODA la base, no solo lo que acaba de entrar: una regla nueva
+    también rescata movimientos viejos que estaban sin categoría, y eso es
+    justo lo que se quiere. Pero entonces el total no se puede enseñar como
+    «lo que ha categorizado esta importación», así que se devuelve partido:
+
+        (categorizadas en total, categorizadas que venían en `batch_id`)
+
+    Sin `batch_id`, la segunda cifra es 0.
     """
     rules = cur.execute(
         "SELECT pattern, category_id, priority, hits, source FROM category_rules"
     ).fetchall()
     if not rules:
-        return 0
+        return 0, 0
 
     uncat = cur.execute(
-        "SELECT id, description FROM transactions WHERE category_id IS NULL"
+        "SELECT id, description, import_batch_id FROM transactions WHERE category_id IS NULL"
     ).fetchall()
 
     updated = 0
+    updated_batch = 0
     for tx in uncat:
         up = tx["description"].upper()
         matching = [r for r in rules if r["pattern"] in up]
@@ -248,14 +260,26 @@ def apply_rules_to_uncategorized(cur: sqlite3.Cursor) -> int:
             (best["category_id"], round(conf, 3), tx["id"]),
         )
         updated += 1
-    return updated
+        if batch_id is not None and tx["import_batch_id"] == batch_id:
+            updated_batch += 1
+    return updated, updated_batch
 
 
-def retrain_and_apply(cur: sqlite3.Cursor) -> tuple[int, int]:
+def retrain_and_apply(
+    cur: sqlite3.Cursor, batch_id: int | None = None
+) -> tuple[int, int, int]:
+    """Reaprende reglas y las aplica.
+
+    Devuelve (reglas creadas, categorizadas en total, categorizadas del lote).
+    La tercera cifra existe para que la pantalla de importación pueda decir
+    cuántas son de lo que acabas de subir y cuántas son movimientos antiguos
+    rescatados de paso: mezclarlas hacía que un fichero de 3 filas presumiera
+    de haber categorizado 71.
+    """
     seed_builtin_rules(cur)
     created = learn_rules_from_known(cur)
-    applied = apply_rules_to_uncategorized(cur)
-    return created, applied
+    applied, applied_batch = apply_rules_to_uncategorized(cur, batch_id=batch_id)
+    return created, applied, applied_batch
 
 
 # ====== Reglas integradas para patrones bancarios comunes en España ======

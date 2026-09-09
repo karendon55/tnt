@@ -156,5 +156,5 @@ def rules_retrain():
     a los no categorizados. Útil tras una temporada de recategorización manual."""
     from app.services.categorizer import retrain_and_apply
     with cursor() as cur:
-        retrain_and_apply(cur)
+        retrain_and_apply(cur)  # sin lote: aquí no hay importación a la que atribuir
     return RedirectResponse("/reglas", status_code=303)

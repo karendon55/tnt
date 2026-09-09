@@ -18,6 +18,7 @@ encadenadas: `/importar` (subir), el preview de lo que va a entrar, el resultado
 | 2026-09-09 | Una sola acción roja por pantalla | subir → "Importar"; preview → "Confirmar e insertar N"; resultado → "Ver panel". Lo demás, enlaces |
 | 2026-09-09 | Las filas duplicadas del preview usan `.is-dim` | estaban atenuadas con un `style="opacity"` en línea |
 | 2026-09-09 | Lotes incluye la subnavegación de Configuración; preview y resultado no | son estados de un flujo, no secciones: ahí la subnavegación solo invita a irse |
+| 2026-09-09 | La banda de KPIs solo cuenta lo del lote; lo demás baja al pie | cuatro cifras juntas se leen como una unidad, y una que hablaba de toda la base hacía que un fichero de 3 filas presumiera de 71 |
 
 ## Qué NO hacer aquí
 
@@ -39,7 +40,9 @@ fabricado a mano (`explorations/` no lo guarda: son tres filas inventadas):
 
 ## Pendiente
 
-- En el resultado, "Auto-categorizados" contó **71** habiendo insertado 3. Cuenta los
-  movimientos que las reglas recién aprendidas categorizaron en toda la base, no los de
-  este fichero. El dato es útil, pero el rótulo engaña donde está. Es copy y semántica,
-  no diseño.
+- ~~En el resultado, "Auto-categorizados" contó **71** habiendo insertado 3~~
+  **resuelto el 2026-09-09**: `apply_rules_to_uncategorized` devuelve ahora dos cifras
+  (total y las del lote). La banda de KPIs, que es toda "lo que ha entrado", enseña solo
+  las del lote; los movimientos antiguos que las reglas rescatan de paso bajan al pie,
+  junto a las reglas aprendidas, que es de donde vienen. Comprobado en la base de
+  demostración: 2 filas importadas → KPI **1**, pie **59 anteriores**.

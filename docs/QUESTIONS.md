@@ -64,3 +64,5 @@ Format:
 - 2026-09-09 [panel] ¿La franja de backup sigue en el panel? -> no; vive en Configuración · Backup. Una pantalla, un sitio
 - 2026-09-09 [datos] El alias DEMARY tenía mojibake -> corregido por la interfaz; barrido completo: 0 filas afectadas en toda la base
 - 2026-09-09 [fiabilidad] Las escrituras multi-paso corrían en autocommit -> cursor() es ahora la transacción, y savepoint() para lotes. Comprobado: ni un enlace huérfano en la base real
+- 2026-09-09 [importar] "Auto-categorizados" contaba toda la base -> se parte en dos: KPI = lo del lote, pie = movimientos anteriores rescatados. Las dos cifras interesan, pero no en el mismo sitio
+- 2026-09-09 [tests] test_cada_boton_abre_un_dialogo_que_existe pasaba por accidente (base de pruebas vacía) -> se acota a .showModal(); un getElementById guardado en variable y comprobado no es un fallo

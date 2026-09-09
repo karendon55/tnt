@@ -10,8 +10,13 @@
     {
       "name": "tnt-demo",
       "runtimeExecutable": "./run.sh",
-      "runtimeArgs": ["--demo"],
-      "port": 8000
+      "runtimeArgs": [
+        "--demo"
+      ],
+      "port": 8001,
+      "env": {
+        "PORT": "8001"
+      }
     }
   ]
 }
