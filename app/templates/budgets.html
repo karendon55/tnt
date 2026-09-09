@@ -69,7 +69,7 @@
             </span>
             <span class="row-actions">
                 <form method="post" action="/presupuestos/{{ b.id }}/editar" class="row gap-sm">
-                    <input class="input input-sm tabular w-num" type="number" step="0.01"
+                    <input class="input input-sm tabular w-num" type="number" step="0.01" min="0.01"
                            name="monthly_limit" value="{{ b.limit }}"
                            aria-label="Nuevo límite mensual de {{ b.display_name }}">
                     <button type="submit" class="btn btn-sm">Actualizar</button>
@@ -112,7 +112,7 @@
             </div>
             <div class="field">
                 <label for="new-limit">Límite mensual (€)</label>
-                <input class="input tabular" type="number" step="0.01" min="0"
+                <input class="input tabular" type="number" step="0.01" min="0.01"
                        name="monthly_limit" id="new-limit" required>
             </div>
             <div class="filterbar-actions">

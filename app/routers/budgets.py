@@ -58,6 +58,35 @@ def _load_budgets(cur, start: str, end: str) -> list[dict]:
     return items
 
 
+def _totals(cur, items: list[dict], start: str, end: str) -> dict:
+    """Los totales de la cabecera.
+
+    El límite es la suma de límites: es lo que el usuario ha puesto, aunque un
+    presupuesto quede dentro de otro. Lo gastado NO se puede sumar fila a fila:
+    si hay presupuesto en «Hogar» y también en «Hogar · Luz y gas», el recibo de
+    la luz está dentro de los dos y sumando filas contaría dos veces. Se pregunta
+    por los movimientos distintos que caen bajo algún presupuesto."""
+    limite = sum(i["limit"] for i in items)
+    ids = [i["category_id"] for i in items]
+    if not ids:
+        return {"limit": limite, "spent": 0, "pct": 0, "over": False}
+
+    marcas = ",".join("?" * len(ids))
+    fila = cur.execute(
+        f"""SELECT COALESCE(SUM(-t.amount), 0) AS spent
+            FROM transactions t
+            LEFT JOIN categories c ON c.id = t.category_id
+            WHERE t.date BETWEEN ? AND ?
+              AND t.amount < 0
+              AND t.transfer_id IS NULL
+              AND (t.category_id IN ({marcas}) OR c.parent_id IN ({marcas}))""",
+        (start, end, *ids, *ids),
+    ).fetchone()
+    gastado = round(fila["spent"] or 0, 2)
+    pct = round(gastado / limite * 100, 1) if limite > 0 else 0
+    return {"limit": limite, "spent": gastado, "pct": pct, "over": pct > 100}
+
+
 @router.get("/presupuestos", response_class=HTMLResponse)
 def budgets_list(request: Request):
     with cursor() as cur:
@@ -82,6 +111,7 @@ def budgets_list(request: Request):
                 showing_latest = False
 
         items = _load_budgets(cur, m_start, m_end)
+        totals = _totals(cur, items, m_start, m_end)
         all_cats = cur.execute(
             """SELECT c.id, c.name, c.parent_id, pc.name AS parent_name
                FROM categories c
@@ -99,10 +129,6 @@ def budgets_list(request: Request):
             for c in all_cats
         ]
 
-    total_limit = sum(i["limit"] for i in items)
-    total_spent = sum(i["spent"] for i in items)
-    total_pct = round(total_spent / total_limit * 100, 1) if total_limit > 0 else 0
-
     return templates.TemplateResponse(
         request, "budgets.html",
         {
@@ -111,10 +137,7 @@ def budgets_list(request: Request):
             "pickable": pickable,
             "month_name": month_label(m_start[:7]),
             "showing_latest": showing_latest,
-            "totals": {
-                "limit": total_limit, "spent": total_spent, "pct": total_pct,
-                "over": total_pct > 100,
-            },
+            "totals": totals,
         },
     )
 
@@ -124,6 +147,11 @@ def budgets_create(
     category_id: int = Form(...),
     monthly_limit: float = Form(...),
 ):
+    # Un límite de 0 o negativo no significa nada, y encima no se nota: el
+    # porcentaje sale 0 y la barra nunca avisa. El navegador ya lo impide con
+    # min=0.01; esto es para lo que no viene de un navegador.
+    if monthly_limit <= 0:
+        return RedirectResponse("/presupuestos", status_code=303)
     with cursor() as cur:
         cur.execute(
             "INSERT INTO budgets(category_id, monthly_limit, active) VALUES (?, ?, 1) "
@@ -135,6 +163,8 @@ def budgets_create(
 
 @router.post("/presupuestos/{budget_id}/editar")
 def budgets_update(budget_id: int, monthly_limit: float = Form(...)):
+    if monthly_limit <= 0:      # ver budgets_create
+        return RedirectResponse("/presupuestos", status_code=303)
     with cursor() as cur:
         cur.execute(
             "UPDATE budgets SET monthly_limit = ? WHERE id = ?",

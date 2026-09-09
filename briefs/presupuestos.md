@@ -33,3 +33,17 @@ estándar los admite explícitamente.
 - [x] Actualizar un límite responde 303 y el total se recalcula
 - [x] 1440 y 375
 - [x] Cero `.card`, cero `<style>`, cero emoji, **y ningún degradado en toda la app**
+
+## Correcciones funcionales (2026-09-09)
+
+**El total contaba dos veces.** Con presupuesto en una categoría madre y también
+en una hija, el gasto de la hija está dentro de los dos, y el total se calculaba
+sumando fila a fila. Cada fila por separado es correcta; el total no. Ahora
+pregunta por los movimientos distintos que caen bajo algún presupuesto.
+Comprobado en la demostración: 88,15 € y no 176,30 €.
+
+**Un límite de 0 o negativo se guardaba tan tranquilo.** No daba error: dejaba el
+porcentaje en 0, la barra vacía y el aviso mudo para siempre. Se rechaza en el
+borde, y los dos formularios llevan `min="0.01"`.
+
+Cubierto por `tests/test_presupuestos.py` (18 tests).

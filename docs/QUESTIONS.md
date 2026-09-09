@@ -69,3 +69,6 @@ Format:
 - 2026-09-09 [css] tnt.css estaba en 535 líneas, por encima del tope duro de 500 -> se parte en cinco hojas por secciones contiguas, sin reordenar una sola regla: la concatenación es idéntica byte a byte al original
 - 2026-09-09 [css] ¿@import o cinco <link>? -> cinco <link>; @import serializa las descargas. El orden de los <link> ES la cascada, y lo fija un test
 - 2026-09-09 [css] El sello de caché miraba una lista de ficheros escrita a mano -> mira el directorio; una lista se queda corta al añadir la sexta hoja y falla en silencio
+- 2026-09-09 [traspasos] Las sugerencias filtraban por `t1.amount < 0` Y `t1.id < t2.id` -> sobraba el segundo: de dos importes que suman cero exactamente uno es negativo, así que el primero ya deduplica. Juntos descartaban los pares cuya salida se importó después de la entrada
+- 2026-09-09 [presupuestos] ¿Qué pasa con presupuesto en la madre y en una hija? -> cada fila cuenta su gasto (es correcto: está dentro de los dos), pero el total pregunta por movimientos distintos. Sumar filas decía el doble
+- 2026-09-09 [presupuestos] Un límite de 0 o negativo se guardaba -> rechazado en el borde y `min=0.01` en los dos formularios; no daba error, dejaba el porcentaje en 0 y la barra no avisaba nunca

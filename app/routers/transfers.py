@@ -56,12 +56,10 @@ def _link_pair(cur, left_id: int, right_id: int) -> tuple[bool, str]:
     return True, "Emparejados correctamente."
 
 
-@router.get("/traspasos", response_class=HTMLResponse)
-def transfers_page(request: Request, msg: str = "", err: str = ""):
-    with cursor() as cur:
-        # Pares actualmente emparejados. Cada par sale en dos filas; deduplicamos
-        # quedándonos con la fila cuyo id < transfer_id (la "izquierda").
-        pair_rows = cur.execute(
+def _pairs(cur) -> list[dict]:
+    """Pares ya emparejados. Cada par sale en dos filas; deduplicamos
+    quedándonos con la fila cuyo id < transfer_id (la "izquierda")."""
+    rows = cur.execute(
             """SELECT t1.id  AS left_id,  t1.date AS left_date,
                       t1.amount AS left_amount,
                       t1.description AS left_desc,
@@ -78,13 +76,20 @@ def transfers_page(request: Request, msg: str = "", err: str = ""):
                  AND t1.id < t2.id
                ORDER BY t1.date DESC, t1.id DESC
                LIMIT 200"""
-        ).fetchall()
-        pairs = [dict(r) for r in pair_rows]
+    ).fetchall()
+    return [dict(r) for r in rows]
 
-        # Sugerencias automáticas: movs sin emparejar con contrapartida obvia.
-        # Mismo |importe|, cuentas distintas, fecha a ±3 días, ambos sin
-        # emparejar todavía. Limitamos a 50 pares razonables.
-        suggestion_rows = cur.execute(
+
+def _suggestions(cur) -> list[dict]:
+    """Movimientos sin emparejar con contrapartida obvia: mismo |importe|,
+    cuentas distintas, fecha a ±3 días y ninguno emparejado todavía.
+
+    El par sale dos veces del JOIN (una por cada lado). Para quedarnos con una
+    basta `t1.amount < 0`: de dos importes que suman cero, exactamente uno es
+    negativo. Añadir además `t1.id < t2.id` parece inofensivo y no lo es —
+    descarta los pares en los que la salida se importó después de la entrada,
+    que son la mitad."""
+    rows = cur.execute(
             """SELECT t1.id  AS left_id,  t1.date AS left_date,
                       t1.amount AS left_amount,
                       t1.description AS left_desc,
@@ -104,21 +109,30 @@ def transfers_page(request: Request, msg: str = "", err: str = ""):
                WHERE t1.transfer_id IS NULL
                  AND t2.transfer_id IS NULL
                  AND t1.amount < 0
-                 AND t1.id < t2.id
                ORDER BY dist ASC, t1.date DESC
                LIMIT 50"""
-        ).fetchall()
-        suggestions = [dict(r) for r in suggestion_rows]
+    ).fetchall()
+    return [dict(r) for r in rows]
 
-        # Movs sueltos para los selectores manuales (últimos 200).
-        unlinked_rows = cur.execute(
+
+def _unlinked(cur) -> list[dict]:
+    """Movimientos sueltos para los selectores manuales (últimos 200)."""
+    rows = cur.execute(
             """SELECT t.id, t.date, t.amount, t.description, a.name AS account_name
                FROM transactions t JOIN accounts a ON a.id = t.account_id
                WHERE t.transfer_id IS NULL
                ORDER BY t.date DESC, t.id DESC
                LIMIT 200"""
-        ).fetchall()
-        unlinked = [dict(r) for r in unlinked_rows]
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+@router.get("/traspasos", response_class=HTMLResponse)
+def transfers_page(request: Request, msg: str = "", err: str = ""):
+    with cursor() as cur:
+        pairs = _pairs(cur)
+        suggestions = _suggestions(cur)
+        unlinked = _unlinked(cur)
 
     return templates.TemplateResponse(
         request, "transfers.html",
