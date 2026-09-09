@@ -72,3 +72,9 @@ Format:
 - 2026-09-09 [traspasos] Las sugerencias filtraban por `t1.amount < 0` Y `t1.id < t2.id` -> sobraba el segundo: de dos importes que suman cero exactamente uno es negativo, así que el primero ya deduplica. Juntos descartaban los pares cuya salida se importó después de la entrada
 - 2026-09-09 [presupuestos] ¿Qué pasa con presupuesto en la madre y en una hija? -> cada fila cuenta su gasto (es correcto: está dentro de los dos), pero el total pregunta por movimientos distintos. Sumar filas decía el doble
 - 2026-09-09 [presupuestos] Un límite de 0 o negativo se guardaba -> rechazado en el borde y `min=0.01` en los dos formularios; no daba error, dejaba el porcentaje en 0 y la barra no avisaba nunca
+- 2026-09-09 [panel] `dashboard_empty.html` usaba `.empty-bolt`, que no existe en el CSS -> el SVG se estiraba a 1185x1580 y se comía la primera pantalla de la app. Migrada a hoja y filete, sin rayo decorativo
+- 2026-09-09 [carga] ¿Giradiscos o algo más callado? -> nada de spinners por celda; el control se apaga, y las acciones lentas desactivan el botón y ponen una línea de texto propia de cada sitio
+- 2026-09-09 [carga] El botón de importar no impedía el doble envío -> se desactiva al enviar y cambia a «Leyendo el extracto…»; sin eso el extracto entra dos veces
+- 2026-09-09 [css] `.wrap` seguía siendo contenedor de 1280px Y flex-wrap -> ninguna plantilla la usa ya como contenedor; el contenedor es `.main` y se acabó la trampa
+- 2026-09-09 [css] El sello de caché se calculaba al importar el módulo -> se calcula en cada render; guardado, solo cambiaba al reiniciar el proceso y el navegador seguía con el CSS viejo. El test miraba la función, no la página
+- 2026-09-09 [css] Una clase de plantilla que el CSS no define no da error -> test que las caza; `.enc-only` y `.fund-chart` valen porque son ganchos de JavaScript, `.settings-list` no valía y se ha ido

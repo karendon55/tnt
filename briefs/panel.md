@@ -65,6 +65,24 @@ y punto de aviso; `--success` / `--danger` en importes.
   ocupa lo mismo que el ISO y no hay dos reglas que recordar.
 - Las otras once pantallas siguen en `.card`. Migran cuando les toque, una a una.
 
+## El panel vacío (2026-09-09)
+
+`dashboard_empty.html` es lo que se ve antes del primer movimiento: la primera
+pantalla de TNT para quien acaba de instalarlo. Era la única que no había pasado
+por el rediseño, y no por estética: **estaba rota**. Usaba `.empty-bolt` para
+darle tamaño a un rayo SVG y esa clase no existía en el CSS, así que el SVG se
+estiraba a 1185 × 1580 px y empujaba el texto y el botón 1.600 px hacia abajo.
+Solo aparece con la base vacía, así que llevaba meses así sin que nadie la viera.
+
+Ahora habla la lengua del resto: `.pagehead` con el titular serif, una sola
+acción roja («Importar extracto») y una hoja «Por dónde empezar» con tres filas
+`.settings-row` —las mismas de Configuración— que llevan a las tres maneras
+reales de meter datos: extracto del banco, histórico de HomeBank, o a mano. Cero
+CSS nuevo. Se queda la letra de AC/DC al pie, que es la voz de la casa.
+
+Fuera el rayo gigante: la marca ya está en la barra de arriba, y un adorno
+grande en el centro es justo el aspecto «generado» del que huye la dirección.
+
 ## Decisiones
 
 | Fecha | Decisión | Motivo |
@@ -76,3 +94,5 @@ y punto de aviso; `--success` / `--danger` en importes.
 | 2026-09-08 | La franja de backup baja al final | es utilidad, no contenido: no debe partir el hero de las cifras |
 | 2026-09-09 | La franja de backup **se va del panel** | tras la reestructuración de menús vive en Configuración · Backup; tenerla también aquí era el mismo botón en dos sitios |
 | 2026-09-08 | El segmentado Saldo/Neto deja de ser rojo | el rojo sólido se reserva a la acción principal |
+| 2026-09-09 | El panel vacío pasa a hoja y filete, sin rayo decorativo | era la única pantalla sin migrar, y encima la clase que dimensionaba el rayo no existía |
+| 2026-09-09 | La sublínea del hero se alinea con la cifra | `.wrap` le metía 24px de sangrado que nadie quería |

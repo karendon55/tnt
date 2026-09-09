@@ -18,7 +18,12 @@ def _version_estaticos() -> str:
 
     Se mira el directorio entero, no una lista de ficheros: la hoja de estilos
     son ya cinco, y una lista escrita a mano se queda corta en cuanto se añade
-    la sexta —sin fallar, que es lo malo: simplemente deja de invalidar."""
+    la sexta —sin fallar, que es lo malo: simplemente deja de invalidar.
+
+    Se llama en cada render (`{{ static_version() }}`), no una vez al importar.
+    Guardando el resultado, el sello solo cambiaba al reiniciar el proceso: se
+    tocaba una hoja, el servidor recargaba la plantilla y el navegador seguía
+    sirviendo el CSS viejo. Son seis `stat()` por página en una app local."""
     ultimo = 0.0
     for carpeta, patron in ((STATIC_DIR / "css", "*.css"), (STATIC_DIR / "js", "*.js")):
         for f in carpeta.glob(patron):
@@ -31,7 +36,7 @@ def _version_estaticos() -> str:
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 templates.env.globals["app_name"] = APP_NAME
-templates.env.globals["static_version"] = _version_estaticos()
+templates.env.globals["static_version"] = _version_estaticos
 templates.env.globals["app_tagline"] = APP_TAGLINE
 templates.env.globals["demo_mode"] = DEMO_MODE
 # La subnavegación de Configuración: así _settings_nav.html funciona en

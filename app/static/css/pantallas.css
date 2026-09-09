@@ -126,8 +126,6 @@ input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
-.bolt-loading{animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── Movimiento reducido ───────────────────────────────────────────────
    Quien lo pida en el sistema no ve ni el pulso del rayo ni las

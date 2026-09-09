@@ -139,7 +139,7 @@ class TestConfiguracion(unittest.TestCase):
         subnav = html.split('class="subnav"', 1)[1].split("</nav>", 1)[0]
         self.assertFalse("/traspasos" in subnav,
                          "Traspasos sigue en la subnavegación de Configuración")
-        listado = html.split('class="settings-list"', 1)[1]
+        listado = html.split('id="settingsList"', 1)[1]
         self.assertFalse('href="/traspasos"' in listado,
                          "Traspasos sigue en la portada de Configuración")
 

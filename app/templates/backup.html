@@ -42,8 +42,10 @@
         {% endfor %}
     </ul>
     <div id="backup-status" class="row wrap-w gap-md">
-        <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" class="inline-form">
+        <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML"
+              hx-disabled-elt="find button" class="row gap-md">
             <button type="submit" class="btn btn-primary">Hacer backup ahora</button>
+            <span class="busy">Copiando a tus destinos…</span>
         </form>
     </div>
 
@@ -113,9 +115,11 @@
         <form hx-post="/backup/destino"
               hx-target="#dest-status-{{ i }}"
               hx-swap="innerHTML"
-              class="mt-md inline-form">
+              hx-disabled-elt="find button"
+              class="mt-md row gap-md">
             <input type="hidden" name="dest_index" value="{{ i }}">
             <button type="submit" class="btn">Backup ahora ({% if d.mode == "encrypted" %}cifrado{% else %}sin cifrar{% endif %})</button>
+            <span class="busy">{% if d.mode == "encrypted" %}Cifrando y copiando…{% else %}Copiando…{% endif %}</span>
         </form>
         <div id="dest-status-{{ i }}" class="mt-md"></div>
     </div>
@@ -186,7 +190,8 @@
     </p>
 
     <form action="/backup/restaurar" method="post" enctype="multipart/form-data"
-          hx-post="/backup/restaurar" hx-target="#restore-status" hx-swap="innerHTML" hx-encoding="multipart/form-data"
+          hx-post="/backup/restaurar" hx-target="#restore-status" hx-swap="innerHTML"
+          hx-encoding="multipart/form-data" hx-disabled-elt="find button[type=submit]"
           class="form-grid form-narrow">
         <label>
             <span>Archivo .tnt</span>
@@ -196,8 +201,9 @@
             <span>Contraseña</span>
             <input type="password" name="password" required autocomplete="off">
         </label>
-        <div>
+        <div class="row gap-md">
             <button type="submit" class="btn btn-danger">Restaurar</button>
+            <span class="busy">Descifrando y restaurando…</span>
         </div>
     </form>
 

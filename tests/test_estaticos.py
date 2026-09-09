@@ -21,7 +21,7 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "css.db")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app.config import STATIC_DIR  # noqa: E402
+from app.config import STATIC_DIR, TEMPLATES_DIR  # noqa: E402
 from app.db import init_db  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -70,18 +70,67 @@ class TestHojasDeEstilo(unittest.TestCase):
                     f"{p.name} tiene {n} líneas; el tope duro son {TOPE_DURO}. "
                     f"Pártela por secciones, sin reordenar reglas.")
 
-    def test_el_sello_de_cache_cambia_cuando_cambia_una_hoja(self):
-        """Sin esto el navegador sirve la hoja vieja durante horas."""
-        from app.templating import _version_estaticos
+    def test_el_sello_de_cache_cambia_en_la_pagina_cuando_cambia_una_hoja(self):
+        """Sin esto el navegador sirve la hoja vieja durante horas.
 
-        antes = _version_estaticos()
+        Se mira el HTML servido, no la función que calcula el sello: el sello
+        se guardaba al importar el módulo y la función, llamada a mano, daba el
+        valor nuevo mientras la página seguía enseñando el viejo. Un test que
+        pasaba y un navegador que no se enteraba."""
+        antes = set(re.findall(r"/static/css/[^\"]+", client.get("/").text))
         objetivo = STATIC_DIR / "css" / "pantallas.css"
         mtime = objetivo.stat().st_mtime
+        # bien por delante: el sello es el MÁXIMO de todas las fechas, así que
+        # sumar unos segundos a un fichero que no es el más nuevo no cambia nada
+        futuro = mtime + 100_000
         try:
-            os.utime(objetivo, (mtime + 60, mtime + 60))
-            self.assertNotEqual(_version_estaticos(), antes)
+            os.utime(objetivo, (futuro, futuro))
+            despues = set(re.findall(r"/static/css/[^\"]+", client.get("/").text))
         finally:
             os.utime(objetivo, (mtime, mtime))
+        self.assertNotEqual(antes, despues,
+                            "la página siguió pidiendo el CSS con el sello viejo")
+
+
+class TestClasesQueExisten(unittest.TestCase):
+    """Una clase escrita en una plantilla y no definida en ninguna parte no da
+    error: el elemento sale sin estilo y a ver quién lo ve.
+
+    Pasó de verdad. `dashboard_empty.html` usaba `.empty-bolt` para dar tamaño
+    a un rayo SVG; la clase no existía en el CSS, así que el SVG se estiró a
+    1185 × 1580 px y se comió la primera pantalla que ve alguien que acaba de
+    instalar TNT. Meses así, porque solo aparece con la base vacía.
+
+    Una clase vale si la pinta el CSS o si la busca algún JavaScript (hay
+    clases que solo son un gancho: `.enc-only`, `.fund-chart`). Lo que no vale
+    es que no la conozca nadie."""
+
+    JINJA = re.compile(r"\{%.*?%\}|\{\{.*?\}\}", re.S)
+
+    @classmethod
+    def setUpClass(cls):
+        css = "\n".join(p.read_text(encoding="utf-8")
+                        for p in (STATIC_DIR / "css").glob("*.css"))
+        cls.pintadas = set(re.findall(r"\.([a-zA-Z][\w-]*)", css))
+        cls.js = "\n".join(p.read_text(encoding="utf-8")
+                           for p in (STATIC_DIR / "js").glob("*.js"))
+
+    def test_ninguna_clase_de_plantilla_se_queda_sin_dueno(self):
+        plantillas = sorted((TEMPLATES_DIR).glob("*.html"))
+        self.assertTrue(plantillas, "no se encontró ninguna plantilla")
+        for t in plantillas:
+            texto = t.read_text(encoding="utf-8")
+            usadas = set()
+            for attr in re.findall(r'class="([^"]*)"', texto):
+                usadas.update(self.JINJA.sub(" ", attr).split())
+            for clase in sorted(usadas - self.pintadas):
+                with self.subTest(plantilla=t.name, clase=clase):
+                    # un gancho se escribe con el punto: querySelectorAll('.x')
+                    gancho = f".{clase}" in texto or f".{clase}" in self.js
+                    self.assertTrue(
+                        gancho,
+                        f"{t.name} usa .{clase}, que no está en el CSS ni la "
+                        f"busca ningún JavaScript")
 
 
 class TestAvisoDeTamano(unittest.TestCase):

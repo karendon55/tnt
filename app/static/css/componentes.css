@@ -114,6 +114,23 @@ select.select,.select{cursor:pointer}
   border-radius:var(--radius);padding:.6rem .8rem;font-size:.82rem}
 .empty-state{text-align:center;color:var(--text-subtle);padding:2.5rem 1rem;font-size:.9rem}
 
+/* ── Estados de carga ──────────────────────────────────────────────────
+   htmx marca con .htmx-request el elemento que dispara la petición mientras
+   está en vuelo. Sin nada visible, guardar una categoría parece que no ha
+   hecho nada y el usuario vuelve a tocarla. */
+/* Controles de celda (categoría, memo): se apagan mientras se guardan. Sin
+   giradiscos: uno por celda sería ruido, y el sitio ya dice qué pasa. */
+form.htmx-request{cursor:progress}
+form.htmx-request .cell-edit{opacity:.45}
+/* Acciones lentas (copia de seguridad, restaurar): el botón se desactiva —con
+   hx-disabled-elt, que además impide el doble clic— y a su lado aparece una
+   línea que dice qué está pasando. El texto es de cada sitio, no genérico. */
+.busy{display:none;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text-muted)}
+.htmx-request .busy{display:inline-flex}
+.busy::before{content:"";width:6px;height:6px;border-radius:99px;flex:none;
+  background:var(--text-muted);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
 /* ── KPIs ──────────────────────────────────────────────────────────────── */
 .kpi-value{font-size:1.65rem;font-weight:700;letter-spacing:-.02em;margin-top:.35rem}
 .kpi-delta{font-size:.8rem;color:var(--text-muted);margin-top:.25rem}

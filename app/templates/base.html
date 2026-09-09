@@ -11,7 +11,7 @@
          Si añades otra, ponla en su sitio, no al final por comodidad. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
     {% for hoja in ["tokens", "base", "componentes", "patrones", "pantallas"] %}
-    <link rel="stylesheet" href="/static/css/{{ hoja }}.css?v={{ static_version }}">
+    <link rel="stylesheet" href="/static/css/{{ hoja }}.css?v={{ static_version() }}">
     {%- endfor %}
     <script>
       // Tema antes de pintar para evitar flash
@@ -68,7 +68,7 @@
         </div>
     </footer>
 
-    <script src="/static/js/tnt.js?v={{ static_version }}"></script>
+    <script src="/static/js/tnt.js?v={{ static_version() }}"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     {% block scripts %}{% endblock %}
 </body>

@@ -3,11 +3,41 @@
 {% block title %}Panel{% endblock %}
 
 {% block content %}
-<div class="empty-state">
-    <svg class="empty-bolt" viewBox="0 0 24 32" aria-hidden="true"><path d="M14 0 L0 18 L9 18 L6 32 L22 12 L12 12 L14 0 Z"/></svg>
-    <h2>Aún no hay movimientos</h2>
-    <p>Importa un extracto para empezar a ver tus números.</p>
-    <a href="/importar" class="btn btn-primary mt-lg">Importar extracto</a>
-    <p class="lyric">«Va a ser largo el camino hasta arriba, pero aquí empieza.»</p>
+{# La primera pantalla de TNT: lo que ves antes de tener un solo movimiento.
+   Misma lengua que el resto —cabecera serif, hoja y filete, una sola acción
+   roja—, para que al importar no parezca que has cambiado de aplicación. #}
+<div class="pagehead">
+    <div>
+        <h1>Aún no hay nada que contar</h1>
+        <p>TNT no sabe todavía nada de tus cuentas. En cuanto entre el primer
+           extracto, esta pantalla se llena sola.</p>
+    </div>
+    <div class="pagehead-actions">
+        <a href="/importar" class="btn btn-primary">Importar extracto</a>
+    </div>
+</div>
+
+<div class="sheet is-last">
+    <div class="sheet-head"><h2 class="sheet-title">Por dónde empezar</h2></div>
+
+    <a class="settings-row" href="/importar">
+        <span class="settings-row-title">Importar un extracto</span>
+        <span class="settings-row-text">Descarga el .xls o el .csv de tu banco y súbelo.
+            Las cuentas se crean solas a partir del IBAN.</span>
+    </a>
+
+    <a class="settings-row" href="/importar#homebank">
+        <span class="settings-row-title">Traer tu histórico</span>
+        <span class="settings-row-text">Si vienes de HomeBank, su CSV entra entero
+            eligiendo a qué cuenta va.</span>
+    </a>
+
+    <a class="settings-row" href="/movimientos">
+        <span class="settings-row-title">Apuntar a mano</span>
+        <span class="settings-row-text">Para lo que no pasa por el banco: efectivo,
+            un préstamo entre amigos, lo que sea.</span>
+    </a>
+
+    <p class="small muted mt-xl">«Va a ser largo el camino hasta arriba, pero aquí empieza.»</p>
 </div>
 {% endblock %}

@@ -121,6 +121,24 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 5. Después de cada componente: captura en el navegador real y comparación con la referencia
    antes de darlo por hecho.
 
+## Estados de carga
+
+Toda acción que tarde debe decirlo. Dos formas, y solo dos:
+
+| Dónde | Qué se ve | Cómo |
+|---|---|---|
+| Controles de celda (categoría, memo) | el control se apaga a `.45` y el cursor pasa a `progress` | `form.htmx-request .cell-edit`, automático: htmx marca el formulario |
+| Acciones lentas (backup, restaurar, importar) | el botón se desactiva y a su lado aparece un punto latiendo con una línea de texto | `<span class="busy">` + `hx-disabled-elt="find button"` |
+
+El texto del `.busy` es de cada sitio, nunca «Cargando…»: «Copiando a tus
+destinos…», «Cifrando y copiando…», «Descifrando y restaurando…». Desactivar el
+botón no es cosmética: impide el segundo clic, que en un backup significa dos
+copias y en una importación, el extracto dos veces.
+
+Sin giradiscos por celda: uno en cada fila de una tabla de 50 es ruido, no
+información. El punto late con `pulse`, y el bloque de movimiento reducido lo
+deja quieto.
+
 ## Lo que NO se hace
 
 - Sin serif en cifras de tabla ni de categoría: rompe la frontera de la pareja tipográfica.

@@ -99,3 +99,20 @@ function formatEUR(amount) {
     }).format(amount);
 }
 window.formatEUR = formatEUR;
+
+
+// ── Subir un extracto tarda ────────────────────────────────────────────────
+// El formulario de importación es un POST normal, no htmx: la página se queda
+// quieta mientras el servidor lee los ficheros. Sin señal, el usuario vuelve a
+// darle a Importar y sube el extracto dos veces.
+(function () {
+    const form = document.getElementById('importForm');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+        const boton = form.querySelector('button[type=submit]');
+        if (!boton) return;
+        boton.disabled = true;                 // impide el segundo envío
+        const label = boton.querySelector('[data-label]');
+        if (label) label.textContent = 'Leyendo el extracto…';
+    });
+})();

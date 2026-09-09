@@ -22,7 +22,7 @@ h3{font-size:1.05rem;font-weight:600}
 canvas{max-width:100%}
 
 /* ── Estructura ────────────────────────────────────────────────────────── */
-.wrap,.main{max-width:1280px;margin:0 auto;padding:0 1.5rem;width:100%}
+.main{max-width:1280px;margin:0 auto;padding:0 1.5rem;width:100%}
 .main{flex:1;padding-top:1.6rem;padding-bottom:3rem}
 .topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:1.5rem;
   flex-wrap:wrap;max-width:1280px;margin:0 auto;padding:.7rem 1.5rem;width:100%}
@@ -60,8 +60,10 @@ body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transpare
 .row{display:flex;align-items:center}
 .col{display:flex;flex-direction:column}
 .row-between,.between{justify-content:space-between}
-/* OJO: .wrap es también el contenedor de 1280px de arriba, con width:100%.
-   Dentro de un flex row usa .wrap-w, o el hijo ocupará la fila entera. */
+/* .wrap hacía dos cosas: contenedor de 1280px Y flex-wrap. Las ocho filas de
+   las plantillas que la usan quieren lo segundo y se comían el padding, el
+   ancho y el centrado de lo primero. Ya no: el contenedor es .main, y aquí
+   quedan las dos como sinónimos de flex-wrap. */
 .wrap-w,.wrap{flex-wrap:wrap}
 .items-start{align-items:flex-start}.items-end{align-items:flex-end}
 .grow{flex:1}.full{width:100%}
