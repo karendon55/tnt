@@ -4,12 +4,15 @@
 
 {% block content %}
 {% include "_settings_nav.html" %}
-<div class="page-header">
+<div class="pagehead">
     <div>
         <h1>Alias de descripciones</h1>
-        <p>Cuando la descripción del banco contiene un patrón, TNT muestra el alias en su lugar. La descripción original no se borra.</p>
+        <p>
+            Cuando la descripción del banco contiene un patrón, TNT enseña el alias en su
+            lugar. La descripción original no se borra: sigue ahí para buscar por ella.
+        </p>
     </div>
-    <div class="row wrap gap-lg">
+    <div class="pagehead-actions">
         <button class="btn btn-primary" onclick="document.getElementById('newAlias').showModal()">
             Nuevo alias
         </button>
@@ -17,12 +20,15 @@
 </div>
 
 {% if msg %}
-<div class="card mb-md" style="border-left: 3px solid var(--success, #2ecc71);">
-    <p style="margin:0;">✓ {{ msg }}</p>
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>{{ msg }}</span>
+    </div>
 </div>
 {% endif %}
 
-<div class="card">
+<div class="sheet is-last">
     {% if aliases %}
     <table class="table">
         <thead>
@@ -40,48 +46,61 @@
                 <td><strong>{{ a.alias }}</strong></td>
                 <td class="num">{{ a.matches }}</td>
                 <td>
-                    <details style="display:inline-block;">
-                        <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">Editar</summary>
-                        <form method="post" action="/alias/{{ a.id }}/editar" class="card mt-lg"
-                              style="position:absolute; z-index:20; min-width:340px;">
-                            <div class="field">
-                                <label>Patrón (mayúsculas)</label>
-                                <input class="input tabular" name="pattern" value="{{ a.pattern }}" required>
-                            </div>
-                            <div class="field">
-                                <label>Alias</label>
-                                <input class="input" name="alias" value="{{ a.alias }}" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                    <div class="row-actions">
+                        <details class="inline-form">
+                            <summary class="icon-btn" aria-label="Editar el alias {{ a.alias }}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M15 5l4 4"/>
+                                </svg>
+                            </summary>
+                            <form method="post" action="/alias/{{ a.id }}/editar" class="inline-edit">
+                                <div class="field">
+                                    <label>Patrón (mayúsculas)</label>
+                                    <input class="input tabular" name="pattern" value="{{ a.pattern }}" required>
+                                </div>
+                                <div class="field">
+                                    <label>Alias</label>
+                                    <input class="input" name="alias" value="{{ a.alias }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-sm">Guardar</button>
+                            </form>
+                        </details>
+                        <form method="post" action="/alias/{{ a.id }}/borrar" class="inline-form"
+                              onsubmit="return confirm('¿Borrar el alias “{{ a.alias }}”?');">
+                            <button type="submit" class="icon-btn is-danger"
+                                    aria-label="Borrar el alias {{ a.alias }}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
+                                </svg>
+                            </button>
                         </form>
-                    </details>
-                    <form method="post" action="/alias/{{ a.id }}/borrar" style="display:inline;"
-                          onsubmit="return confirm('¿Borrar el alias “{{ a.alias }}”?');">
-                        <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
-                    </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p class="muted small">Aún no hay alias. Crea uno para que <code>"BARCO COMPRA EN DEMARY FRUTERIAS S.L."</code> se muestre como <strong>"Demary Fruterías"</strong>.</p>
+    <p class="empty-state">
+        Aún no hay ninguno. Crea uno para que <code>BARCO COMPRA EN DEMARY FRUTERIAS S.L.</code>
+        se lea como <strong>Demary Fruterías</strong>.
+    </p>
     {% endif %}
 </div>
 
-<dialog id="newAlias" class="card" style="max-width:480px; border:1px solid var(--border);">
+<dialog id="newAlias" class="card dialog-sm">
     <form method="post" action="/alias/crear">
         <h3 class="card-title">Nuevo alias</h3>
         <div class="field">
             <label>Patrón (subcadena en descripción)</label>
             <input class="input tabular" name="pattern" placeholder="p. ej. DEMARY FRUTERIAS" required>
-            <p class="muted small" style="margin:.25rem 0 0;">Se guarda en mayúsculas y se busca como subcadena.</p>
+            <p class="muted small field-hint">Se guarda en mayúsculas y se busca como subcadena.</p>
         </div>
         <div class="field">
             <label>Alias mostrado</label>
             <input class="input" name="alias" placeholder="p. ej. Demary Fruterías" required>
         </div>
-        <div class="row wrap gap-lg">
+        <div class="row wrap-w gap-lg">
             <button type="submit" class="btn btn-primary">Guardar</button>
             <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
         </div>

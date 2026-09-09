@@ -482,6 +482,17 @@ input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
 /* Diálogos del ancho de siempre, sin el style= en la plantilla */
 .dialog-sm{max-width:520px}
 .dialog-md{max-width:640px}
+/* Formularios que no deben estirarse a todo el ancho de la hoja. */
+.form-narrow{max-width:32rem}
+.textarea-full{width:100%}
+.list-plain{list-style:none;padding:0;margin:.25rem 0 .5rem}
+/* Un destino de backup: fila con su punteado, no una caja dentro de otra. */
+.destrow{padding:.95rem 0;border-bottom:1px dotted var(--border-strong)}
+.destrow:last-of-type{border-bottom:0}
+/* La sugerencia de regla, cuando ya se ha creado. El tinte sale del token de
+   éxito, no de un rgba escrito a mano. */
+.rule-suggestion.is-ok{background:color-mix(in srgb,var(--success) 10%,transparent);
+  border-color:color-mix(in srgb,var(--success) 35%,transparent)}
 .inline-form{display:inline}
 .field-hint{margin:.25rem 0 0}
 .form-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}

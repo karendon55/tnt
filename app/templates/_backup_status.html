@@ -13,9 +13,9 @@
             {% for r in results %}
                 <li>
                     {% if r.ok %}
-                        ✓ <span class="tabular">{{ r.dest }}</span>{% if r.mode == "encrypted" %} · cifrado{% endif %} · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
+                        <span class="amount-pos">ok</span> <span class="tabular">{{ r.dest }}</span>{% if r.mode == "encrypted" %} · cifrado{% endif %} · {{ r.size_kb }} KB · copiado a las {{ r.mtime }}
                     {% else %}
-                        ✗ <span class="tabular">{{ r.dest }}</span> — {{ r.error }}
+                        <span class="amount-neg">falló</span> <span class="tabular">{{ r.dest }}</span> — {{ r.error }}
                     {% endif %}
                 </li>
             {% endfor %}

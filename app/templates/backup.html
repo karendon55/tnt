@@ -3,56 +3,69 @@
 
 {% block content %}
 {% include "_settings_nav.html" %}
-<h1 class="page-title">Backup y restauración</h1>
 
-{% if db_info %}
-<div class="card mb-md">
-    <div class="row wrap gap-md" style="align-items:center;">
+<div class="pagehead">
+    <div>
+        <h1>Backup y restauración</h1>
+        <p>
+            Copias de la base a carpetas locales, en plano o cifradas, y la vuelta atrás
+            desde un fichero cifrado.
+        </p>
+    </div>
+</div>
+
+<div class="warnline">
+    <div class="warnline-top">
+        {% if db_info %}
         <span class="muted small">Base de datos actual</span>
         <span class="tabular">{{ db_info.path }}</span>
         <span class="pill">{{ db_info.size_kb }} KB</span>
         <span class="pill">modificada {{ db_info.mtime }}</span>
+        {% else %}
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>No existe la base de datos.</span>
+        {% endif %}
     </div>
 </div>
-{% else %}
-<div class="card mb-md"><span class="pill pill-warning">No existe la base de datos.</span></div>
-{% endif %}
 
 <!-- ============================================================ -->
-<section class="card mb-md">
-    <h2 class="card-title">Backup local</h2>
-    <p class="muted small">Copia <code>data/tnt.db</code> a cada destino aplicando el modo configurado más abajo.</p>
-    <ul class="small muted" style="list-style:none; padding:0; margin:.25rem 0 .5rem 0;">
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Backup local</h2>
+        <span class="muted small">Copia la base a cada destino con el modo que tenga configurado.</span>
+    </div>
+    <ul class="small muted list-plain">
         {% for d in destinations %}
         <li>· <span class="tabular">{{ d.path }}</span>
-            {% if d.mode == "encrypted" %}<span class="pill">🔒 cifrado</span>{% else %}<span class="pill">sin cifrar</span>{% endif %}
+            {% if d.mode == "encrypted" %}<span class="pill">cifrado</span>{% else %}<span class="pill">sin cifrar</span>{% endif %}
         </li>
         {% endfor %}
     </ul>
-    <div id="backup-status" class="row wrap gap-md" style="align-items:center;">
-        <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" style="display:inline;">
-            <button type="submit" class="btn">🔁 Hacer backup ahora</button>
+    <div id="backup-status" class="row wrap-w gap-md">
+        <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" class="inline-form">
+            <button type="submit" class="btn btn-primary">Hacer backup ahora</button>
         </form>
     </div>
 
-    <details class="mt-md">
-        <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">⚙️ Editar destinos</summary>
-        <form method="post" action="/backup/destinos" class="mt-md" style="max-width:32rem;">
+    <details class="mt-lg">
+        <summary class="detail-toggle">Editar destinos</summary>
+        <form method="post" action="/backup/destinos" class="mt-md form-narrow">
             <label>
                 <span class="small muted">Una ruta por línea (admite <code>~</code>)</span>
-                <textarea name="destinations_text" class="input tabular" rows="4"
-                          style="width:100%;">{{ destinations | map(attribute='path') | join('\n') }}</textarea>
+                <textarea name="destinations_text" class="input tabular textarea-full" rows="4">{{ destinations | map(attribute='path') | join('\n') }}</textarea>
             </label>
             <div class="mt-md">
                 <button type="submit" class="btn">Guardar destinos</button>
             </div>
         </form>
     </details>
-</section>
+</div>
 
 <!-- ============================================================ -->
-<section class="card mb-md">
-    <h2 class="card-title">Configuración por destino</h2>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Configuración por destino</h2>
+    </div>
     <p class="muted small">
         Elige para cada destino si la copia va en plano (<code>tnt.db</code>)
         o cifrada con contraseña (<code>tnt.db.tnt</code>). La elección queda
@@ -65,18 +78,17 @@
 
     {% for d in destinations %}
     {% set i = loop.index0 %}
-    <div class="card" style="margin:.5rem 0; background:rgba(0,0,0,0.15);">
-        <div class="row wrap gap-md" style="align-items:center;">
+    <div class="destrow">
+        <div class="row wrap-w gap-md">
             <span class="tabular small">{{ d.path }}</span>
             {% if d.mode == "encrypted" %}
-            <span class="pill">🔒 cifrado{% if d.has_password %} · contraseña guardada{% endif %}</span>
+            <span class="pill">cifrado{% if d.has_password %} · contraseña guardada{% endif %}</span>
             {% else %}
             <span class="pill">sin cifrar</span>
             {% endif %}
         </div>
         <form method="post" action="/backup/destino/config"
-              class="row wrap gap-md mt-md"
-              style="align-items:flex-end;"
+              class="row wrap-w gap-md mt-md items-end"
               data-dest-form data-has-password="{{ 1 if d.has_password else 0 }}">
             <input type="hidden" name="dest_index" value="{{ i }}">
             <label>
@@ -86,12 +98,12 @@
                     <option value="encrypted" {% if d.mode == "encrypted" %}selected{% endif %}>Backup cifrado</option>
                 </select>
             </label>
-            <label class="enc-only" style="display:none;">
+            <label class="enc-only" hidden>
                 <span class="small muted">Contraseña (mín. 8){% if d.has_password %} — vacío = mantener{% endif %}</span><br>
                 <input type="password" name="password" minlength="8"
                        autocomplete="new-password" class="input">
             </label>
-            <label class="enc-only" style="display:none;">
+            <label class="enc-only" hidden>
                 <span class="small muted">Repite contraseña</span><br>
                 <input type="password" name="confirm" minlength="8"
                        autocomplete="new-password" class="input">
@@ -101,14 +113,14 @@
         <form hx-post="/backup/destino"
               hx-target="#dest-status-{{ i }}"
               hx-swap="innerHTML"
-              class="mt-md" style="display:inline;">
+              class="mt-md inline-form">
             <input type="hidden" name="dest_index" value="{{ i }}">
-            <button type="submit" class="btn">💾 Backup ahora ({% if d.mode == "encrypted" %}cifrado{% else %}sin cifrar{% endif %})</button>
+            <button type="submit" class="btn">Backup ahora ({% if d.mode == "encrypted" %}cifrado{% else %}sin cifrar{% endif %})</button>
         </form>
         <div id="dest-status-{{ i }}" class="mt-md"></div>
     </div>
     {% endfor %}
-</section>
+</div>
 
 <script>
 (function() {
@@ -117,7 +129,9 @@
         const isEnc = sel.value === 'encrypted';
         const hasPwd = form.dataset.hasPassword === '1';
         form.querySelectorAll('.enc-only').forEach(function(lbl) {
-            lbl.style.display = isEnc ? '' : 'none';
+            // El atributo hidden en vez de tocar el style: el vocabulario
+            // visual vive en el CSS, no en el JS.
+            lbl.hidden = !isEnc;
             lbl.querySelectorAll('input').forEach(function(inp) {
                 // Si ya hay contraseña guardada, dejarla vacía la mantiene.
                 inp.required = isEnc && !hasPwd;
@@ -134,15 +148,17 @@
 </script>
 
 <!-- ============================================================ -->
-<section class="card mb-md">
-    <h2 class="card-title">Backup cifrado para descargar</h2>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Backup cifrado para descargar</h2>
+    </div>
     <p class="muted small">
         Genera un fichero <code>.tnt</code> cifrado con AES-128 y firmado con HMAC-SHA256.
         La clave se deriva de tu contraseña con PBKDF2 (480 000 iteraciones).
         <strong>Si pierdes la contraseña no se puede recuperar el contenido.</strong>
     </p>
 
-    <form action="/backup/cifrado" method="post" class="form-grid" style="max-width:32rem;">
+    <form action="/backup/cifrado" method="post" class="form-grid form-narrow">
         <label>
             <span>Contraseña (mínimo 8 caracteres)</span>
             <input type="password" name="password" required minlength="8" autocomplete="new-password">
@@ -152,14 +168,16 @@
             <input type="password" name="confirm" required minlength="8" autocomplete="new-password">
         </label>
         <div>
-            <button type="submit" class="btn">⬇️  Generar y descargar</button>
+            <button type="submit" class="btn">Generar y descargar</button>
         </div>
     </form>
-</section>
+</div>
 
 <!-- ============================================================ -->
-<section class="card mb-md">
-    <h2 class="card-title">Restaurar desde backup cifrado</h2>
+<div class="sheet is-last">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Restaurar desde backup cifrado</h2>
+    </div>
     <p class="muted small">
         Reemplaza la base de datos actual por la del fichero. Se hace una copia
         de la BD actual con sufijo <code>.before-restore-XXXXXXXX</code> antes de sobrescribir,
@@ -169,7 +187,7 @@
 
     <form action="/backup/restaurar" method="post" enctype="multipart/form-data"
           hx-post="/backup/restaurar" hx-target="#restore-status" hx-swap="innerHTML" hx-encoding="multipart/form-data"
-          class="form-grid" style="max-width:32rem;">
+          class="form-grid form-narrow">
         <label>
             <span>Archivo .tnt</span>
             <input type="file" name="file" accept=".tnt,application/octet-stream" required>
@@ -179,10 +197,10 @@
             <input type="password" name="password" required autocomplete="off">
         </label>
         <div>
-            <button type="submit" class="btn btn-danger">↩️  Restaurar</button>
+            <button type="submit" class="btn btn-danger">Restaurar</button>
         </div>
     </form>
 
     <div id="restore-status" class="mt-md"></div>
-</section>
+</div>
 {% endblock %}

@@ -55,3 +55,5 @@ Format:
 - 2026-09-09 [traspasos] ¿Cuál es la acción roja? -> "Emparejar como traspaso" del formulario; el de cada sugerencia es acción de fila
 - 2026-09-09 [categorias] ¿Cuál es la acción roja del árbol? -> ninguna; hay cinco crear/añadir y ninguno es la principal
 - 2026-09-09 [categorias] Los ocho colores del gráfico vivían en Python -> pasan a tokens --serie-1..8, leídos del tema y repintados al cambiarlo
+- 2026-09-09 [backup] ¿Qué pasa si se pulsa "Hacer backup" en modo demostración? -> se bloquea: escribiría la base de mentira sobre las copias reales
+- 2026-09-09 [backup] ¿Dos botones rojos (Hacer backup y Restaurar)? -> son tokens distintos: --accent para la acción principal, --danger para la destructiva

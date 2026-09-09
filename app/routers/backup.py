@@ -21,7 +21,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
-from app.config import DB_PATH
+from app.config import DB_PATH, DEMO_MODE
 from app.db import cursor, db_snapshot
 from app.services.encrypted_backup import (
     pack_file as _pack_file,
@@ -208,10 +208,28 @@ def _copy_with_fsync(src: Path, dest: Path) -> None:
     os.replace(tmp, dest)  # rename atómico
 
 
+# En modo demostración los destinos configurados son los de verdad —~/Dropbox y
+# la carpeta de contabilidad—, así que un backup escribiría la base de mentira
+# encima de las copias buenas. Se bloquea la escritura, no la pantalla: se
+# puede seguir mirando cómo está montado todo.
+_AVISO_DEMO = ("Backup desactivado en modo demostración: escribiría la base de "
+               "mentira encima de tus copias reales.")
+
+
+def _bloqueado_por_demo(request: Request, plantilla: str = "_backup_status.html"):
+    if not DEMO_MODE:
+        return None
+    return templates.TemplateResponse(
+        request, plantilla, {"ok": False, "results": [], "message": _AVISO_DEMO},
+    )
+
+
 @router.post("/backup", response_class=HTMLResponse)
 def run_backup(request: Request):
     """Copia data/tnt.db a cada destino aplicando el modo configurado de
     cada uno (plano o cifrado). Sobrescribe el archivo previo."""
+    if (bloqueo := _bloqueado_por_demo(request)) is not None:
+        return bloqueo
     src = Path(DB_PATH)
     if not src.exists():
         return templates.TemplateResponse(
@@ -244,6 +262,12 @@ def backup_destino(request: Request, dest_index: int = Form(...)):
 
     El backup plano se guarda como ``tnt.db``; el cifrado como ``tnt.db.tnt``.
     """
+    if DEMO_MODE:
+        return templates.TemplateResponse(
+            request, "_backup_destino_status.html",
+            {"ok": False, "dest_index": dest_index, "mode": "plain",
+             "error": _AVISO_DEMO},
+        )
     src = Path(DB_PATH)
     if not src.exists():
         return templates.TemplateResponse(
