@@ -23,7 +23,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from app.db import cursor
+from app.db import cursor, savepoint
 from app.importers.dispatcher import detect_and_parse
 from app.importers.homebank import _decode as _homebank_decode
 from app.importers.homebank import parse_csv_text as parse_homebank_csv
@@ -148,17 +148,19 @@ def import_confirm(request: Request, token: str = Form(...)):
     files_summary: list[dict] = []
 
     with cursor() as cur:
-        cur.execute("BEGIN")
-        try:
-            cur.execute(
-                "INSERT INTO import_batches(files, inserted, duplicates) VALUES ('[]', 0, 0)"
-            )
-            batch_id = cur.lastrowid
+        cur.execute(
+            "INSERT INTO import_batches(files, inserted, duplicates) VALUES ('[]', 0, 0)"
+        )
+        batch_id = cur.lastrowid
 
-            for filename, extract in parsed:
-                try:
+        for i, (filename, extract) in enumerate(parsed):
+            # Un savepoint por fichero: si uno revienta a mitad, se deshacen
+            # SUS filas y los demás siguen entrando. Sin esto, un fichero a
+            # medio importar dejaba sus movimientos dentro del lote.
+            try:
+                with savepoint(cur, f"fichero_{i}"):
                     r = ingest(cur, extract, batch_id=batch_id)
-                    results.append({
+                results.append({
                         "filename": filename,
                         "bank": extract.bank,
                         "account": r.account_name,
@@ -166,44 +168,34 @@ def import_confirm(request: Request, token: str = Form(...)):
                         "inserted": r.inserted,
                         "duplicates": r.duplicates,
                         "from_hint": r.categorized_from_hint,
-                        "transfers": r.transfers_linked,
-                    })
-                    files_summary.append({
-                        "filename": filename, "bank": extract.bank,
-                        "account": r.account_name,
-                        "inserted": r.inserted, "duplicates": r.duplicates,
-                    })
-                except Exception as exc:
-                    errors.append({
-                        "filename": filename,
-                        "message": str(exc) or exc.__class__.__name__,
-                    })
+                    "transfers": r.transfers_linked,
+                })
+                files_summary.append({
+                    "filename": filename, "bank": extract.bank,
+                    "account": r.account_name,
+                    "inserted": r.inserted, "duplicates": r.duplicates,
+                })
+            except Exception as exc:
+                errors.append({
+                    "filename": filename,
+                    "message": str(exc) or exc.__class__.__name__,
+                })
 
-            total_inserted = sum(r["inserted"] for r in results)
-            total_dup = sum(r["duplicates"] for r in results)
-            cur.execute(
-                "UPDATE import_batches SET files = ?, inserted = ?, duplicates = ? WHERE id = ?",
-                (json.dumps(files_summary, ensure_ascii=False), total_inserted, total_dup, batch_id),
-            )
-            # Si el lote no insertó nada, lo borramos para no ensuciar el historial
-            if total_inserted == 0:
-                cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
-            cur.execute("COMMIT")
-        except Exception:
-            cur.execute("ROLLBACK")
-            raise
+        total_inserted = sum(r["inserted"] for r in results)
+        total_dup = sum(r["duplicates"] for r in results)
+        cur.execute(
+            "UPDATE import_batches SET files = ?, inserted = ?, duplicates = ? WHERE id = ?",
+            (json.dumps(files_summary, ensure_ascii=False), total_inserted, total_dup, batch_id),
+        )
+        # Si el lote no insertó nada, lo borramos para no ensuciar el historial
+        if total_inserted == 0:
+            cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
 
     rules_created = 0
     auto_applied = 0
     if results:
         with cursor() as cur:
-            cur.execute("BEGIN")
-            try:
-                rules_created, auto_applied = retrain_and_apply(cur)
-                cur.execute("COMMIT")
-            except Exception:
-                cur.execute("ROLLBACK")
-                raise
+            rules_created, auto_applied = retrain_and_apply(cur)
 
     total_inserted = sum(r["inserted"] for r in results)
     total_dup = sum(r["duplicates"] for r in results)
@@ -386,19 +378,15 @@ def import_batches(request: Request, msg: str = ""):
 @router.post("/importar/lotes/{batch_id}/borrar")
 def import_batch_delete(batch_id: int):
     """Borra todas las transacciones del lote y el lote en sí."""
+    # Borrar los movimientos y el lote son dos DELETE: o los dos o ninguno.
+    # La transacción la abre cursor().
     with cursor() as cur:
-        cur.execute("BEGIN")
-        try:
-            n = cur.execute(
-                "SELECT COUNT(*) AS n FROM transactions WHERE import_batch_id = ?",
-                (batch_id,),
-            ).fetchone()["n"]
-            cur.execute("DELETE FROM transactions WHERE import_batch_id = ?", (batch_id,))
-            cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
-            cur.execute("COMMIT")
-        except Exception:
-            cur.execute("ROLLBACK")
-            raise
+        n = cur.execute(
+            "SELECT COUNT(*) AS n FROM transactions WHERE import_batch_id = ?",
+            (batch_id,),
+        ).fetchone()["n"]
+        cur.execute("DELETE FROM transactions WHERE import_batch_id = ?", (batch_id,))
+        cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
     return RedirectResponse(
         f"/importar/lotes?msg=Lote+%23{batch_id}+revertido+({n}+movimientos+borrados)",
         status_code=303,

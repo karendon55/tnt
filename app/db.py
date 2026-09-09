@@ -172,12 +172,61 @@ def connect() -> sqlite3.Connection:
 
 @contextmanager
 def cursor() -> Iterator[sqlite3.Cursor]:
+    """Un cursor y, con él, UNA transacción.
+
+    La conexión va en autocommit, así que cada sentencia se confirmaría sola.
+    En una app de dinero eso es peligroso: enlazar un traspaso son dos UPDATE,
+    y crear un movimiento espejo es un INSERT más dos UPDATE. Si algo falla en
+    medio y cada sentencia ya se ha confirmado, queda un traspaso enlazado por
+    un solo lado, o un ingreso que aparece de la nada en el saldo.
+
+    Poniendo la transacción aquí, las cincuenta y pico llamadas la heredan y no
+    hay que acordarse en cada una. Un bloque que solo lee abre una transacción
+    diferida, que en SQLite no bloquea nada hasta la primera lectura.
+
+    Para lotes donde un elemento malo no debe tirar los buenos, ver savepoint().
+    """
     conn = connect()
     try:
         cur = conn.cursor()
-        yield cur
+        cur.execute("BEGIN")
+        try:
+            yield cur
+        except BaseException:
+            # `executescript()` y algún DDL confirman por su cuenta y cierran
+            # la transacción; entonces no hay nada que deshacer y pedirlo sería
+            # un error encima del error.
+            if conn.in_transaction:
+                cur.execute("ROLLBACK")
+            raise
+        else:
+            if conn.in_transaction:
+                cur.execute("COMMIT")
     finally:
         conn.close()
+
+
+@contextmanager
+def savepoint(cur: sqlite3.Cursor, nombre: str) -> Iterator[sqlite3.Cursor]:
+    """Transacción anidada dentro de un `cursor()`.
+
+    Sirve para trabajos por lotes: al importar varios ficheros, uno que falle a
+    medias debe deshacer lo suyo sin arrastrar a los que ya entraron bien.
+
+    El nombre se usa tal cual en el SQL, así que solo se admiten letras, cifras
+    y guión bajo: nunca viene de fuera, pero más vale cerrarlo.
+    """
+    if not nombre.replace("_", "").isalnum():
+        raise ValueError(f"nombre de savepoint no válido: {nombre!r}")
+    cur.execute(f"SAVEPOINT {nombre}")
+    try:
+        yield cur
+    except BaseException:
+        cur.execute(f"ROLLBACK TO {nombre}")
+        cur.execute(f"RELEASE {nombre}")
+        raise
+    else:
+        cur.execute(f"RELEASE {nombre}")
 
 
 @contextmanager
@@ -212,6 +261,9 @@ def db_snapshot(src: Path | str = DB_PATH) -> Iterator[Path]:
 def init_db() -> None:
     """Crea tablas y semilla inicial si la BD está vacía."""
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+    # OJO: executescript() confirma por su cuenta antes de ejecutar, así que
+    # este bloque no es una transacción entera. No pasa nada: son migraciones
+    # idempotentes de arranque, no una operación de dinero.
     with cursor() as cur:
         cur.executescript(SCHEMA)
         _add_columns_if_missing(cur)

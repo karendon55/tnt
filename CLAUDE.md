@@ -25,6 +25,10 @@ estructura de directorios completa.
   `app/importers/<banco>.py` con `matches(rows)` y `parse(path)`, registrarlo
   en `dispatcher.py`.
 - **Estilos**: paleta negra · rojo AC/DC · plata. No cambiar sin motivo.
+- **Escrituras**: una petición que escribe es UNA transacción. `cursor()` la abre y la
+  cierra sola, así que no hay que hacer `BEGIN` a mano; si una función escribe dos veces
+  (enlazar un traspaso, crear un espejo), ya está cubierta. Para lotes donde un elemento
+  malo no debe tirar los buenos, `savepoint(cur, nombre)`.
 
 ## Flujo mensual con HomeBank (legacy, aún activo)
 
