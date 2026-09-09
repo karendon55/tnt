@@ -48,3 +48,5 @@ Format:
 - 2026-09-09 [reglas] ¿Cuál es la acción roja? -> Nueva regla de categorización; la de transferencia pasa a contorno
 - 2026-09-09 [inversiones] ¿"Guardar valoración" en rojo repitiéndose por fondo? -> sí; es la misma acción repetida, no dos compitiendo
 - 2026-09-09 [gráficos] Al cambiar de tema sin recargar la línea de tinta desaparecía -> tnt.js avisa y los gráficos se repintan; los estáticos llevan sello de versión
+- 2026-09-09 [cuentas] ¿Cómo se marca el estado de conciliación sin emoji? -> texto y color: «cuadra, hace N d» o «difiere −X €»
+- 2026-09-09 [cuentas] ¿Tres botones de texto por fila? -> no; Conciliar en texto, editar y archivar como iconos con aria-label

@@ -4,12 +4,17 @@
 
 {% block content %}
 {% include "_settings_nav.html" %}
-<div class="page-header">
+
+<div class="pagehead">
     <div>
         <h1>Cuentas</h1>
-        <p>Todas tus cuentas bancarias y en efectivo. El saldo se calcula desde los movimientos.</p>
+        <p>
+            Tus cuentas bancarias, en efectivo y de inversión. El saldo se calcula desde los
+            movimientos; el valor de los fondos se declara en
+            <a class="lnk" href="/inversiones">Inversiones</a>.
+        </p>
     </div>
-    <div class="row wrap gap-lg">
+    <div class="pagehead-actions">
         <button class="btn btn-primary" onclick="document.getElementById('newAccount').showModal()">
             Nueva cuenta
         </button>
@@ -19,8 +24,9 @@
 {% set active_accs  = accounts | rejectattr('archived') | list %}
 {% set archived_accs = accounts | selectattr('archived') | list %}
 
-{% if active_accs %}
-<div class="card">
+<div class="sheet{% if not archived_accs %} is-last{% endif %}">
+    {% if active_accs %}
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -45,77 +51,92 @@
                 <td class="num tabular {% if a.balance is not none and a.balance < 0 %}amount-neg{% elif a.balance is not none and a.balance > 0 %}amount-pos{% endif %}">
                     {% if a.balance is not none %}{{ a.balance | eur }}{% else %}—{% endif %}
                 </td>
+                {# Sin emoji: el estado lo dice el color y la palabra. #}
                 <td class="small">
                     {% if a.last_recon %}
                         {% if a.last_recon.diff == 0 %}
-                            <span class="pill pill-success" title="Coincide con el banco a fecha {{ a.last_recon.date }}">
-                                ✓ {% if a.days_since_recon == 0 %}hoy{% elif a.days_since_recon == 1 %}ayer{% else %}hace {{ a.days_since_recon }} d{% endif %}
+                            <span class="amount-pos" title="Coincide con el banco a fecha {{ a.last_recon.date }}">
+                                cuadra{% if a.days_since_recon == 0 %}, hoy{% elif a.days_since_recon == 1 %}, ayer{% else %}, hace {{ a.days_since_recon }} d{% endif %}
                             </span>
                         {% else %}
-                            <span class="pill" title="Difiere {{ a.last_recon.diff | eur_signed }} a fecha {{ a.last_recon.date }}">
-                                ⚠ Δ {{ a.last_recon.diff | eur_signed }}
+                            <span class="warnc" title="Difiere {{ a.last_recon.diff | eur_signed }} a fecha {{ a.last_recon.date }}">
+                                difiere {{ a.last_recon.diff | eur_signed }}
                             </span>
                         {% endif %}
                     {% else %}
-                        <span class="muted small">sin conciliar</span>
+                        <span class="muted">sin conciliar</span>
                     {% endif %}
                 </td>
                 <td>
-                    <button type="button" class="btn btn-sm" onclick="document.getElementById('reconcile-{{ a.id }}').showModal()">
-                        Conciliar
-                    </button>
-                    <details class="row" style="gap:.3rem; display:inline-block;">
-                        <summary class="btn btn-sm btn-ghost" style="cursor:pointer; list-style:none;">Editar</summary>
-                        <form method="post" action="/cuentas/{{ a.id }}/editar" class="card mt-lg" style="position:absolute; z-index:20; min-width:320px;">
-                            <div class="field">
-                                <label>Nombre</label>
-                                <input class="input" name="name" value="{{ a.name }}" required>
-                            </div>
-                            <div class="field">
-                                <label>Banco</label>
-                                <input class="input" name="bank" value="{{ a.bank or '' }}">
-                            </div>
-                            <div class="field">
-                                <label>IBAN</label>
-                                <input class="input" name="iban" value="{{ a.iban or '' }}">
-                            </div>
-                            <div class="field">
-                                <label>Saldo inicial (€)</label>
-                                <input class="input tabular" type="number" step="0.01" name="initial_balance" value="{{ a.initial_balance }}">
-                            </div>
-                            <div class="field">
-                                <label>Tipo</label>
-                                <select class="select" name="type">
-                                    <option value="bank" {% if a.type == 'bank' %}selected{% endif %}>Banco</option>
-                                    <option value="cash" {% if a.type == 'cash' %}selected{% endif %}>Efectivo</option>
-                                    <option value="credit" {% if a.type == 'credit' %}selected{% endif %}>Tarjeta de crédito</option>
-                                    <option value="investment" {% if a.type == 'investment' %}selected{% endif %}>Inversión (fondo, plan)</option>
-                                </select>
-                            </div>
-                            <div class="row wrap gap-lg">
-                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
-                            </div>
+                    <div class="row-actions">
+                        <button type="button" class="btn btn-sm btn-ghost"
+                                onclick="document.getElementById('reconcile-{{ a.id }}').showModal()">
+                            Conciliar
+                        </button>
+                        <details class="inline-form">
+                            <summary class="icon-btn" aria-label="Editar la cuenta {{ a.name }}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M15 5l4 4"/>
+                                </svg>
+                            </summary>
+                            <form method="post" action="/cuentas/{{ a.id }}/editar" class="inline-edit">
+                                <div class="field">
+                                    <label>Nombre</label>
+                                    <input class="input" name="name" value="{{ a.name }}" required>
+                                </div>
+                                <div class="field">
+                                    <label>Banco</label>
+                                    <input class="input" name="bank" value="{{ a.bank or '' }}">
+                                </div>
+                                <div class="field">
+                                    <label>IBAN</label>
+                                    <input class="input" name="iban" value="{{ a.iban or '' }}">
+                                </div>
+                                <div class="field">
+                                    <label>Saldo inicial (€)</label>
+                                    <input class="input tabular" type="number" step="0.01" name="initial_balance" value="{{ a.initial_balance }}">
+                                </div>
+                                <div class="field">
+                                    <label>Tipo</label>
+                                    <select class="select" name="type">
+                                        <option value="bank" {% if a.type == 'bank' %}selected{% endif %}>Banco</option>
+                                        <option value="cash" {% if a.type == 'cash' %}selected{% endif %}>Efectivo</option>
+                                        <option value="credit" {% if a.type == 'credit' %}selected{% endif %}>Tarjeta de crédito</option>
+                                        <option value="investment" {% if a.type == 'investment' %}selected{% endif %}>Inversión (fondo, plan)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-sm">Guardar</button>
+                            </form>
+                        </details>
+                        <form method="post" action="/cuentas/{{ a.id }}/archivar" class="inline-form"
+                              onsubmit="return confirm('¿Archivar {{ a.name }}? Los movimientos se mantienen.');">
+                            <button type="submit" class="icon-btn"
+                                    aria-label="Archivar la cuenta {{ a.name }}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 7h18v4H3zM5 11v9h14v-9M10 15h4"/>
+                                </svg>
+                            </button>
                         </form>
-                    </details>
-                    <form method="post" action="/cuentas/{{ a.id }}/archivar" style="display:inline;"
-                          onsubmit="return confirm('¿Archivar {{ a.name }}? Los movimientos se mantienen.');">
-                        <button type="submit" class="btn btn-sm btn-ghost">Archivar</button>
-                    </form>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    </div>
+    {% else %}
+    <p class="empty-state">
+        Aún no hay cuentas. Al importar un extracto, TNT creará la cuenta automáticamente.
+    </p>
+    {% endif %}
 </div>
-{% else %}
-<div class="card">
-    <p class="muted small">Aún no hay cuentas. Al importar un extracto, TNT creará la cuenta automáticamente.</p>
-</div>
-{% endif %}
 
 {% if archived_accs %}
-<div class="card mt-xl">
-    <h3 class="card-title">Cuentas archivadas</h3>
+<div class="sheet is-last">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Archivadas <span class="muted">({{ archived_accs|length }})</span></h2>
+        <span class="muted small">No suman al patrimonio; sus movimientos siguen ahí.</span>
+    </div>
     <table class="table">
         <tbody>
             {% for a in archived_accs %}
@@ -123,9 +144,9 @@
                 <td class="muted">{{ a.name }}</td>
                 <td class="muted small">{{ a.bank }}</td>
                 <td class="num">{{ a.tx_count }} movs.</td>
-                <td>
-                    <form method="post" action="/cuentas/{{ a.id }}/restaurar" style="display:inline;">
-                        <button type="submit" class="btn btn-sm">Restaurar</button>
+                <td class="num">
+                    <form method="post" action="/cuentas/{{ a.id }}/restaurar" class="inline-form">
+                        <button type="submit" class="btn btn-sm btn-ghost">Restaurar</button>
                     </form>
                 </td>
             </tr>
@@ -135,18 +156,17 @@
 </div>
 {% endif %}
 
-
 {% for a in active_accs %}
-<dialog id="reconcile-{{ a.id }}" class="card" style="max-width:640px; border:1px solid var(--border);">
+<dialog id="reconcile-{{ a.id }}" class="card dialog-md">
     <h3 class="card-title">Conciliar {{ a.name }}</h3>
     <p class="muted small">
-        Escribe el saldo que el banco indica a una fecha concreta. TNT comparará con
-        su propio cálculo y guardará la diferencia para que puedas revisar si falta
-        algún movimiento.
+        Escribe el saldo que el banco indica a una fecha concreta. TNT lo compara con su
+        propio cálculo y guarda la diferencia, para que puedas revisar si falta algún
+        movimiento.
     </p>
     <form method="post" action="/conciliar/nueva">
         <input type="hidden" name="account_id" value="{{ a.id }}">
-        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem;">
+        <div class="form-2">
             <div class="field">
                 <label>Fecha</label>
                 <input class="input" type="date" name="date" value="{{ today_iso }}" required>
@@ -158,16 +178,16 @@
         </div>
         <div class="field">
             <label>Nota (opcional)</label>
-            <input class="input" name="note" placeholder="p. ej. extracto mensual abril 2026">
+            <input class="input" name="note" placeholder="p. ej. extracto mensual de abril">
         </div>
-        <div class="row wrap gap-lg">
+        <div class="row wrap-w gap-lg">
             <button type="submit" class="btn btn-primary">Guardar conciliación</button>
             <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
         </div>
     </form>
 
     {% if a.recons %}
-    <h4 style="margin-top:1.25rem;">Historial</h4>
+    <h4 class="card-title mt-xl">Historial</h4>
     <table class="table">
         <thead>
             <tr>
@@ -186,13 +206,18 @@
                 <td class="num tabular">{{ rec.bank_balance | eur }}</td>
                 <td class="num tabular">{{ rec.tnt_balance | eur }}</td>
                 <td class="num tabular {% if rec.diff < 0 %}amount-neg{% elif rec.diff > 0 %}amount-pos{% endif %}">
-                    {% if rec.diff == 0 %}✓ 0,00 €{% else %}{{ rec.diff | eur_signed }}{% endif %}
+                    {{ rec.diff | eur_signed }}
                 </td>
-                <td class="small muted">{{ rec.note or '' }}</td>
+                <td class="small muted">{{ rec.note or '—' }}</td>
                 <td>
-                    <form method="post" action="/conciliar/{{ rec.id }}/borrar" style="display:inline;"
-                          onsubmit="return confirm('¿Borrar esta conciliación del historial?');">
-                        <button type="submit" class="btn btn-sm btn-ghost">🗑</button>
+                    <form method="post" action="/conciliar/{{ rec.id }}/borrar" class="inline-form"
+                          onsubmit="return confirm('¿Borrar la conciliación del {{ rec.date }}?');">
+                        <button type="submit" class="icon-btn is-danger"
+                                aria-label="Borrar la conciliación del {{ rec.date }} de {{ a.name }}">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
+                            </svg>
+                        </button>
                     </form>
                 </td>
             </tr>
@@ -203,7 +228,7 @@
 </dialog>
 {% endfor %}
 
-<dialog id="newAccount" class="card" style="max-width:480px; border:1px solid var(--border);">
+<dialog id="newAccount" class="card dialog-sm">
     <form method="post" action="/cuentas/nueva">
         <h3 class="card-title">Nueva cuenta</h3>
         <div class="field">
@@ -231,7 +256,7 @@
                 <option value="investment">Inversión (fondo, plan)</option>
             </select>
         </div>
-        <div class="row wrap gap-lg">
+        <div class="row wrap-w gap-lg">
             <button type="submit" class="btn btn-primary">Crear</button>
             <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">Cancelar</button>
         </div>

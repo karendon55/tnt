@@ -28,7 +28,7 @@
                                 <path d="M4 20l4-1L19 8l-3-3L5 16z"/><path d="M15 5l4 4"/>
                             </svg>
                         </summary>
-                        <form method="post" action="/reglas/{{ r.id }}/editar" class="rule-edit">
+                        <form method="post" action="/reglas/{{ r.id }}/editar" class="inline-edit">
                             <div class="field">
                                 <label>Patrón</label>
                                 <input class="input tabular" name="pattern" value="{{ r.pattern }}" required>

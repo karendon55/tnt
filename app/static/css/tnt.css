@@ -358,10 +358,10 @@ summary::-webkit-details-marker{display:none}
   padding:.2rem 0;border-bottom:1px solid transparent;
   transition:color .12s,border-color .12s}
 .detail-toggle:hover{color:var(--text);border-bottom-color:var(--border-strong)}
-/* Edición en línea de una regla: flota sobre la tabla, así que sí lleva
-   sombra — la prohibición del sistema es para superficies planas, no para
-   lo que se superpone. */
-.rule-edit{position:absolute;z-index:20;min-width:320px;margin-top:.4rem;
+/* Edición en línea dentro de una tabla (una regla, una cuenta): flota sobre
+   la fila, así que sí lleva sombra — la prohibición del sistema es para
+   superficies planas, no para lo que se superpone. */
+.inline-edit{position:absolute;z-index:20;min-width:320px;margin-top:.4rem;
   background:var(--surface-raised);border:1px solid var(--border-strong);
   border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow-md)}
 .chart-mid{height:230px}
@@ -422,6 +422,7 @@ input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
 .pager-info+.lnk{margin-left:0}
 /* Diálogos del ancho de siempre, sin el style= en la plantilla */
 .dialog-sm{max-width:520px}
+.dialog-md{max-width:640px}
 .inline-form{display:inline}
 .field-hint{margin:.25rem 0 0}
 .form-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
