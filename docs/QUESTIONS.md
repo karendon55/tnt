@@ -88,3 +88,5 @@ Format:
 - 2026-09-09 [panel] ¿Cómo se prueba que un cambio de rendimiento no cambia nada? -> renderizando el HTML con el código de antes y con el de ahora sobre la base real: idéntico byte a byte
 - 2026-09-09 [panel] La serie del gráfico pedía la valoración vigente mes a mes y cuenta a cuenta -> valoraciones y flujo en dos consultas, y el bucle las recorre en memoria. 36 -> 28 consultas, y ya no crecen con los años de histórico
 - 2026-09-09 [panel] ¿Por qué no baja el tiempo si bajan las consultas? -> porque eran diminutas y por índice; lo que se arregla es el crecimiento. Perfilado: el 66 % del panel se va en detect_anomalies, con find_recurring ejecutándose dos veces por render
+- 2026-09-09 [panel] find_recurring se ejecutaba dos veces por render, con mínimos distintos (3 anomalías, 2 previsión) -> una sola vez con el mínimo flojo y el otro filtra, porque el mínimo no entra en el cálculo. 47,5 -> 41,8 ms. Verificado sobre la base real: los 37 grupos de mínimo 3 son exactamente los de mínimo 2 filtrados
+- 2026-09-09 [panel] Lo que queda del tiempo -> la consulta de duplicados de detect_anomalies, un JOIN de transactions consigo misma sin cota de fechas

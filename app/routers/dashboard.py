@@ -23,8 +23,8 @@ from app.services.analytics import (
     prev_month_range,
     total_balance,
 )
-from app.services.forecast import forecast_next_month
-from app.services.recurring import detect_anomalies
+from app.services.forecast import MIN_RECURRENCIAS, forecast_next_month
+from app.services.recurring import detect_anomalies, find_recurring
 from app.templating import templates
 
 router = APIRouter()
@@ -150,8 +150,11 @@ def dashboard(request: Request, month: Optional[str] = None):
         ]
         account_rows.sort(key=lambda r: r["bal"], reverse=True)
 
-        forecast = forecast_next_month(cur)
-        anomalies = detect_anomalies(cur)
+        # Una sola búsqueda de recurrentes para las dos cosas que la usan.
+        # Con el mínimo más flojo de los dos, que el otro solo filtra.
+        recurrentes = find_recurring(cur, min_occurrences=MIN_RECURRENCIAS)
+        forecast = forecast_next_month(cur, recurrentes)
+        anomalies = detect_anomalies(cur, recurrentes)
 
     # Delta vs mes anterior
     delta_expense = None

@@ -104,6 +104,11 @@ def find_recurring(cur: sqlite3.Cursor, min_occurrences: int = 3) -> list[Recurr
     return results
 
 
+# Con menos repeticiones no hay mediana en la que confiar para decir que algo
+# ha subido de precio. La previsión se conforma con dos.
+MIN_PARA_ANOMALIAS = 3
+
+
 @dataclass
 class Anomaly:
     kind: str                # 'duplicate' | 'price_jump' | 'missing_recurring'
@@ -112,7 +117,15 @@ class Anomaly:
     amount: float | None = None
 
 
-def detect_anomalies(cur: sqlite3.Cursor) -> list[Anomaly]:
+def detect_anomalies(cur: sqlite3.Cursor,
+                     recurrings: list[RecurringGroup] | None = None) -> list[Anomaly]:
+    """Duplicados y subidas de precio.
+
+    `recurrings` permite pasarle los grupos ya calculados. Es para el panel,
+    que también los necesita para la previsión: buscarlos es leer la tabla de
+    movimientos entera y reagruparla, y hacerlo dos veces por página era el 66 %
+    del tiempo de la portada. Pueden venir con un mínimo de repeticiones más
+    flojo del que se quiere aquí; el mínimo solo filtra, así que se filtra."""
     anomalies: list[Anomaly] = []
 
     # 1. Duplicados en ventana de 3 días: mismo importe, cuenta y descripción.
@@ -146,7 +159,11 @@ def detect_anomalies(cur: sqlite3.Cursor) -> list[Anomaly]:
     # por descripción, una consulta por grupo, y además sin excluir traspasos:
     # un movimiento espejo con la misma descripción se colaba como si fuera la
     # última factura y saltaba un aviso de subida que no existía.
-    for g in find_recurring(cur, min_occurrences=3):
+    if recurrings is None:
+        recurrings = find_recurring(cur, min_occurrences=MIN_PARA_ANOMALIAS)
+    for g in recurrings:
+        if g.count < MIN_PARA_ANOMALIAS:
+            continue
         prev_median = g.median_amount
         if abs(prev_median) < 1:
             continue

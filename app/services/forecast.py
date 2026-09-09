@@ -11,18 +11,28 @@ from statistics import mean
 from app.services.analytics import total_balance
 from app.services.recurring import find_recurring
 
+# A la previsión le vale con que algo se repita dos veces: es una estimación,
+# no un aviso.
+MIN_RECURRENCIAS = 2
 
-def forecast_next_month(cur: sqlite3.Cursor) -> dict:
+
+def forecast_next_month(cur: sqlite3.Cursor,
+                        recurrings: list | None = None) -> dict:
     """Devuelve un dict con:
        - current_balance: saldo hoy
        - recurring_net: suma neta estimada de recurrentes para el mes siguiente
        - variable_net: estimación del gasto variable (media 3 últimos meses)
        - projected_balance: saldo proyectado fin del mes siguiente
        - detail: lista de recurrentes usados
+
+    `recurrings` permite pasarle los grupos ya calculados, para no buscarlos
+    dos veces en la misma página (ver `detect_anomalies`). Si vienen, tienen
+    que haberse buscado con `MIN_RECURRENCIAS` o menos.
     """
     current = total_balance(cur)
 
-    recurrings = find_recurring(cur, min_occurrences=2)
+    if recurrings is None:
+        recurrings = find_recurring(cur, min_occurrences=MIN_RECURRENCIAS)
     recurring_monthly = [r for r in recurrings if r.kind == "monthly"]
     recurring_quarterly = [r for r in recurrings if r.kind == "quarterly"]
 

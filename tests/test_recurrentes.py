@@ -97,6 +97,37 @@ class TestAgrupar(unittest.TestCase):
         self.assertNotIn(g.last_id, ids[:-1])
 
 
+class TestElMinimoSoloFiltra(unittest.TestCase):
+    """`min_occurrences` no cambia cómo se calcula un grupo, solo cuáles pasan.
+
+    De eso depende que el panel pueda buscar los recurrentes UNA vez con el
+    mínimo más flojo (la previsión usa 2) y que las anomalías, que quieren 3,
+    se queden con los que tengan tres o más. Si algún día el mínimo entrara en
+    el cálculo, este test avisa antes de que las dos pantallas empiecen a
+    contar cosas distintas."""
+
+    def _poblar(self, cur):
+        cta = _limpiar(cur)
+        for f in MESES:
+            _mov(cur, cta, -49.9, "RECIBO MOVISTAR FIBRA", f)
+        for f in MESES[:3]:
+            _mov(cur, cta, -12.0, "SUSCRIPCION SPOTIFY", f)
+        for f in MESES[:2]:                       # solo dos: queda fuera con 3
+            _mov(cur, cta, -80.0, "SEGURO COCHE", f)
+        return cta
+
+    def test_pedir_tres_es_pedir_dos_y_quedarse_con_los_de_tres(self):
+        with cursor() as cur:
+            self._poblar(cur)
+            con_tres = find_recurring(cur, min_occurrences=3)
+            con_dos = find_recurring(cur, min_occurrences=2)
+        filtrados = [g for g in con_dos if g.count >= 3]
+        self.assertEqual([g.payee_key for g in con_tres], [g.payee_key for g in filtrados])
+        self.assertEqual([g.avg_amount for g in con_tres], [g.avg_amount for g in filtrados])
+        self.assertEqual([g.last_id for g in con_tres], [g.last_id for g in filtrados])
+        self.assertLess(len(con_tres), len(con_dos), "el caso no distingue nada")
+
+
 class TestSubidasDePrecio(unittest.TestCase):
     def test_avisa_de_una_subida_de_mas_del_15(self):
         with cursor() as cur:
