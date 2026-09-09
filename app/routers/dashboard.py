@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse
 
 from app.db import cursor
 from app.services.analytics import (
-    account_balance,
+    balances_by_account,
     balance_series,
     by_category,
     month_income_expense,
@@ -138,11 +138,12 @@ def dashboard(request: Request, month: Optional[str] = None):
             for r in last_rows
         ]
 
-        # Desglose de cuentas activas para el lateral del panel. El saldo se
-        # pide a account_balance() y no con un SUM(): las cuentas de inversión
+        # Desglose de cuentas activas para el lateral del panel. El saldo sale
+        # de balances_by_account() y no de un SUM(): las cuentas de inversión
         # valen lo que dice su última valoración, no lo que se ha aportado.
+        saldos = balances_by_account(cur)
         account_rows = [
-            {"id": r["id"], "name": r["name"], "bal": account_balance(cur, r["id"])}
+            {"id": r["id"], "name": r["name"], "bal": saldos.get(r["id"], 0.0)}
             for r in cur.execute(
                 "SELECT id, name FROM accounts WHERE archived = 0"
             ).fetchall()

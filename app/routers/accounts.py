@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.importers.common import normalize_iban
-from app.services.analytics import account_balance
+from app.services.analytics import balances_by_account
 from app.templating import templates
 
 router = APIRouter()
@@ -29,21 +29,27 @@ def accounts_list(request: Request):
             "archived FROM accounts ORDER BY archived, name"
         ).fetchall()
         today = date.today()
+
+        # Todo de una vez, no cuenta por cuenta: con nueve cuentas esta página
+        # hacía 39 consultas y con cien, 403.
+        saldos = balances_by_account(cur)
+        movimientos = {
+            x["account_id"]: x["n"] for x in cur.execute(
+                "SELECT account_id, COUNT(*) AS n FROM transactions GROUP BY account_id")
+        }
+        conciliaciones: dict[int, list[dict]] = {}
+        for x in cur.execute(
+            """SELECT id, account_id, date, bank_balance, tnt_balance, diff, note,
+                      created_at
+               FROM reconciliations ORDER BY account_id, date DESC, id DESC"""
+        ):
+            conciliaciones.setdefault(x["account_id"], []).append(dict(x))
+
         accounts = []
         for r in rows:
-            bal = account_balance(cur, r["id"]) if not r["archived"] else None
-            tx_count = cur.execute(
-                "SELECT COUNT(*) AS n FROM transactions WHERE account_id = ?",
-                (r["id"],),
-            ).fetchone()["n"]
-            # Historial de reconciliaciones de esta cuenta
-            rec_rows = cur.execute(
-                """SELECT id, date, bank_balance, tnt_balance, diff, note, created_at
-                   FROM reconciliations WHERE account_id = ?
-                   ORDER BY date DESC, id DESC""",
-                (r["id"],),
-            ).fetchall()
-            recons = [dict(x) for x in rec_rows]
+            bal = saldos.get(r["id"], 0.0) if not r["archived"] else None
+            tx_count = movimientos.get(r["id"], 0)
+            recons = conciliaciones.get(r["id"], [])
             last_recon = recons[0] if recons else None
             days_since = None
             if last_recon:

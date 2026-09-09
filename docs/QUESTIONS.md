@@ -78,3 +78,7 @@ Format:
 - 2026-09-09 [css] `.wrap` seguía siendo contenedor de 1280px Y flex-wrap -> ninguna plantilla la usa ya como contenedor; el contenedor es `.main` y se acabó la trampa
 - 2026-09-09 [css] El sello de caché se calculaba al importar el módulo -> se calcula en cada render; guardado, solo cambiaba al reiniciar el proceso y el navegador seguía con el CSS viejo. El test miraba la función, no la página
 - 2026-09-09 [css] Una clase de plantilla que el CSS no define no da error -> test que las caza; `.enc-only` y `.fund-chart` valen porque son ganchos de JavaScript, `.settings-list` no valía y se ha ido
+- 2026-09-09 [cuentas] N+1: saldo, movimientos y conciliaciones se pedían por cuenta -> tres consultas agregadas. Medido: 39 -> 7 con 9 cuentas, y 403 -> 7 con 100
+- 2026-09-09 [saldos] ¿Duplicar la regla de inversión en SQL agregado? -> no: `balances_by_account` es la única que la implementa en bloque, y un test la ata cuenta por cuenta a `account_balance`, que sigue para cuando solo hace falta una
+- 2026-09-09 [saldos] El desempate por id entre dos valoraciones del mismo día no se usa nunca -> lo impide UNIQUE(account_id, date); queda fijado en un test
+- 2026-09-09 [panel] Tenía el mismo N+1 dos veces (total_balance y el lateral de cuentas) -> 107 -> 77 consultas con 9 cuentas, y 471 -> 77 con 100

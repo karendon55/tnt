@@ -35,3 +35,20 @@ en Inversiones (decisión del 2026-09-08).
 - [x] Diálogo de conciliar: abre, guarda, y la fila pasa a «difiere −24,08 €»
       (probado de punta a punta sobre la base de demostración)
 - [x] Botones de icono con `aria-label` que nombra la cuenta
+
+## Rendimiento (2026-09-09)
+
+La página pedía el saldo, el número de movimientos y las conciliaciones **cuenta
+por cuenta**: cuatro consultas por cuenta más las de la página. Medido sobre una
+copia de la base real (9 cuentas, 947 movimientos): **39 consultas**. Con 30
+cuentas, 123. Con 100, 403.
+
+Ahora son tres consultas agregadas y una función nueva, `balances_by_account`,
+que saca todos los saldos de una vez respetando la regla rara: una cuenta de
+inversión vale su última valoración declarada, y solo si no hay ninguna cuenta
+lo aportado.
+
+**7 consultas, y las mismas 7 con 100 cuentas.**
+
+Comprobado sobre la base real cuenta por cuenta: los nueve saldos coinciden al
+céntimo con los que daba `account_balance`, incluida la de inversión.

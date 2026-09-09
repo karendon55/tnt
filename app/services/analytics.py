@@ -65,6 +65,48 @@ def account_balance(cur: sqlite3.Cursor, account_id: int) -> float:
     return contributed(cur, account_id)
 
 
+def balances_by_account(cur: sqlite3.Cursor,
+                        as_of: str | None = None) -> dict[int, float]:
+    """El saldo de TODAS las cuentas, en dos consultas en vez de dos por cuenta.
+
+    Mismas reglas que `account_balance`, que sigue estando para cuando solo
+    hace falta una: en las cuentas de inversión manda la última valoración
+    declarada y, si no hay ninguna, lo aportado. `as_of` corta por fecha,
+    igual que en `account_balance_at`.
+
+    Existe porque `/cuentas` y el panel preguntaban cuenta por cuenta: nueve
+    cuentas eran 39 consultas por página, y cien eran 403.
+    """
+    # El filtro de fecha va en el ON y no en el WHERE: en un LEFT JOIN, un
+    # WHERE sobre la tabla de la derecha se carga las cuentas sin movimientos.
+    corte = "AND t.date <= ?" if as_of else ""
+    saldos = {
+        r["id"]: round(r["bal"] if r["bal"] is not None else 0, 2)
+        for r in cur.execute(
+            f"""SELECT a.id, a.initial_balance + COALESCE(SUM(t.amount), 0) AS bal
+                FROM accounts a
+                LEFT JOIN transactions t ON t.account_id = a.id {corte}
+                GROUP BY a.id""",
+            (as_of,) if as_of else (),
+        )
+    }
+    # La última valoración de cada cuenta de inversión, de una vez. El
+    # desempate —fecha y, a igualdad, id— es el mismo que en last_valuation().
+    for r in cur.execute(
+        f"""SELECT account_id, value FROM (
+                SELECT account_id, value,
+                       ROW_NUMBER() OVER (PARTITION BY account_id
+                                          ORDER BY date DESC, id DESC) AS n
+                FROM account_valuations
+                {"WHERE date <= ?" if as_of else ""}
+            ) WHERE n = 1""",
+        (as_of,) if as_of else (),
+    ):
+        if r["account_id"] in saldos:
+            saldos[r["account_id"]] = round(r["value"], 2)
+    return saldos
+
+
 def account_balance_at(cur: sqlite3.Cursor, account_id: int, as_of: str) -> float:
     """Saldo de una cuenta en una fecha dada (inclusive). Se usa en la
     reconciliación contra el saldo real del banco."""
@@ -79,17 +121,10 @@ def account_balance_at(cur: sqlite3.Cursor, account_id: int, as_of: str) -> floa
 def total_balance(cur: sqlite3.Cursor, as_of: str | None = None) -> float:
     """Patrimonio: suma de las cuentas activas. Las de inversión aportan su
     valoración declarada en vez de la suma de sus movimientos."""
-    total = 0.0
-    for r in cur.execute(
-        "SELECT id, type FROM accounts WHERE archived = 0"
-    ).fetchall():
-        if r["type"] == INVESTMENT_TYPE:
-            value = last_valuation(cur, r["id"], as_of)
-            if value is not None:
-                total += value
-                continue
-        total += contributed(cur, r["id"], as_of)
-    return round(total, 2)
+    saldos = balances_by_account(cur, as_of)
+    activas = [r["id"] for r in cur.execute(
+        "SELECT id FROM accounts WHERE archived = 0")]
+    return round(sum(saldos.get(i, 0.0) for i in activas), 2)
 
 
 def month_range(today: date | None = None) -> tuple[str, str]:
