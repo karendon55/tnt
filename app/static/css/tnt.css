@@ -309,10 +309,6 @@ select.select,.select{cursor:pointer}
 .sheet .table th:first-child,.sheet .table td:first-child{padding-left:0}
 .sheet .table th:last-child,.sheet .table td:last-child{padding-right:0}
 .warnline-top .lnk{margin-left:auto}
-/* Franja de backup: utilidad, no contenido. Va al final y no grita. */
-.backupbar{padding:1.1rem 0 0;border-top:1px solid var(--border);margin-top:1.5rem;
-  font-size:.85rem;color:var(--text-muted)}
-.backupbar form{display:inline}
 .backup-results{list-style:none;padding:0;margin:.4rem 0 0;width:100%}
 .backup-results li{margin:.1rem 0}
 /* Movimientos y lateral: la tabla manda, el lateral acompaña. */

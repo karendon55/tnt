@@ -1,8 +1,11 @@
 <div class="row wrap-w gap-lg">
-    <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML">
-        <button type="submit" class="btn btn-sm">Hacer backup</button>
+    {# Este fragmento sustituye a #backup-status dentro de /backup, así que
+       tiene que traer su propio botón: si no, desaparece tras el primer
+       backup. El enlace a "Más opciones" se fue con la franja del panel —
+       aquí apuntaría a la página en la que ya estás. #}
+    <form hx-post="/backup" hx-target="#backup-status" hx-swap="innerHTML" class="inline-form">
+        <button type="submit" class="btn btn-primary">Hacer backup ahora</button>
     </form>
-    <a href="/backup" class="lnk" title="Backup cifrado / restaurar">Más opciones</a>
     {% if results is defined and results %}
         {% if ok %}
             <span class="pill pill-success">Backup ok · {{ ts }}</span>

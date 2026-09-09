@@ -61,3 +61,4 @@ Format:
 - 2026-09-09 [presupuestos] .bar estaba definida dos veces con valores distintos -> una sola, en tnt.css
 - 2026-09-09 [fechas] Las tablas mostraban la fecha en ISO -> filtro | fecha (dd/mm/aaaa) en todas; los <input type="date"> se quedan en ISO porque el navegador solo entiende eso
 - 2026-09-09 [fechas] ¿Un formato o dos (con y sin año)? -> uno solo: 31/08/2026 ocupa lo mismo que 2026-08-31 y evita tener dos reglas
+- 2026-09-09 [panel] ¿La franja de backup sigue en el panel? -> no; vive en Configuración · Backup. Una pantalla, un sitio

@@ -74,4 +74,5 @@ y punto de aviso; `--success` / `--danger` en importes.
 | 2026-09-08 | Fuera la sparkline del hero | repetía la serie del gráfico grande |
 | 2026-09-08 | Fuera las barras de colores por categoría | eran ocho literales en la plantilla y el boceto pide filas limpias |
 | 2026-09-08 | La franja de backup baja al final | es utilidad, no contenido: no debe partir el hero de las cifras |
+| 2026-09-09 | La franja de backup **se va del panel** | tras la reestructuración de menús vive en Configuración · Backup; tenerla también aquí era el mismo botón en dos sitios |
 | 2026-09-08 | El segmentado Saldo/Neto deja de ser rojo | el rojo sólido se reserva a la acción principal |
