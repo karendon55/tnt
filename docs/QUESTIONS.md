@@ -86,3 +86,5 @@ Format:
 - 2026-09-09 [recurrentes] Esa consulta buscaba por descripción exacta y sin excluir traspasos -> podía tomar un movimiento espejo por la última factura y avisar de una subida que no existe. Cubierto por un test; en la base real no estaba disparando ninguno
 - 2026-09-09 [forecast] find_recurring se llamaba dos veces por render -> una; cada llamada es leer la tabla de movimientos entera y reagruparla
 - 2026-09-09 [panel] ¿Cómo se prueba que un cambio de rendimiento no cambia nada? -> renderizando el HTML con el código de antes y con el de ahora sobre la base real: idéntico byte a byte
+- 2026-09-09 [panel] La serie del gráfico pedía la valoración vigente mes a mes y cuenta a cuenta -> valoraciones y flujo en dos consultas, y el bucle las recorre en memoria. 36 -> 28 consultas, y ya no crecen con los años de histórico
+- 2026-09-09 [panel] ¿Por qué no baja el tiempo si bajan las consultas? -> porque eran diminutas y por índice; lo que se arregla es el crecimiento. Perfilado: el 66 % del panel se va en detect_anomalies, con find_recurring ejecutándose dos veces por render

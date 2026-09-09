@@ -354,6 +354,45 @@ class TestBalanceSeriesConInversion(unittest.TestCase):
         self.assertEqual(serie[-1]["month"], "2026-03")
         self.assertEqual(serie[-1]["balance"], 12400.0)  # 1400 + 11000
 
+    # Los tres casos de abajo cubren el tramo que se sacó del bucle de meses:
+    # antes cada mes preguntaba a la base por cada cuenta de inversión, y ahora
+    # se resuelve en memoria. Son las ramas donde eso podría torcerse.
+
+    def test_lo_aportado_al_fondo_se_acumula_mes_a_mes(self):
+        """Sin valoraciones, el fondo vale lo aportado HASTA ESE CIERRE, no lo
+        aportado en total."""
+        self.cur.execute(
+            "INSERT INTO transactions(account_id, date, amount, description) VALUES "
+            "(2, '2026-01-20', 1000.0, 'aportación'),"
+            "(2, '2026-02-20', 2000.0, 'aportación')"
+        )
+        por_mes = {p["month"]: p["balance"] for p in balance_series(self.cur, months=6)}
+        self.assertEqual(por_mes["2026-01"], 900.0 + 11000.0)
+        self.assertEqual(por_mes["2026-02"], 1400.0 + 13000.0)
+
+    def test_una_valoracion_a_mitad_de_mes_ya_cuenta_en_ese_cierre(self):
+        self.cur.execute(
+            "INSERT INTO account_valuations(account_id, date, value) "
+            "VALUES (2, '2026-02-05', 10800.0)"
+        )
+        por_mes = {p["month"]: p["balance"] for p in balance_series(self.cur, months=6)}
+        self.assertEqual(por_mes["2026-01"], 900.0 + 10000.0, "enero es anterior")
+        self.assertEqual(por_mes["2026-02"], 1400.0 + 10800.0)
+
+    def test_dos_fondos_cada_uno_por_su_lado(self):
+        """Uno valorado y otro no: el respaldo es por cuenta, no global."""
+        self.cur.execute(
+            "INSERT INTO accounts(id, name, type, initial_balance) "
+            "VALUES (3, 'Fondo 2', 'investment', 2000.0)"
+        )
+        self.cur.execute(
+            "INSERT INTO account_valuations(account_id, date, value) "
+            "VALUES (2, '2026-01-31', 10500.0)"
+        )
+        por_mes = {p["month"]: p["balance"] for p in balance_series(self.cur, months=6)}
+        # 900 del banco + 10500 declarados del fondo 1 + 2000 aportados al 2
+        self.assertEqual(por_mes["2026-01"], 900.0 + 10500.0 + 2000.0)
+
 
 if __name__ == "__main__":
     unittest.main()

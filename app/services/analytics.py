@@ -231,25 +231,31 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
         "WHERE archived = 0 AND type = ?", (INVESTMENT_TYPE,),
     ).fetchall()
     inv_ids = [r["id"] for r in inv]
+    # Flujo y valoraciones de las cuentas de inversión, dos consultas para
+    # todas. Antes el bucle de meses preguntaba una vez por mes y por cuenta:
+    # ocho consultas con un solo fondo y ocho meses, y una más por cada mes de
+    # histórico que pasara. Aquí se traen enteras y se recorren en memoria.
+    inv_flow: dict[int, dict[str, float]] = {i: {} for i in inv_ids}
+    inv_vals: dict[int, list[tuple[str, float]]] = {i: [] for i in inv_ids}
     if inv_ids:
         marks = ",".join("?" * len(inv_ids))
         initial -= sum(r["initial_balance"] for r in inv)
-        inv_flow = cur.execute(
-            f"""SELECT substr(date, 1, 7) AS ym, SUM(amount) AS delta
+        for r in cur.execute(
+            f"""SELECT account_id, substr(date, 1, 7) AS ym, SUM(amount) AS delta
                 FROM transactions WHERE account_id IN ({marks})
-                GROUP BY ym""", inv_ids,
-        ).fetchall()
-        for r in inv_flow:
+                GROUP BY account_id, ym""", inv_ids,
+        ):
+            inv_flow[r["account_id"]][r["ym"]] = r["delta"]
             delta_by_month[r["ym"]] = delta_by_month.get(r["ym"], 0) - r["delta"]
         # Una valoración nueva mueve el patrimonio sin ningún movimiento
         # detrás, así que también marca hasta dónde llega la serie.
-        data_months |= {
-            r["ym"] for r in cur.execute(
-                f"""SELECT DISTINCT substr(date, 1, 7) AS ym
-                    FROM account_valuations WHERE account_id IN ({marks})""",
-                inv_ids,
-            ).fetchall()
-        }
+        for r in cur.execute(
+            f"""SELECT account_id, date, value FROM account_valuations
+                WHERE account_id IN ({marks})
+                ORDER BY account_id, date""", inv_ids,
+        ):
+            inv_vals[r["account_id"]].append((r["date"], r["value"]))
+            data_months.add(r["date"][:7])
 
     # Construir series
     if not data_months:
@@ -258,6 +264,16 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
     running = initial
     # Vamos mes a mes desde el más antiguo hasta el último con datos
     start_ym, end_ym = min(data_months), max(data_months)
+
+    # Lo aportado a cada fondo, que se va acumulando con los meses, y un
+    # puntero a su valoración vigente. Los meses anteriores al arranque de la
+    # serie entran ya sumados: no debería haberlos, pero si los hubiera no
+    # pueden perderse.
+    aportado = {r["id"]: r["initial_balance"] for r in inv}
+    for account_id, por_mes in inv_flow.items():
+        aportado[account_id] += sum(d for ym, d in por_mes.items() if ym < start_ym)
+    vigente = {i: -1 for i in inv_ids}   # -1 = todavía sin valorar
+
     y, m = int(start_ym[:4]), int(start_ym[5:7])
     while f"{y:04d}-{m:02d}" <= end_ym:
         ym = f"{y:04d}-{m:02d}"
@@ -268,8 +284,13 @@ def balance_series(cur: sqlite3.Cursor, months: int = 6) -> list[dict]:
             nxt = date(y + (m == 12), 1 if m == 12 else m + 1, 1)
             month_end = (nxt - timedelta(days=1)).isoformat()
             for account_id in inv_ids:
-                value = last_valuation(cur, account_id, month_end)
-                total += value if value is not None else contributed(cur, account_id, month_end)
+                aportado[account_id] += inv_flow[account_id].get(ym, 0)
+                vals = inv_vals[account_id]
+                i = vigente[account_id]
+                while i + 1 < len(vals) and vals[i + 1][0] <= month_end:
+                    i += 1
+                vigente[account_id] = i
+                total += vals[i][1] if i >= 0 else round(aportado[account_id], 2)
         result.append({"month": ym, "balance": round(total, 2)})
         m += 1
         if m == 13:

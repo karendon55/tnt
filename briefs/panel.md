@@ -91,9 +91,23 @@ Medido sobre una copia de la base real (9 cuentas, 947 movimientos):
 |---|---|---|
 | de partida | 107 | 75 ms |
 | saldos en bloque | 77 | 77 ms |
-| recurrentes sin N+1 | **36** | **48 ms** |
+| recurrentes sin N+1 | 36 | **48 ms** |
+| serie del gráfico | **28** | 48 ms |
 
-Y las 36 se quedan en 36 con 100 cuentas. Lo que quedaba después de aplanar los
+Y las 28 se quedan en 28 con 100 cuentas.
+
+La serie del gráfico preguntaba, por cada mes y cada cuenta de inversión, cuál
+era la valoración vigente en ese cierre: cinco consultas fijas y una por mes de
+histórico. Y recorre desde el primer mes con datos, no desde el principio de la
+ventana, así que crecía con los años de uso aunque solo se dibujen seis puntos.
+Ahora las valoraciones y el flujo de los fondos se traen en dos consultas y el
+bucle las recorre en memoria. **Cinco consultas, sea cual sea el histórico.**
+
+El tiempo no baja con este cambio —esas consultas eran diminutas y van por
+índice—; lo que baja es cómo crece. Perfilado, el 66 % del tiempo del panel se
+va hoy en `detect_anomalies`, y `find_recurring` se ejecuta **dos veces por
+render** (una para las anomalías y otra para la previsión), leyendo y
+reagrupando la tabla entera cada vez. Ahí está el siguiente margen. Lo que quedaba después de aplanar los
 saldos era `detect_anomalies`, que preguntaba a la base cuál era el último
 movimiento de cada recurrente —una consulta por grupo, 37 en la base real— para
 un dato que `find_recurring` ya tenía en la mano. Ahora el grupo se lo lleva
