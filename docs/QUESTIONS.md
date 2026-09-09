@@ -43,3 +43,4 @@ Format:
 - 2026-09-08 [nav] Issue 1: ¿las secciones de Configuración cambian de URL? -> no; conservan la suya y comparten subnavegación
 - 2026-09-08 [nav] Issue 2: ¿las cuentas de inversión siguen en Cuentas? -> sí, con su saldo; a Inversiones se muda la gestión del valor
 - 2026-09-08 [nav] Issue 3: ¿tests de rutas? -> sí, con httpx2 en requirements-dev.txt; 11 tests de navegación
+- 2026-09-09 [nav] Traspasos estaba en la barra y también dentro de Configuración -> solo arriba; una pantalla, un sitio

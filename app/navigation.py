@@ -9,6 +9,10 @@ sección sin tener que pasarla desde cada handler.
 from __future__ import annotations
 
 # El orden es el del menú lateral, y también el de la portada.
+#
+# Traspasos no está aquí a propósito: vive en la barra de arriba porque se
+# revisa cada mes al importar. Repetirlo en Configuración contradecía la regla
+# de reparto. Lo que sí cuelga de Reglas son sus emparejamientos automáticos.
 SECCIONES_CONFIG = [
     {
         "key": "backup",
@@ -21,12 +25,6 @@ SECCIONES_CONFIG = [
         "titulo": "Cuentas",
         "url": "/cuentas",
         "resumen": "Alta y baja de cuentas, saldos iniciales y conciliación con el banco.",
-    },
-    {
-        "key": "transfers",
-        "titulo": "Traspasos",
-        "url": "/traspasos",
-        "resumen": "Emparejamientos entre tus cuentas. También está arriba, porque se revisa cada mes.",
     },
     {
         "key": "categories",

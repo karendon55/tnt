@@ -78,10 +78,11 @@ MENU = [
 ]
 
 # Lo que cuelga de Configuración. Conservan su URL de siempre a propósito.
+# Traspasos NO está: vive arriba, y repetirlo aquí contradecía la propia regla
+# de reparto (arriba lo del mes, en Configuración lo de vez en cuando).
 CONFIGURACION = [
     ("Backup", "/backup"),
     ("Cuentas", "/cuentas"),
-    ("Traspasos", "/traspasos"),
     ("Categorías", "/categorias"),
     ("Reglas", "/reglas"),
     ("Importar", "/importar"),
@@ -131,11 +132,20 @@ class TestConfiguracion(unittest.TestCase):
             with self.subTest(seccion=nombre):
                 self.assertEqual(client.get(url).status_code, 200)
 
+    def test_traspasos_no_aparece_en_configuracion(self):
+        """Vive arriba. Estar en los dos sitios contradice la regla de reparto."""
+        html = client.get("/configuracion").text
+        # Arriba sí está, y debe estar: se mira solo lo de dentro.
+        subnav = html.split('class="subnav"', 1)[1].split("</nav>", 1)[0]
+        self.assertFalse("/traspasos" in subnav,
+                         "Traspasos sigue en la subnavegación de Configuración")
+        listado = html.split('class="settings-list"', 1)[1]
+        self.assertFalse('href="/traspasos"' in listado,
+                         "Traspasos sigue en la portada de Configuración")
+
     def test_las_secciones_se_marcan_dentro_de_configuracion(self):
         """Estando en /cuentas, la pestaña de arriba iluminada es Configuración."""
         for nombre, url in CONFIGURACION:
-            if url == "/traspasos":
-                continue  # Traspasos vive arriba; en Configuración solo se enlaza
             with self.subTest(seccion=nombre):
                 barra = barra_superior(client.get(url).text)
                 self.assertIn("is-active", enlace(barra, "/configuracion"),
