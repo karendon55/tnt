@@ -83,6 +83,27 @@ CSS nuevo. Se queda la letra de AC/DC al pie, que es la voz de la casa.
 Fuera el rayo gigante: la marca ya está en la barra de arriba, y un adorno
 grande en el centro es justo el aspecto «generado» del que huye la dirección.
 
+## Rendimiento (2026-09-09)
+
+Medido sobre una copia de la base real (9 cuentas, 947 movimientos):
+
+| | consultas | tiempo |
+|---|---|---|
+| de partida | 107 | 75 ms |
+| saldos en bloque | 77 | 77 ms |
+| recurrentes sin N+1 | **36** | **48 ms** |
+
+Y las 36 se quedan en 36 con 100 cuentas. Lo que quedaba después de aplanar los
+saldos era `detect_anomalies`, que preguntaba a la base cuál era el último
+movimiento de cada recurrente —una consulta por grupo, 37 en la base real— para
+un dato que `find_recurring` ya tenía en la mano. Ahora el grupo se lo lleva
+puesto (`last_id`, `last_amount`).
+
+Además, `forecast` buscaba los recurrentes dos veces, y cada búsqueda es leer la
+tabla de movimientos entera y reagruparla en memoria. Ahora una.
+
+El panel renderiza **el mismo HTML byte a byte** que antes del cambio.
+
 ## Decisiones
 
 | Fecha | Decisión | Motivo |

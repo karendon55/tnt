@@ -32,8 +32,10 @@ def forecast_next_month(cur: sqlite3.Cursor) -> dict:
     # Trimestrales: 1/3 del efecto mensualizado
     recurring_net += sum(r.avg_amount / 3 for r in recurring_quarterly)
 
-    # Gasto variable: gasto no recurrente en los últimos 3 meses, media mensual
-    variable_net = _variable_net_estimate(cur)
+    # Gasto variable: gasto no recurrente en los últimos 3 meses, media mensual.
+    # Se le pasan los mensuales ya calculados: buscarlos otra vez es releer la
+    # tabla de movimientos entera y reagruparla, para el mismo resultado.
+    variable_net = _variable_net_estimate(cur, recurring_monthly)
 
     projected = round(current + recurring_net + variable_net, 2)
 
@@ -61,8 +63,10 @@ def _next_month_first(d: date) -> date:
     return d.replace(month=d.month + 1, day=1)
 
 
-def _variable_net_estimate(cur: sqlite3.Cursor) -> float:
-    """Media del neto NO recurrente en los últimos 3 meses."""
+def _variable_net_estimate(cur: sqlite3.Cursor, recurring_monthly: list) -> float:
+    """Media del neto NO recurrente en los últimos 3 meses.
+
+    `recurring_monthly` son los grupos mensuales ya calculados por quien llama."""
     today = date.today()
     three_months_ago = today - timedelta(days=93)
     rows = cur.execute(
@@ -77,9 +81,6 @@ def _variable_net_estimate(cur: sqlite3.Cursor) -> float:
     if not rows:
         return 0.0
     # Resta recurrentes estimados
-    recurring_per_month = sum(
-        r.avg_amount for r in find_recurring(cur, min_occurrences=2)
-        if r.kind == "monthly"
-    )
+    recurring_per_month = sum(r.avg_amount for r in recurring_monthly)
     deltas = [r["total"] - recurring_per_month for r in rows]
     return mean(deltas) if deltas else 0.0

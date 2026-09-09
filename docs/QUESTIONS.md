@@ -82,3 +82,7 @@ Format:
 - 2026-09-09 [saldos] ¿Duplicar la regla de inversión en SQL agregado? -> no: `balances_by_account` es la única que la implementa en bloque, y un test la ata cuenta por cuenta a `account_balance`, que sigue para cuando solo hace falta una
 - 2026-09-09 [saldos] El desempate por id entre dos valoraciones del mismo día no se usa nunca -> lo impide UNIQUE(account_id, date); queda fijado en un test
 - 2026-09-09 [panel] Tenía el mismo N+1 dos veces (total_balance y el lateral de cuentas) -> 107 -> 77 consultas con 9 cuentas, y 471 -> 77 con 100
+- 2026-09-09 [panel] N+1 en detect_anomalies: una consulta por recurrente para saber su último movimiento -> el grupo ya lo tenía; se lleva last_id y last_amount. 77 -> 36 consultas, 77 -> 48 ms
+- 2026-09-09 [recurrentes] Esa consulta buscaba por descripción exacta y sin excluir traspasos -> podía tomar un movimiento espejo por la última factura y avisar de una subida que no existe. Cubierto por un test; en la base real no estaba disparando ninguno
+- 2026-09-09 [forecast] find_recurring se llamaba dos veces por render -> una; cada llamada es leer la tabla de movimientos entera y reagruparla
+- 2026-09-09 [panel] ¿Cómo se prueba que un cambio de rendimiento no cambia nada? -> renderizando el HTML con el código de antes y con el de ahora sobre la base real: idéntico byte a byte

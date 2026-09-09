@@ -8,7 +8,7 @@ import re
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date
 from statistics import mean, median, pstdev
 
 
@@ -35,6 +35,11 @@ class RecurringGroup:
     avg_amount: float
     median_amount: float
     last_date: str
+    # El último movimiento del grupo. Va aquí porque quien avisa de subidas de
+    # precio lo necesita, y preguntarlo otra vez a la base era una consulta por
+    # grupo —37 en la base real— para un dato que ya estaba calculado.
+    last_id: int
+    last_amount: float
     avg_interval_days: float
     kind: str   # 'monthly' | 'quarterly' | 'irregular'
     stability: float  # 0..1, cuanto más cerca de 1 más regular
@@ -60,7 +65,6 @@ def find_recurring(cur: sqlite3.Cursor, min_occurrences: int = 3) -> list[Recurr
         groups[key].append(r)
 
     results = []
-    today = date.today()
     for key, items in groups.items():
         if len(items) < min_occurrences:
             continue
@@ -89,6 +93,8 @@ def find_recurring(cur: sqlite3.Cursor, min_occurrences: int = 3) -> list[Recurr
             avg_amount=round(mean(amounts), 2),
             median_amount=round(median(amounts), 2),
             last_date=items[-1]["date"],
+            last_id=items[-1]["id"],
+            last_amount=items[-1]["amount"],
             avg_interval_days=round(avg_int, 1),
             kind=kind,
             stability=round(stability, 2),
@@ -135,28 +141,22 @@ def detect_anomalies(cur: sqlite3.Cursor) -> list[Anomaly]:
             amount=d["amount"],
         ))
 
-    # 2. Subidas de precio en recurrentes
-    recurrings = find_recurring(cur, min_occurrences=3)
-    for g in recurrings:
-        # Comparar último importe vs mediana
-        last = cur.execute(
-            "SELECT id, amount, description, date FROM transactions "
-            "WHERE id IN (SELECT id FROM transactions WHERE description = ? ORDER BY date DESC LIMIT 1)",
-            (g.description_sample,),
-        ).fetchone()
-        if not last:
-            continue
+    # 2. Subidas de precio en recurrentes.
+    # El último movimiento sale del propio grupo. Antes se preguntaba a la base
+    # por descripción, una consulta por grupo, y además sin excluir traspasos:
+    # un movimiento espejo con la misma descripción se colaba como si fuera la
+    # última factura y saltaba un aviso de subida que no existía.
+    for g in find_recurring(cur, min_occurrences=3):
         prev_median = g.median_amount
         if abs(prev_median) < 1:
             continue
-        delta = (last["amount"] - prev_median) / prev_median * 100
-        # Subida de precio: si era gasto (negativo) y se volvió más negativo >15%
-        if prev_median < 0 and last["amount"] < 0 and abs(last["amount"]) > abs(prev_median) * 1.15:
+        # Subida de precio: era gasto (negativo) y se volvió más negativo >15%
+        if prev_median < 0 and g.last_amount < 0 and abs(g.last_amount) > abs(prev_median) * 1.15:
             anomalies.append(Anomaly(
                 kind="price_jump",
-                message=f"«{g.payee_key}» subió de {abs(prev_median):.2f}€ a {abs(last['amount']):.2f}€",
-                transaction_ids=[last["id"]],
-                amount=last["amount"],
+                message=f"«{g.payee_key}» subió de {abs(prev_median):.2f}€ a {abs(g.last_amount):.2f}€",
+                transaction_ids=[g.last_id],
+                amount=g.last_amount,
             ))
 
     return anomalies
