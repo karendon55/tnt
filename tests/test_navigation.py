@@ -152,6 +152,38 @@ class TestConfiguracion(unittest.TestCase):
                               f"{nombre} no marca Configuración")
 
 
+class TestPaginasBienFormadas(unittest.TestCase):
+    """Un id repetido no da error en ningún sitio, pero rompe la página.
+
+    El caso real: al mudar las reglas de transferencia a /reglas, su diálogo
+    «newRule» chocó con el que ya había. getElementById devuelve el primero,
+    así que el botón de transferencias abría el diálogo de categorización."""
+
+    TODAS = [u for _, u, _ in MENU] + [u for _, u in CONFIGURACION] + ["/alias"]
+
+    def test_ningun_id_repetido(self):
+        for url in self.TODAS:
+            with self.subTest(pagina=url):
+                ids = re.findall(r'\sid="([^"]+)"', client.get(url).text)
+                repetidos = sorted({i for i in ids if ids.count(i) > 1})
+                self.assertEqual(repetidos, [], f"{url} repite ids: {repetidos}")
+
+    def test_reglas_tiene_sus_dos_dialogos_distintos(self):
+        html = client.get("/reglas").text
+        self.assertIn('id="newRule"', html)
+        self.assertIn('id="newTransferRule"', html)
+
+    def test_cada_boton_abre_un_dialogo_que_existe(self):
+        """Un getElementById a un id inexistente falla en silencio."""
+        for url in self.TODAS:
+            with self.subTest(pagina=url):
+                html = client.get(url).text
+                ids = set(re.findall(r'\sid="([^"]+)"', html))
+                for objetivo in re.findall(r"getElementById\('([^']+)'\)", html):
+                    self.assertIn(objetivo, ids,
+                                  f"{url}: un botón abre '{objetivo}', que no existe")
+
+
 class TestRutasQueSeMudan(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

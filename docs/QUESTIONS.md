@@ -44,3 +44,7 @@ Format:
 - 2026-09-08 [nav] Issue 2: ¿las cuentas de inversión siguen en Cuentas? -> sí, con su saldo; a Inversiones se muda la gestión del valor
 - 2026-09-08 [nav] Issue 3: ¿tests de rutas? -> sí, con httpx2 en requirements-dev.txt; 11 tests de navegación
 - 2026-09-09 [nav] Traspasos estaba en la barra y también dentro de Configuración -> solo arriba; una pantalla, un sitio
+- 2026-09-09 [reglas] Dos <dialog id="newRule"> en la misma página -> el de transferencias pasa a newTransferRule; test de ids únicos en todas las páginas
+- 2026-09-09 [reglas] ¿Cuál es la acción roja? -> Nueva regla de categorización; la de transferencia pasa a contorno
+- 2026-09-09 [inversiones] ¿"Guardar valoración" en rojo repitiéndose por fondo? -> sí; es la misma acción repetida, no dos compitiendo
+- 2026-09-09 [gráficos] Al cambiar de tema sin recargar la línea de tinta desaparecía -> tnt.js avisa y los gráficos se repintan; los estáticos llevan sello de versión

@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
     <!-- Basecoat: reset + componentes. tnt.css va después y mapea la paleta AC/DC. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
-    <link rel="stylesheet" href="/static/css/tnt.css">
+    <link rel="stylesheet" href="/static/css/tnt.css?v={{ static_version }}">
     <script>
       // Tema antes de pintar para evitar flash
       (function() {
@@ -64,7 +64,7 @@
         </div>
     </footer>
 
-    <script src="/static/js/tnt.js"></script>
+    <script src="/static/js/tnt.js?v={{ static_version }}"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     {% block scripts %}{% endblock %}
 </body>

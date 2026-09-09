@@ -1,6 +1,12 @@
 /* TNT — JS mínimo: tema, confeti, utilidades */
 
 // ============ Tema claro/oscuro ============
+// Quien pinte con colores leídos del tema (los gráficos) se registra aquí: al
+// cambiar de tema hay que repintar, porque Chart.js copia los colores cuando
+// se construye y no vuelve a mirarlos. Con la línea del color del texto, no
+// repintar significa que el gráfico desaparece sobre el fondo nuevo.
+window.tntRepintar = window.tntRepintar || [];
+
 (function () {
     const btn = document.getElementById('themeToggle');
     if (!btn) return;
@@ -10,6 +16,9 @@
         document.documentElement.setAttribute('data-theme', next);
         document.documentElement.classList.toggle('dark', next === 'dark');
         localStorage.setItem('tnt-theme', next);
+        window.tntRepintar.forEach(f => {
+            try { f(); } catch (e) { console.error('repintado tras cambio de tema:', e); }
+        });
     });
 })();
 

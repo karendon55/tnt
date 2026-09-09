@@ -217,49 +217,51 @@
 <script>
 (function () {
     const lineData = {{ line_json|safe }};
-    const css = getComputedStyle(document.documentElement);
-    const tok = (n, fb) => css.getPropertyValue(n).trim() || fb;
-    const accent = tok('--accent', '#e10600');
-    const text   = tok('--text-muted', '#9a9a9a');
-    // sin literal de reserva propio: si --text faltara, cae en el color de
-    // texto apagado, que ya tiene el suyo.
-    const ink    = tok('--text', text);
-    const grid   = tok('--chart-grid', 'rgba(255,255,255,.07)');
-    const eur = v => new Intl.NumberFormat('es-ES', {
-        style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
-
-    // maintainAspectRatio:false exige un contenedor con altura fija (.chart-box);
-    // sin él Chart.js agranda el canvas en cada redibujado hasta romper la página.
-    const base = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-    };
-
-    // La sparkline del hero se retiró: contaba la misma serie que la gráfica
-    // grande de "Evolución del saldo", unos centímetros más abajo.
-
+    const netData  = {{ net_json|safe }};
     const line = document.getElementById('chartLine');
-    if (line && lineData.labels.length) {
-        const netData = {{ net_json|safe }};
-        const pos = tok('--success', '#22c55e');
-        const neg = tok('--danger', '#f87171');
+    if (!line || !lineData.labels.length) return;
+
+    let chart = null;
+
+    // Los colores se leen DENTRO, no una vez al cargar: si cambias de tema hay
+    // que repintar con los nuevos, o la línea de tinta se queda del color del
+    // tema anterior y desaparece sobre el fondo.
+    function construir(nombre) {
+        const css = getComputedStyle(document.documentElement);
+        const tok = (n, fb = 'currentColor') => css.getPropertyValue(n).trim() || fb;
+        const accent = tok('--accent');
+        const text   = tok('--text-muted');
+        const ink    = tok('--text', text);
+        const grid   = tok('--chart-grid');
+        const pos    = tok('--success');
+        const neg    = tok('--danger');
+        const eur = v => new Intl.NumberFormat('es-ES', {
+            style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v);
+
+        // maintainAspectRatio:false exige un contenedor con altura fija
+        // (.chart-box); sin él Chart.js agranda el canvas en cada redibujado
+        // hasta romper la página.
+        const base = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+        };
         const ejes = {
             x: { grid: { display: false }, ticks: { color: text } },
             y: { grid: { color: grid }, ticks: { color: text,
                  callback: v => (v / 1000).toFixed(0) + 'k' } },
         };
 
-        // El saldo es acumulado y siempre positivo: línea con área.
-        // El neto es un valor por mes que puede ser negativo: barras con
-        // color según el signo, que se leen mejor sobre la línea del cero.
+        // El saldo es acumulado y siempre positivo: una línea. El neto es un
+        // valor por mes que puede ser negativo: barras con color según el
+        // signo, que se leen mejor sobre la línea del cero.
         const series = {
             saldo: {
                 titulo: 'Evolución del saldo',
                 pie: 'Saldo acumulado al cierre de cada mes.',
                 cfg: { type: 'line',
                     data: { labels: lineData.labels, datasets: [{
-                        // papel: la línea sola, en tinta, con el rojo reservado
+                        // Papel: la línea sola, en tinta, con el rojo reservado
                         // al último punto — el mes en el que estás.
                         data: lineData.values, borderColor: ink, borderWidth: 1.6,
                         fill: false, tension: .35, pointBackgroundColor: accent,
@@ -286,23 +288,30 @@
             },
         };
 
-        let chart = new Chart(line, series.saldo.cfg);
-        document.querySelectorAll('[data-serie]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const s = series[btn.dataset.serie];
-                if (!s) return;
-                document.querySelectorAll('[data-serie]').forEach(b => {
-                    const on = b === btn;
-                    b.classList.toggle('is-active', on);
-                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
-                });
-                chart.destroy();               // recrear evita mezclar tipos de gráfico
-                chart = new Chart(line, s.cfg);
-                document.getElementById('serieTitulo').textContent = s.titulo;
-                document.getElementById('seriePie').textContent = s.pie;
-            });
-        });
+        const s = series[nombre] || series.saldo;
+        if (chart) chart.destroy();   // recrear evita mezclar tipos de gráfico
+        chart = new Chart(line, s.cfg);
+        document.getElementById('serieTitulo').textContent = s.titulo;
+        document.getElementById('seriePie').textContent = s.pie;
     }
+
+    const serieActiva = () =>
+        document.querySelector('[data-serie].is-active')?.dataset.serie || 'saldo';
+
+    construir(serieActiva());
+    (window.tntRepintar = window.tntRepintar || []).push(() => construir(serieActiva()));
+
+    // Los botones se enganchan una sola vez: repintar por tema no los toca.
+    document.querySelectorAll('[data-serie]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-serie]').forEach(b => {
+                const on = b === btn;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            construir(btn.dataset.serie);
+        });
+    });
 })();
 </script>
 {% endblock %}

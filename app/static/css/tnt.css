@@ -255,7 +255,7 @@ select.select,.select{cursor:pointer}
   color:var(--text-subtle);font-weight:600;margin:0}
 /* Cabecera de sección: titulillo serif a la izquierda, acción a la derecha. */
 .sheet-head{display:flex;justify-content:space-between;align-items:baseline;
-  gap:1rem;margin-bottom:1.15rem}
+  gap:.4rem 1rem;margin-bottom:1.15rem;flex-wrap:wrap}
 /* Dos columnas con aire de verdad entre ellas (el boceto usa 56px). */
 .sheet-2{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem}
 @media(max-width:900px){.sheet-2{grid-template-columns:1fr;gap:2.2rem}}
@@ -350,9 +350,21 @@ select.select,.select{cursor:pointer}
 .pagehead p{margin:.4rem 0 0;color:var(--text-muted);font-size:.85rem}
 .pagehead-actions{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
 
-/* Tarjeta de fondo dentro de Inversiones: se distingue del fondo con un token,
-   no con un rgba a mano. (Pendiente de migrar a hoja y filete.) */
-.fund-card{background:var(--surface-hover)}
+/* ── Detalles desplegables y flotantes ───────────────────────────────── */
+/* Un <summary> con aspecto de control: sin el triangulito del navegador. */
+summary.icon-btn,summary.detail-toggle{list-style:none;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+.detail-toggle{display:inline-block;font-size:.85rem;color:var(--text-muted);
+  padding:.2rem 0;border-bottom:1px solid transparent;
+  transition:color .12s,border-color .12s}
+.detail-toggle:hover{color:var(--text);border-bottom-color:var(--border-strong)}
+/* Edición en línea de una regla: flota sobre la tabla, así que sí lleva
+   sombra — la prohibición del sistema es para superficies planas, no para
+   lo que se superpone. */
+.rule-edit{position:absolute;z-index:20;min-width:320px;margin-top:.4rem;
+  background:var(--surface-raised);border:1px solid var(--border-strong);
+  border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow-md)}
+.chart-mid{height:230px}
 
 /* ── Configuración ────────────────────────────────────────────────────── */
 /* Subnavegación: la hermana pequeña de la barra de arriba, mismo idioma. */
