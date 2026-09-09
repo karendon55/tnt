@@ -367,9 +367,23 @@ select.select,.select{cursor:pointer}
   padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
 .acct:last-of-type{border-bottom:0}
 .acct-dot{width:8px;height:8px;border-radius:99px;flex:none}
-/* .bar la siguen usando los presupuestos */
-.bar{height:7px;border-radius:99px;background:var(--muted);overflow:hidden}
-.bar>i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+/* ── Presupuestos ─────────────────────────────────────────────────────── */
+/* La barra estaba definida dos veces con valores distintos: aquí y en un
+   <style> dentro de budgets.html, que ganaba por ir después. Se queda una. */
+.bar{height:10px;border-radius:999px;background:var(--surface-hover);
+  border:1px solid var(--border);overflow:hidden}
+.bar-fill{display:block;height:100%;background:var(--success);
+  transition:width .2s ease}
+.bar-warn{background:var(--warning)}
+/* Sin degradado: el sistema los descarta. Pasarse del límite es rojo, y ya. */
+.bar-over{background:var(--danger)}
+/* Cada presupuesto es una fila con su filete, no una tarjeta. */
+.budgetrow{padding:1.15rem 0;border-bottom:1px solid var(--border)}
+.budgetrow:last-of-type{border-bottom:0}
+.budget-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.budget-foot{display:flex;justify-content:space-between;align-items:center;
+  gap:.6rem 1rem;flex-wrap:wrap;margin-top:.65rem}
+.w-num{width:120px}
 
 /* ── Cabecera de página (sirve para todas las pantallas migradas) ─────── */
 .pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;

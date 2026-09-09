@@ -3,20 +3,23 @@
 {% block title %}Presupuestos{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pagehead">
     <div>
         <h1>Presupuestos</h1>
         <p>
-            Límite mensual por categoría para {{ month_name }}.
-            {% if showing_latest %}<span class="pill pill-warning">último mes con datos</span>{% endif %}
+            Límite mensual por categoría para {{ month_name }}. La barra se llena con lo
+            gastado; cuando se pasa, se pone en rojo.
         </p>
+    </div>
+    <div class="pagehead-actions">
+        {% if showing_latest %}<span class="pill pill-warning">último mes con datos</span>{% endif %}
     </div>
 </div>
 
 {% if budgets %}
-<div class="card mb-md">
-    <div class="row-between">
-        <h3 class="card-title" style="margin:0;">Total presupuestado</h3>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Total presupuestado</h2>
         {% if totals.over %}
             <span class="pill pill-highway">Highway to Hell</span>
         {% elif totals.pct >= 80 %}
@@ -25,20 +28,24 @@
             <span class="pill pill-success">{{ totals.pct }}%</span>
         {% endif %}
     </div>
-    <div class="bar mt-lg">
+    {# El ancho sale del dato, no es un valor de diseño escrito a mano. #}
+    <div class="bar">
         <div class="bar-fill {% if totals.over %}bar-over{% elif totals.pct >= 80 %}bar-warn{% endif %}"
              style="width: {{ [totals.pct, 100]|min }}%;"></div>
     </div>
-    <div class="row-between mt-lg small muted">
+    <div class="budget-foot small muted">
         <span class="tabular">{{ totals.spent | eur }} gastado</span>
         <span class="tabular">{{ totals.limit | eur }} límite</span>
     </div>
 </div>
 
-<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1rem;">
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Por categoría <span class="muted">({{ budgets|length }})</span></h2>
+    </div>
     {% for b in budgets %}
-    <div class="card">
-        <div class="row-between">
+    <div class="budgetrow">
+        <div class="budget-head">
             <strong>{{ b.display_name }}</strong>
             {% if b.over %}
                 <span class="pill pill-highway">Highway to Hell · {{ b.pct }}%</span>
@@ -48,83 +55,76 @@
                 <span class="pill">{{ b.pct }}%</span>
             {% endif %}
         </div>
-        <div class="bar mt-lg">
+        <div class="bar mt-md">
             <div class="bar-fill {% if b.over %}bar-over{% elif b.warn %}bar-warn{% endif %}"
                  style="width: {{ [b.pct, 100]|min }}%;"></div>
         </div>
-        <div class="row-between mt-lg small">
+        <div class="budget-foot small">
             <span class="tabular">
                 <span class="muted">Gastado:</span> {{ b.spent | eur }}
-            </span>
-            <span class="tabular">
-                <span class="muted">Queda:</span>
+                <span class="muted">· Queda:</span>
                 <span class="{% if b.remaining < 0 %}amount-neg{% else %}amount-pos{% endif %}">
                     {{ b.remaining | eur_signed }}
                 </span>
             </span>
-        </div>
-        <div class="row wrap gap-lg mt-xl">
-            <form method="post" action="/presupuestos/{{ b.id }}/editar" class="row" style="gap:.35rem;">
-                <input class="input btn-sm tabular" type="number" step="0.01" name="monthly_limit"
-                       value="{{ b.limit }}" style="padding:.3rem .5rem; width:120px;">
-                <button type="submit" class="btn btn-sm">Actualizar</button>
-            </form>
-            <form method="post" action="/presupuestos/{{ b.id }}/borrar" style="display:inline;"
-                  onsubmit="return confirm('¿Borrar presupuesto de {{ b.display_name }}?');">
-                <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
-            </form>
+            <span class="row-actions">
+                <form method="post" action="/presupuestos/{{ b.id }}/editar" class="row gap-sm">
+                    <input class="input input-sm tabular w-num" type="number" step="0.01"
+                           name="monthly_limit" value="{{ b.limit }}"
+                           aria-label="Nuevo límite mensual de {{ b.display_name }}">
+                    <button type="submit" class="btn btn-sm">Actualizar</button>
+                </form>
+                <form method="post" action="/presupuestos/{{ b.id }}/borrar" class="inline-form"
+                      onsubmit="return confirm('¿Borrar el presupuesto de {{ b.display_name }}?');">
+                    <button type="submit" class="icon-btn is-danger"
+                            aria-label="Borrar el presupuesto de {{ b.display_name }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>
+                        </svg>
+                    </button>
+                </form>
+            </span>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="card">
-    <p class="muted">Aún no tienes presupuestos. Añade uno abajo.</p>
-</div>
+<p class="empty-state">Aún no tienes presupuestos. Añade el primero aquí abajo.</p>
 {% endif %}
 
-<div class="card mt-xl">
-    <h3 class="card-title">Añadir presupuesto</h3>
+<div class="sheet is-last">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Añadir presupuesto</h2>
+    </div>
     {% if pickable %}
-    <form method="post" action="/presupuestos/nuevo" class="row wrap gap-lg">
-        <div class="field" style="min-width:280px;">
-            <label>Categoría</label>
-            <select class="select" name="category_id" required>
-                <option value="" disabled selected>Elige una categoría…</option>
-                {% for c in pickable %}
-                <option value="{{ c.id }}">
-                    {% if c.is_sub %}&nbsp;&nbsp;↳ {% endif %}{{ c.label }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="field" style="min-width:180px;">
-            <label>Límite mensual (€)</label>
-            <input class="input tabular" type="number" step="0.01" min="0" name="monthly_limit" required>
-        </div>
-        <div style="align-self:flex-end;">
-            <button type="submit" class="btn btn-primary">Añadir</button>
+    <form method="post" action="/presupuestos/nuevo">
+        <div class="filterbar">
+            <div class="field">
+                <label for="new-cat">Categoría</label>
+                <select class="select" name="category_id" id="new-cat" required>
+                    <option value="" disabled selected>Elige una categoría…</option>
+                    {% for c in pickable %}
+                    <option value="{{ c.id }}">
+                        {% if c.is_sub %}&nbsp;&nbsp;↳ {% endif %}{{ c.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field">
+                <label for="new-limit">Límite mensual (€)</label>
+                <input class="input tabular" type="number" step="0.01" min="0"
+                       name="monthly_limit" id="new-limit" required>
+            </div>
+            <div class="filterbar-actions">
+                <button type="submit" class="btn btn-primary">Añadir</button>
+            </div>
         </div>
     </form>
     {% else %}
-    <p class="muted small">Ya tienes un presupuesto para cada categoría. Si quieres, añade una nueva en <a href="/categorias">Categorías</a>.</p>
+    <p class="empty-state">
+        Ya tienes un presupuesto para cada categoría. Si quieres otro, crea antes la
+        categoría en <a class="lnk" href="/categorias">Categorías</a>.
+    </p>
     {% endif %}
 </div>
-
-<style>
-    .bar {
-        height: 10px;
-        background: var(--surface-hover);
-        border-radius: 999px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-    }
-    .bar-fill {
-        height: 100%;
-        background: var(--success);
-        transition: width .2s ease;
-    }
-    .bar-warn { background: var(--warning); }
-    .bar-over { background: linear-gradient(90deg, var(--accent), var(--warning)); }
-</style>
 {% endblock %}

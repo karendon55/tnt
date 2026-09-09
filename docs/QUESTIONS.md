@@ -57,3 +57,5 @@ Format:
 - 2026-09-09 [categorias] Los ocho colores del gráfico vivían en Python -> pasan a tokens --serie-1..8, leídos del tema y repintados al cambiarlo
 - 2026-09-09 [backup] ¿Qué pasa si se pulsa "Hacer backup" en modo demostración? -> se bloquea: escribiría la base de mentira sobre las copias reales
 - 2026-09-09 [backup] ¿Dos botones rojos (Hacer backup y Restaurar)? -> son tokens distintos: --accent para la acción principal, --danger para la destructiva
+- 2026-09-09 [presupuestos] El estado "pasado de límite" era un degradado -> pasa a --danger sólido; el sistema descarta los degradados
+- 2026-09-09 [presupuestos] .bar estaba definida dos veces con valores distintos -> una sola, en tnt.css
