@@ -66,3 +66,6 @@ Format:
 - 2026-09-09 [fiabilidad] Las escrituras multi-paso corrían en autocommit -> cursor() es ahora la transacción, y savepoint() para lotes. Comprobado: ni un enlace huérfano en la base real
 - 2026-09-09 [importar] "Auto-categorizados" contaba toda la base -> se parte en dos: KPI = lo del lote, pie = movimientos anteriores rescatados. Las dos cifras interesan, pero no en el mismo sitio
 - 2026-09-09 [tests] test_cada_boton_abre_un_dialogo_que_existe pasaba por accidente (base de pruebas vacía) -> se acota a .showModal(); un getElementById guardado en variable y comprobado no es un fallo
+- 2026-09-09 [css] tnt.css estaba en 535 líneas, por encima del tope duro de 500 -> se parte en cinco hojas por secciones contiguas, sin reordenar una sola regla: la concatenación es idéntica byte a byte al original
+- 2026-09-09 [css] ¿@import o cinco <link>? -> cinco <link>; @import serializa las descargas. El orden de los <link> ES la cascada, y lo fija un test
+- 2026-09-09 [css] El sello de caché miraba una lista de ficheros escrita a mano -> mira el directorio; una lista se queda corta al añadir la sexta hoja y falla en silencio

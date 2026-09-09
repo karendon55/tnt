@@ -91,9 +91,13 @@ app/
 │   │                                        toggle tema, silueta Angus
 │   └── dashboard.html                   ★ sólo empty state (todavía)
 └── static/
-    ├── css/tnt.css                      ★ paleta completa, componentes,
-    │                                        pill-highway (easter egg), KPI,
-    │                                        tabla, botones, empty-state
+    ├── css/                             ★ cinco hojas, cargadas en este orden
+    │   ├── tokens.css                   ★ paleta completa, claro y oscuro
+    │   ├── base.css                     ★ reset, topbar, pie, utilidades
+    │   ├── componentes.css              ★ tarjetas, botones, diálogos, tablas,
+    │   │                                    pill-highway (easter egg), avisos
+    │   ├── patrones.css                 ★ hoja y filete, KPIs, panel
+    │   └── pantallas.css                ★ categorías, ajustes, movimientos
     ├── js/tnt.js                        ★ toggle tema persistente,
     │                                        tntConfetti(), formatEUR()
     └── img/favicon.svg                  ★ rayo rojo

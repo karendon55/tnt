@@ -1,7 +1,7 @@
 # Design System — TNT
 
 Fuente de verdad visual del proyecto. Se actualiza **antes** de generar componentes,
-nunca después. Los tokens reales viven en `app/static/css/tnt.css`; este documento
+nunca después. Los tokens reales viven en `app/static/css/tokens.css`; este documento
 dice qué está bloqueado y qué no se puede inventar en el punto de uso.
 
 ## Brand foundation
@@ -28,7 +28,7 @@ dice qué está bloqueado y qué no se puede inventar en el punto de uso.
 
 ## Color: variables CSS, nunca literales en plantillas
 
-Todos los colores viven en `app/static/css/tnt.css` (`:root` y `:root[data-theme="dark"], .dark`)
+Todos los colores viven en `app/static/css/tokens.css` (`:root` y `:root[data-theme="dark"], .dark`)
 y se consumen por token semántico. Contrato shadcn/Basecoat: `--background`, `--foreground`,
 `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent-bg`, `--destructive`,
 `--border`, `--input`, `--ring`, cada uno con su `-foreground`.
@@ -43,7 +43,7 @@ Alias propios de TNT sobre ese contrato: `--bg`, `--surface`, `--surface-raised`
 - **Fondo neutro** (decidido el 2026-09-08): el negro que ya tiene TNT, sin virar a cálido.
 - **El rojo puro no se usa en texto pequeño sobre oscuro**: `#e10600` queda para la marca, la
   acción principal y el punto de aviso; los importes negativos usan `--danger` (`#f87171` en
-  oscuro), que es lo que ya hace `tnt.css`.
+  oscuro), que es lo que ya hace `tokens.css`.
 - Semáforo de importes: `--success` positivo, `--danger` negativo, `--warning` aviso. Nada más.
 - Los dos temas (claro y oscuro) son obligatorios: todo token nuevo se define en ambos bloques.
   El tema claro de la dirección es el boceto 2 original (fondo hueso), no un negativo mecánico.
@@ -83,7 +83,7 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 
 ## Movimiento
 
-- Transiciones cortas: `.12s` en fondo y borde de controles (contrato actual de `tnt.css`).
+- Transiciones cortas: `.12s` en fondo y borde de controles (contrato actual de `componentes.css`).
 - Única animación viva: `.bolt-loading` (pulso del rayo) como indicador de carga.
 - Sin física de muelle. Todo debe poder colapsar bajo `prefers-reduced-motion`.
 
@@ -105,7 +105,7 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 
 ## Librerías (máximo dos por superficie)
 
-- **Basecoat CSS** (CDN) aporta reset y componentes; `tnt.css` mapea su contrato de tokens.
+- **Basecoat CSS** (CDN) aporta reset y componentes; `tokens.css` mapea su contrato de tokens.
 - **htmx** para interacción; **Chart.js** para gráficos, siempre leyendo colores con
   `getComputedStyle` sobre los tokens, nunca con literales.
 
@@ -113,7 +113,7 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 
 1. Cada pantalla es una pieza de portfolio: "diseñada por un equipo", no "generada".
 2. Si falta un color, una fuente, un radio, una sombra o una curva de movimiento, se añade
-   **primero aquí y a `tnt.css`**, y después se usa. Nunca se inventa en el punto de uso.
+   **primero aquí y a `tokens.css`**, y después se usa. Nunca se inventa en el punto de uso.
 3. Los componentes de Basecoat se personalizan (hover de botón, sombra de tarjeta, anillo de
    foco); los valores por defecto son el look generado.
 4. Antes de un componente nuevo: 3 a 5 referencias en `explorations/<superficie>-refs/` y
@@ -124,7 +124,7 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 ## Lo que NO se hace
 
 - Sin serif en cifras de tabla ni de categoría: rompe la frontera de la pareja tipográfica.
-- Sin colores literales (`#hex`, `rgb()`, `hsl()`) en `app/templates/`. Van a `tnt.css` como token.
+- Sin colores literales (`#hex`, `rgb()`, `hsl()`) en `app/templates/`. Van a `tokens.css` como token.
 - Sin atributos `style="..."` con valores literales en las plantillas.
 - Sin `text-shadow`. Sin `backdrop-blur` sobre texto (el de la topbar es sobre fondo, y se queda).
 - Sin `animate-pulse` salvo esqueletos de carga.
@@ -133,9 +133,25 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 
 ## Deuda conocida
 
-`ui-vocabulary-check.py audit` da **221 hallazgos** (todos COLOR), de los cuales **31 en `app/`**
-(31 en plantillas y `tnt.css`) y 190 en `mockups/`. No se reescriben: el hook solo bloquea
-hallazgos **nuevos**. Se migra un fichero cuando ya se está tocando por otro motivo.
+`ui-vocabulary-check.py audit` sobre `app/` da **0 hallazgos**: los colores literales que
+quedaban se fueron con la migración pantalla a pantalla, y los que viven en `tokens.css` son
+definiciones de token, que es donde deben estar. Quedan **190 en `mockups/`**, que no se
+reescriben. El hook solo bloquea hallazgos **nuevos**.
+
+### Cómo está partida la hoja de estilos
+
+Cinco ficheros en `app/static/css/`, cargados **en este orden** desde `base.html`:
+
+| Fichero | Qué lleva |
+|---|---|
+| `tokens.css` | la paleta entera, claro y oscuro. Único sitio con literales |
+| `base.css` | reset, tipografía, topbar, pie, utilidades de maquetación |
+| `componentes.css` | tarjetas, botones, diálogos, formularios, píldoras, tablas, avisos |
+| `patrones.css` | el lenguaje "papel en oscuro": hoja y filete, KPIs, cabecera de página |
+| `pantallas.css` | lo que solo sale en un sitio, y al final el responsive |
+
+**El orden es la cascada**: reordenar los `<link>` cambia el resultado sin tocar una regla.
+Lo fija `tests/test_estaticos.py`, que además falla si una hoja pasa de 500 líneas.
 
 ## Briefs por superficie
 

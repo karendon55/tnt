@@ -14,13 +14,18 @@ def _version_estaticos() -> str:
 
     Sin esto, tras actualizar TNT el navegador puede seguir sirviendo la hoja
     de estilos anterior durante horas: ves la app a medio pintar y no hay
-    forma obvia de saber por qué."""
+    forma obvia de saber por qué.
+
+    Se mira el directorio entero, no una lista de ficheros: la hoja de estilos
+    son ya cinco, y una lista escrita a mano se queda corta en cuanto se añade
+    la sexta —sin fallar, que es lo malo: simplemente deja de invalidar."""
     ultimo = 0.0
-    for f in (STATIC_DIR / "css" / "tnt.css", STATIC_DIR / "js" / "tnt.js"):
-        try:
-            ultimo = max(ultimo, f.stat().st_mtime)
-        except OSError:
-            pass
+    for carpeta, patron in ((STATIC_DIR / "css", "*.css"), (STATIC_DIR / "js", "*.js")):
+        for f in carpeta.glob(patron):
+            try:
+                ultimo = max(ultimo, f.stat().st_mtime)
+            except OSError:
+                pass
     return str(int(ultimo))
 
 

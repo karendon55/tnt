@@ -101,7 +101,7 @@ def categories_move(cat_id: int, parent_id: str = Form("")):
 
 
 # Los colores de las series ya no se deciden aquí: son tokens --serie-N de
-# tnt.css que la plantilla lee del tema. Así cambian con el tema claro/oscuro
+# tokens.css que la plantilla lee del tema. Así cambian con el tema claro/oscuro
 # y no hay una paleta escrita a mano fuera del sistema de diseño.
 
 

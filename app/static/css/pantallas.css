@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TNT · pantallas
+   Lo que solo aparece en un sitio: el árbol de Categorías, las filas de
+   Configuración, los filtros y la tabla de Movimientos. Cierran el fichero el
+   bloque responsive y el de movimiento reducido, que van los últimos a
+   propósito: son la última palabra de la cascada.
+
+   Trozo de la hoja que estaba en un solo tnt.css. El ORDEN de los <link> en
+   base.html es la cascada: el último; nada debe cargarse después.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Árbol de categorías ─────────────────────────────────────────────── */
+/* Sin cajas: cada categoría padre es una fila cerrada por un filete y, al
+   abrirse, muestra sus hijas indentadas. Vivía en un <style> dentro de
+   categories.html. */
+.cat-group{border-bottom:1px solid var(--border)}
+.cat-group:last-of-type{border-bottom:0}
+.cat-group summary{cursor:pointer;list-style:none;display:flex;
+  justify-content:space-between;align-items:center;gap:.75rem;padding:.7rem 0}
+.cat-group summary::-webkit-details-marker{display:none}
+.cat-group summary::before{content:"›";color:var(--text-subtle);font-size:1rem;
+  margin-right:.55rem;display:inline-block;transition:transform .15s ease}
+.cat-group[open]>summary::before{transform:rotate(90deg)}
+.cat-group summary:hover .cat-name{color:var(--accent)}
+/* El chevron es un pseudo-elemento y también cuenta como ítem del flex:
+   sin este auto, space-between dejaba el nombre centrado. */
+.cat-name{font-weight:500;margin-right:auto;transition:color .12s}
+.cat-body{padding:.1rem 0 1.1rem 1.15rem}
+.cat-children{list-style:none;padding:0;margin:0 0 .7rem}
+.cat-children li.cat-child{display:flex;flex-wrap:wrap;justify-content:space-between;
+  align-items:center;gap:.5rem;padding:.45rem 0;
+  border-bottom:1px dotted var(--border-strong)}
+.cat-children li.cat-child:last-child{border-bottom:0}
+.cat-child-name{flex:1 1 200px}
+.cat-child-actions{flex:1 1 auto;justify-content:flex-end;gap:.35rem}
+/* Controles pequeños de las filas del árbol (vivían en style= en línea). */
+.input-sm{padding:.3rem .5rem;font-size:.82rem}
+.w-sm{min-width:140px}
+.w-md{min-width:160px}
+.w-lg{min-width:240px}
+
+/* ── Configuración ────────────────────────────────────────────────────── */
+/* Subnavegación: la hermana pequeña de la barra de arriba, mismo idioma. */
+.subnav{display:flex;gap:1.1rem;flex-wrap:wrap;padding:.2rem 0 .9rem;
+  border-bottom:1px solid var(--border)}
+.subnav-link{font-size:.85rem;color:var(--text-muted);padding:.15rem 0;
+  border-bottom:1.5px solid transparent;transition:color .12s,border-color .12s}
+.subnav-link:hover{color:var(--text)}
+.subnav-link.is-active{color:var(--text);border-bottom-color:var(--accent)}
+/* Portada de Configuración: filas separadas por filete, no tarjetas. */
+.settings-row{display:grid;grid-template-columns:13rem 1fr;gap:1.5rem;
+  align-items:baseline;padding:1.05rem 0;border-bottom:1px solid var(--border);
+  color:var(--text)}
+.settings-row:last-child{border-bottom:0}
+.settings-row:hover{color:var(--text)}
+.settings-row:hover .settings-row-title{color:var(--accent)}
+.settings-row-title{font-family:var(--font-display);font-size:1.15rem;font-weight:400;
+  transition:color .12s}
+.settings-row-text{color:var(--text-muted);font-size:.88rem}
+@media(max-width:640px){.settings-row{grid-template-columns:1fr;gap:.15rem}}
+
+/* ── Movimientos ──────────────────────────────────────────────────────── */
+/* Filtros: una fila cerrada por un filete, no una tarjeta. */
+.filterbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:1rem 1.4rem;align-items:end;padding:0 0 1.3rem;
+  border-bottom:1px solid var(--border);margin-bottom:1.4rem}
+.filterbar .field{margin:0}
+.filterbar-actions{display:flex;align-items:center;gap:1.2rem}
+/* Controles dentro de una celda: callados hasta que los tocas. El selector
+   lleva el nombre del elemento para ganarle a la regla de input[type=text]. */
+input.cell-edit,select.cell-edit{background:transparent;border:1px solid transparent;
+  border-radius:var(--radius-sm);padding:.25rem .35rem;font-size:.82rem;width:100%;
+  min-width:0;color:var(--text);font-family:inherit}
+select.cell-edit{cursor:pointer}
+input.cell-edit::placeholder{color:var(--text-subtle)}
+input.cell-edit:hover,select.cell-edit:hover{border-color:var(--border)}
+input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
+  background:var(--surface-raised);outline:2px solid var(--accent-soft);outline-offset:1px}
+/* Botón de solo icono: 16px, sin caja hasta el hover, y con nombre accesible
+   en el marcado (aria-label), que un icono no se lee solo. */
+.icon-btn{display:inline-grid;place-items:center;width:28px;height:28px;padding:0;
+  background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);
+  color:var(--text-muted);cursor:pointer;transition:color .12s,border-color .12s}
+.icon-btn:hover{color:var(--text);border-color:var(--border)}
+.icon-btn.is-danger:hover{color:var(--danger);border-color:var(--danger)}
+.icon-btn:focus-visible{outline:2px solid var(--accent-soft);outline-offset:1px;
+  border-color:var(--accent)}
+.icon-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.row-actions{display:flex;gap:.15rem}
+/* Paginación: enlaces separados por un filete, no botones. */
+.pager{display:flex;align-items:center;gap:1.5rem;padding:1.2rem 0 0;
+  border-top:1px solid var(--border);margin-top:.2rem;font-size:.85rem}
+.pager-info{margin-left:auto}
+.pager-info+.lnk{margin-left:0}
+/* Diálogos del ancho de siempre, sin el style= en la plantilla */
+.dialog-sm{max-width:520px}
+.dialog-md{max-width:640px}
+/* Formularios que no deben estirarse a todo el ancho de la hoja. */
+.form-narrow{max-width:32rem}
+.textarea-full{width:100%}
+.list-plain{list-style:none;padding:0;margin:.25rem 0 .5rem}
+/* Un destino de backup: fila con su punteado, no una caja dentro de otra. */
+.destrow{padding:.95rem 0;border-bottom:1px dotted var(--border-strong)}
+.destrow:last-of-type{border-bottom:0}
+/* La sugerencia de regla, cuando ya se ha creado. El tinte sale del token de
+   éxito, no de un rgba escrito a mano. */
+.rule-suggestion.is-ok{background:color-mix(in srgb,var(--success) 10%,transparent);
+  border-color:color-mix(in srgb,var(--success) 35%,transparent)}
+.inline-form{display:inline}
+.field-hint{margin:.25rem 0 0}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.form-1-2{display:grid;grid-template-columns:1fr 2fr;gap:.75rem}
+@media(max-width:520px){.form-2,.form-1-2{grid-template-columns:1fr}}
+/* Reparto de anchos de la tabla de movimientos. Vive aquí y no en <col
+   style=>: con table-layout:fixed las columnas dejan de competir y el
+   importe nunca queda fuera. La subcategoría necesita 246px, que es lo que
+   ocupa "Belleza, peluquería y perfumería" con su control. */
+.table-mov col:nth-child(1){width:86px}
+.table-mov col:nth-child(3){width:120px}
+.table-mov col:nth-child(4){width:140px}
+.table-mov col:nth-child(5){width:246px}
+.table-mov col:nth-child(6){width:150px}
+.table-mov col:nth-child(7){width:116px}
+.table-mov col:nth-child(8){width:74px}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
+.bolt-loading{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── Movimiento reducido ───────────────────────────────────────────────
+   Quien lo pida en el sistema no ve ni el pulso del rayo ni las
+   transiciones. Lo exige el listón de accesibilidad del design-system. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

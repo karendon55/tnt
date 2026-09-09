@@ -1,0 +1,121 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TNT · componentes
+   Las piezas que Basecoat aporta y aquí se ajustan: tarjetas, botones,
+   diálogos, formularios, píldoras, tablas y avisos. Las usa toda la app.
+
+   Trozo de la hoja que estaba en un solo tnt.css. El ORDEN de los <link> en
+   base.html es la cascada: después de base, antes de patrones, que las afina.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tarjetas ──────────────────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:1.15rem}
+.card-title{font-size:.74rem;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--text-muted);font-weight:600;margin:0 0 .5rem}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.page-header h1{margin:0}
+.page-header p{margin:.2rem 0 0;color:var(--text-muted);font-size:.85rem}
+.page-title{margin:0 0 1.25rem}
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:.35rem;background:transparent;
+  border:1px solid var(--border);color:var(--text);border-radius:var(--radius);
+  padding:.45rem .8rem;font-size:.85rem;font-weight:500;cursor:pointer;
+  font-family:inherit;line-height:1.4;transition:background .12s,border-color .12s}
+.btn:hover{background:var(--muted);color:var(--text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--primary-foreground)}
+.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);
+  color:var(--primary-foreground)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:var(--danger-foreground)}
+.btn-danger:hover{filter:brightness(1.1);color:var(--danger-foreground)}
+.btn-ghost{border-color:transparent}
+.btn-ghost:hover{background:var(--muted)}
+.btn-sm{padding:.3rem .6rem;font-size:.78rem}
+/* Botón activo de un segmentado: sobrio. El rojo sólido queda para la acción
+   principal de la página, no para marcar cuál de dos series estás viendo. */
+.btn.is-active{background:var(--muted);border-color:var(--border-strong);color:var(--text)}
+.btn.is-active:hover{background:var(--surface-hover);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Diálogos ──────────────────────────────────────────────────────────
+   El navegador oculta los <dialog> cerrados, pero la clase .card de
+   Basecoat les pone display:flex y eso gana a la regla del navegador (los
+   estilos de autor mandan sobre los del agente de usuario). Como los
+   diálogos de TNT usan .card, se quedaban visibles en la página. */
+dialog:not([open]){display:none}
+dialog{max-width:min(calc(100vw - 2rem),560px);width:100%;
+  /* el reset de Basecoat pone margin:0 y eso anula el centrado que el
+     navegador aplica a los modales; lo devolvemos explícitamente */
+  margin:auto;max-height:calc(100vh - 3rem);overflow:auto;
+  border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--surface-raised);color:var(--text);box-shadow:var(--shadow-md)}
+dialog::backdrop{background:var(--backdrop);backdrop-filter:blur(2px)}
+
+/* ── Formularios ───────────────────────────────────────────────────────── */
+.field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem}
+.field label,label>span{font-size:.8rem;color:var(--text-muted);font-weight:500}
+.input,.select,input[type=text],input[type=date],input[type=number],
+input[type=password],input[type=file],select,textarea{
+  background:var(--surface-raised);border:1px solid var(--input);color:var(--text);
+  border-radius:var(--radius);padding:.45rem .7rem;font-size:.88rem;
+  font-family:inherit;width:100%;max-width:100%}
+.input:focus,.select:focus,input:focus,select:focus,textarea:focus{
+  outline:2px solid var(--accent-soft);outline-offset:1px;border-color:var(--accent)}
+select.select,.select{cursor:pointer}
+.form-grid{display:grid;gap:.75rem}
+
+/* ── Píldoras / etiquetas ──────────────────────────────────────────────── */
+.pill,.chip{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .55rem;
+  border-radius:99px;font-size:.72rem;font-weight:500;background:var(--muted);
+  color:var(--text-muted);white-space:nowrap}
+.pill-success,.chip.ok{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success)}
+.pill-warning,.chip.wa{background:color-mix(in srgb,var(--warning) 15%,transparent);color:var(--warning)}
+.pill-danger,.chip.bad{background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)}
+.pill-accent{background:var(--accent-soft);color:var(--accent)}
+.pill-highway{background:var(--muted);color:var(--silver)}
+
+/* ── Tablas ────────────────────────────────────────────────────────────── */
+.table,table.t{width:100%;border-collapse:collapse;font-size:.86rem}
+.table th,table.t th{text-align:left;font-size:.7rem;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--text-muted);font-weight:600;padding:.5rem .6rem;
+  border-bottom:1px solid var(--border);white-space:nowrap}
+.table td,table.t td{padding:.55rem .6rem;
+  border-bottom:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+.table tr:last-child td,table.t tr:last-child td{border-bottom:0}
+.table tbody tr:hover,table.t tbody tr:hover{background:var(--muted)}
+.table .num,.table .right{text-align:right}
+
+/* ── Tabla de movimientos ──────────────────────────────────────────────
+   table-layout:fixed hace que se respeten los anchos del <colgroup>: sin
+   él las columnas compiten, la tabla se pasa del contenedor y la tarjeta
+   recorta el importe. El contenedor con scroll es la red de seguridad en
+   pantallas estrechas. */
+.table-scroll{overflow-x:auto;margin:0 -.25rem;padding:0 .25rem}
+.table-fixed{table-layout:fixed}
+.table-fixed td{vertical-align:middle}
+/* Los controles en línea ocupan su celda entera, sin encogerse */
+.table-fixed td .select,.table-fixed td .input,
+.table-fixed td select,.table-fixed td input[type=text]{width:100%;min-width:0}
+/* max-width:0 solo en la celda: obliga a respetar el ancho del <col>.
+   Los elementos de dentro usan el .trunc normal (max-width:100%). */
+.table-fixed>tbody>tr>td.trunc{max-width:0}
+.table-mov{min-width:1120px}
+.table-mov td form{width:100%}
+.table-trans{min-width:1000px}
+
+/* ── Avisos ────────────────────────────────────────────────────────────── */
+.notice{border:1px solid var(--border);border-left:3px solid var(--text-muted);
+  border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;background:var(--surface)}
+.notice-info{border-left-color:var(--warning)}
+.notice-success{border-left-color:var(--success)}
+.notice-danger{border-left-color:var(--danger)}
+.rule-suggestion{background:var(--muted);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.6rem .8rem;font-size:.82rem}
+.empty-state{text-align:center;color:var(--text-subtle);padding:2.5rem 1rem;font-size:.9rem}
+
+/* ── KPIs ──────────────────────────────────────────────────────────────── */
+.kpi-value{font-size:1.65rem;font-weight:700;letter-spacing:-.02em;margin-top:.35rem}
+.kpi-delta{font-size:.8rem;color:var(--text-muted);margin-top:.25rem}
+.kpi-delta.is-positive{color:var(--success)}
+.kpi-delta.is-negative{color:var(--danger)}

@@ -6,9 +6,13 @@
     <title>{% block title %}{{ app_name }}{% endblock %} · {{ app_tagline }}</title>
     <meta name="description" content="{{ app_name }} — {{ app_tagline }}. Finanzas personales locales.">
     <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg">
-    <!-- Basecoat: reset + componentes. tnt.css va después y mapea la paleta AC/DC. -->
+    <!-- Basecoat: reset + componentes. Lo de TNT va después y mapea la paleta AC/DC.
+         El ORDEN de estas cinco hojas ES la cascada: cada una afina la anterior.
+         Si añades otra, ponla en su sitio, no al final por comodidad. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@1.0.2/dist/basecoat.cdn.min.css">
-    <link rel="stylesheet" href="/static/css/tnt.css?v={{ static_version }}">
+    {% for hoja in ["tokens", "base", "componentes", "patrones", "pantallas"] %}
+    <link rel="stylesheet" href="/static/css/{{ hoja }}.css?v={{ static_version }}">
+    {%- endfor %}
     <script>
       // Tema antes de pintar para evitar flash
       (function() {

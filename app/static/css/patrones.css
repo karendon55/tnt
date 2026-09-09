@@ -1,0 +1,166 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TNT · patrones «papel en oscuro»
+   El vocabulario que nació en el panel y hoy usan todas las pantallas:
+   hoja y filete (.sheet), etiqueta (.lbl), enlace de acción (.lnk), banda de
+   KPIs, línea de aviso, cabecera de página. Con ellos van las piezas propias
+   del panel y de Presupuestos, que fueron quienes estrenaron el lenguaje.
+
+   Trozo de la hoja que estaba en un solo tnt.css. El ORDEN de los <link> en
+   base.html es la cascada: después de componentes, porque afina .card, .table y compañía.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel: piezas del rediseño ────────────────────────────────────────── */
+/* Papel en oscuro: una sección del panel no es una tarjeta, es una hoja
+   separada por un filete. .card sigue intacta para las once pantallas que
+   todavía no han migrado. */
+.sheet{padding:2.1rem 0;border-bottom:1px solid var(--border)}
+.sheet:last-child,.sheet.is-last{border-bottom:0}
+.sheet-title{font-family:var(--font-display);font-size:1.25rem;font-weight:400;
+  letter-spacing:-.01em;margin:0}
+/* Etiqueta de sección: versalitas espaciadas. La usan el hero y los KPIs. */
+.lbl{font-size:.72rem;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--text-subtle);font-weight:600;margin:0}
+/* Cabecera de sección: titulillo serif a la izquierda, acción a la derecha. */
+.sheet-head{display:flex;justify-content:space-between;align-items:baseline;
+  gap:.4rem 1rem;margin-bottom:1.15rem;flex-wrap:wrap}
+/* Dos columnas con aire de verdad entre ellas (el boceto usa 56px). */
+.sheet-2{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem}
+@media(max-width:900px){.sheet-2{grid-template-columns:1fr;gap:2.2rem}}
+/* Acción secundaria: enlace subrayado, sin caja. El rojo se reserva para la
+   acción principal, la marca y lo negativo. */
+.lnk{display:inline-block;font-size:.85rem;color:var(--text);
+  border-bottom:1px solid var(--border-strong);padding-bottom:1px;
+  transition:color .12s,border-color .12s}
+.lnk:hover{color:var(--accent);border-bottom-color:var(--accent)}
+/* Banda de KPIs: tres columnas separadas por filete, sin tarjetas. */
+.kpiband{display:grid;grid-template-columns:repeat(3,1fr);
+  border-bottom:1px solid var(--border)}
+.kpiband>div{padding:1.7rem 1.7rem 1.7rem 0;border-right:1px solid var(--border)}
+.kpiband>div+div{padding-left:1.7rem}
+.kpiband>div:last-child{border-right:0;padding-right:0}
+.kpiband .kpi-value{font-family:var(--font-display);font-size:2.15rem;
+  font-weight:400;letter-spacing:-.02em;margin-top:.45rem}
+/* El resumen de una importación trae cuatro cifras, no tres. */
+.kpiband.is-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.kpiband.is-4{grid-template-columns:repeat(2,1fr)}
+  .kpiband.is-4>div:nth-child(2){border-right:0;padding-right:0}
+  .kpiband.is-4>div:nth-child(3){padding-left:0;border-top:1px solid var(--border);padding-top:1.2rem}
+  .kpiband.is-4>div:nth-child(4){border-top:1px solid var(--border);padding-top:1.2rem}}
+@media(max-width:860px){
+  .kpiband,.kpiband.is-4{grid-template-columns:1fr}
+  .kpiband>div,.kpiband>div+div{padding:1.2rem 0;border-right:0;
+    border-bottom:1px solid var(--border)}
+  .kpiband>div:last-child{border-bottom:0}
+}
+/* Avisos: un punto y una línea de texto. Sin emoji y sin caja de color. */
+.warnline{padding:1rem 0;border-bottom:1px solid var(--border);
+  font-size:.85rem;color:var(--text-muted)}
+.warnline-top{display:flex;align-items:center;gap:.6rem}
+.warnline-top strong{color:var(--text);font-weight:600}
+.warndot{width:6px;height:6px;border-radius:99px;background:var(--accent);flex:none}
+.warnlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
+  gap:.15rem 1.5rem;margin-top:.55rem}
+/* El punto cambia de color según el tono del mensaje. Sirve igual para un
+   aviso del panel que para un «lote deshecho» o un fichero que falló. */
+.warndot.is-ok{background:var(--success)}
+.warndot.is-bad{background:var(--danger)}
+.warnline ul{margin:.4rem 0 0;padding-left:1.1rem}
+/* Tablas dentro de una hoja: sin acolchado lateral, que manden los filetes. */
+.sheet .table th:first-child,.sheet .table td:first-child{padding-left:0}
+.sheet .table th:last-child,.sheet .table td:last-child{padding-right:0}
+.warnline-top .lnk{margin-left:auto}
+.backup-results{list-style:none;padding:0;margin:.4rem 0 0;width:100%}
+.backup-results li{margin:.1rem 0}
+/* Movimientos y lateral: la tabla manda, el lateral acompaña. */
+.sheet-mov{display:grid;grid-template-columns:1.55fr 1fr;gap:3.5rem}
+@media(max-width:1000px){.sheet-mov{grid-template-columns:1fr;gap:2.2rem}}
+/* Fila de dos columnas (previsión, totales), hermana de .acct. */
+.fcrow{display:grid;grid-template-columns:1fr auto;gap:.9rem;align-items:baseline;
+  padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.fcrow:last-of-type{border-bottom:0}
+.fcrow.is-total{border-top:1px solid var(--border);border-bottom:0;margin-top:.4rem;
+  padding-top:.8rem}
+/* Anchos de la tabla de movimientos del panel (vivían en style= ) */
+/* Fila presente pero que no va a insertarse: se atenúa, no se oculta. */
+.is-dim{opacity:.55}
+.block{display:block}
+/* Anchos de las dos tablas de Traspasos. Salida y Entrada se repartían 422px
+   cada una y empujaban el botón fuera del contenedor; con anchos fijos en las
+   columnas cortas, las dos largas se quedan con el sobrante. */
+.table-pairs col:nth-child(1){width:86px}
+.table-pairs col:nth-child(3),.table-pairs col:nth-child(5){width:118px}
+.table-pairs col:nth-child(6){width:132px}
+.table-suggest col:nth-child(2),.table-suggest col:nth-child(4),
+.table-suggest col:nth-child(5){width:118px}
+.mov-desc{max-width:240px}
+.mov-cat{max-width:170px}
+.chart-tall{height:250px}
+/* El hero no lleva filete: el de la barra de mes, justo debajo, hace de cierre. */
+.hero{padding:2.6rem 0 1.5rem}
+.hero .lbl{letter-spacing:.24em}
+.hero-value{font-family:var(--font-display);font-size:4rem;font-weight:400;
+  letter-spacing:-.025em;line-height:1.02;margin-top:.7rem}
+@media(max-width:640px){.hero-value{font-size:2.5rem}}
+/* Barra de mes y acciones: debajo del hero, como en el boceto. */
+.monthbar{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:.9rem 0 1.1rem;border-bottom:1px solid var(--border);margin-bottom:1.25rem}
+.monthbar form{align-items:center}
+.monthbar-actions{display:flex;gap:.6rem;margin-left:auto}
+.select-month{width:auto;min-width:11rem}
+/* contenedor de altura fija: sin él Chart.js crece sin límite en cada redibujado */
+.chart-box{position:relative;width:100%}
+.chart-box>canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+/* Gasto por categoría: nombre, importe y variación, separados por punteado.
+   Se fueron las barras: eran una paleta de ocho colores literales en la
+   plantilla, y el boceto pide filas limpias. */
+.catrow{display:grid;grid-template-columns:1fr 7rem 4.2rem;gap:.9rem;
+  align-items:baseline;padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.catrow:last-of-type{border-bottom:0}
+.catrow .cat-amount{text-align:right}
+.catrow .cat-pct{text-align:right}
+/* Cuentas: el punto de color viene de la cuenta, no es decoración. */
+.acct{display:grid;grid-template-columns:auto 1fr auto;gap:.7rem;align-items:center;
+  padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
+.acct:last-of-type{border-bottom:0}
+.acct-dot{width:8px;height:8px;border-radius:99px;flex:none}
+/* ── Presupuestos ─────────────────────────────────────────────────────── */
+/* La barra estaba definida dos veces con valores distintos: aquí y en un
+   <style> dentro de budgets.html, que ganaba por ir después. Se queda una. */
+.bar{height:10px;border-radius:999px;background:var(--surface-hover);
+  border:1px solid var(--border);overflow:hidden}
+.bar-fill{display:block;height:100%;background:var(--success);
+  transition:width .2s ease}
+.bar-warn{background:var(--warning)}
+/* Sin degradado: el sistema los descarta. Pasarse del límite es rojo, y ya. */
+.bar-over{background:var(--danger)}
+/* Cada presupuesto es una fila con su filete, no una tarjeta. */
+.budgetrow{padding:1.15rem 0;border-bottom:1px solid var(--border)}
+.budgetrow:last-of-type{border-bottom:0}
+.budget-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.budget-foot{display:flex;justify-content:space-between;align-items:center;
+  gap:.6rem 1rem;flex-wrap:wrap;margin-top:.65rem}
+.w-num{width:120px}
+
+/* ── Cabecera de página (sirve para todas las pantallas migradas) ─────── */
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;
+  flex-wrap:wrap;padding:2.2rem 0 1.2rem}
+.pagehead h1{font-family:var(--font-display);font-size:2rem;font-weight:400;
+  letter-spacing:-.02em;margin:0}
+.pagehead p{margin:.4rem 0 0;color:var(--text-muted);font-size:.85rem}
+.pagehead-actions{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap}
+
+/* ── Detalles desplegables y flotantes ───────────────────────────────── */
+/* Un <summary> con aspecto de control: sin el triangulito del navegador. */
+summary.icon-btn,summary.detail-toggle{list-style:none;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+.detail-toggle{display:inline-block;font-size:.85rem;color:var(--text-muted);
+  padding:.2rem 0;border-bottom:1px solid transparent;
+  transition:color .12s,border-color .12s}
+.detail-toggle:hover{color:var(--text);border-bottom-color:var(--border-strong)}
+/* Edición en línea dentro de una tabla (una regla, una cuenta): flota sobre
+   la fila, así que sí lleva sombra — la prohibición del sistema es para
+   superficies planas, no para lo que se superpone. */
+.inline-edit{position:absolute;z-index:20;min-width:320px;margin-top:.4rem;
+  background:var(--surface-raised);border:1px solid var(--border-strong);
+  border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow-md)}
+.chart-mid{height:230px}

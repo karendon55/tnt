@@ -155,7 +155,8 @@ app/
 │   ├── recurring.py     # Recurrentes + anomalías
 │   └── forecast.py      # Previsión del mes siguiente
 ├── static/
-│   ├── css/tnt.css      # Estilos
+│   ├── css/             # Estilos, en 5 hojas; el orden de carga es la cascada
+│   │                    #   tokens · base · componentes · patrones · pantallas
 │   ├── js/tnt.js        # Tema + confeti
 │   └── img/favicon.svg  # Rayo rojo
 └── templates/           # Jinja2

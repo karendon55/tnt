@@ -1,0 +1,87 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TNT · base y estructura
+   Reset propio, tipografía, la barra superior, el pie y las utilidades
+   de maquetación. Nada de esto pertenece a una pantalla concreta.
+
+   Trozo de la hoja que estaba en un solo tnt.css. El ORDEN de los <link> en
+   base.html es la cascada: tokens → base → componentes → patrones → pantallas.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;min-height:100vh}
+a{color:var(--text);text-decoration:none}
+a:hover{color:var(--accent)}
+h1,h2,h3,h4{margin:0 0 .5rem;line-height:1.25;letter-spacing:-.02em}
+h1{font-size:1.7rem;font-weight:700}
+h2{font-size:1.25rem;font-weight:650}
+h3{font-size:1.05rem;font-weight:600}
+canvas{max-width:100%}
+
+/* ── Estructura ────────────────────────────────────────────────────────── */
+.wrap,.main{max-width:1280px;margin:0 auto;padding:0 1.5rem;width:100%}
+.main{flex:1;padding-top:1.6rem;padding-bottom:3rem}
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:1.5rem;
+  flex-wrap:wrap;max-width:1280px;margin:0 auto;padding:.7rem 1.5rem;width:100%}
+body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+  padding-left:max(1.5rem,calc(50vw - 640px + 1.5rem));
+  padding-right:max(1.5rem,calc(50vw - 640px + 1.5rem))}
+.brand{display:flex;align-items:center;gap:.5rem}
+.brand-bolt,.bolt{width:17px;height:23px;fill:var(--accent);flex:none}
+.brand-name{font-family:var(--font-brand);font-size:1.4rem;letter-spacing:.06em}
+.brand-tagline{color:var(--text-subtle);font-size:.78rem;display:none}
+@media(min-width:1100px){.brand-tagline{display:inline}}
+/* La navegación se marca con un subrayado, no con una píldora roja: el rojo
+   sólido está reservado a la acción principal de cada pantalla. */
+.nav{display:flex;gap:1.15rem;flex:1;flex-wrap:wrap}
+.nav-link{padding:.35rem 0;color:var(--text-muted);font-size:.85rem;font-weight:500;
+  border-bottom:1.5px solid transparent;transition:color .12s,border-color .12s}
+.nav-link:hover{color:var(--text)}
+.nav-link.is-active{color:var(--text);border-bottom-color:var(--accent)}
+.theme-toggle{background:transparent;border:1px solid var(--border);color:var(--text);
+  border-radius:var(--radius);width:34px;height:34px;display:grid;place-items:center;cursor:pointer;flex:none}
+.theme-toggle:hover{background:var(--muted)}
+.theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+:root[data-theme="dark"] .icon-sun,:root:not([data-theme="dark"]) .icon-moon{display:none}
+.footer{border-top:1px solid var(--border);padding:1.1rem 1.5rem;display:flex;
+  align-items:center;justify-content:space-between;color:var(--text-subtle);font-size:.8rem;
+  max-width:1280px;margin:0 auto;width:100%}
+.footer-left{display:flex;align-items:center;gap:.5rem}
+.footer-right{display:flex;align-items:center}
+.footer-bolt{width:12px;height:16px;fill:var(--accent)}
+.angus{width:26px;height:26px;fill:var(--text-subtle);opacity:.5}
+
+/* ── Utilidades ────────────────────────────────────────────────────────── */
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.row-between,.between{justify-content:space-between}
+/* OJO: .wrap es también el contenedor de 1280px de arriba, con width:100%.
+   Dentro de un flex row usa .wrap-w, o el hijo ocupará la fila entera. */
+.wrap-w,.wrap{flex-wrap:wrap}
+.items-start{align-items:flex-start}.items-end{align-items:flex-end}
+.grow{flex:1}.full{width:100%}
+.gap-sm{gap:.35rem}.gap-md{gap:.6rem}.gap-lg{gap:1rem}.gap-xl{gap:1.5rem}
+.g1{gap:.25rem}.g2{gap:.5rem}.g3{gap:.75rem}.g4{gap:1rem}.g6{gap:1.5rem}
+.grid{display:grid;gap:1rem}
+.grid-kpi{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.grid-halves,.c2{grid-template-columns:repeat(2,1fr)}
+.c3{grid-template-columns:repeat(3,1fr)}
+.mt-sm,.mt1{margin-top:.25rem}.mt-md,.mt2{margin-top:.5rem}.mt3{margin-top:.75rem}
+.mt-lg,.mt4{margin-top:1rem}.mt-xl,.mt6{margin-top:1.5rem}
+.mb-md,.mb4{margin-bottom:1rem}.mb2{margin-bottom:.5rem}
+.small,.t-sm{font-size:.82rem}.t-xs{font-size:.72rem}.t-base{font-size:.94rem}
+.muted,.mut{color:var(--text-muted)}
+.bold{font-weight:600}
+.tabular,.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.amount-pos,.pos{color:var(--success)}
+.amount-neg,.neg{color:var(--danger)}
+.warnc{color:var(--warning)}
+.right{text-align:right}.nowrap{white-space:nowrap}
+.trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+code{font-family:var(--font-mono);font-size:.85em;background:var(--muted);
+  padding:.1rem .3rem;border-radius:var(--radius-sm)}

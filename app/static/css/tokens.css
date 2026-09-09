@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   TNT — capa de diseño sobre Basecoat.
+   Basecoat aporta el reset y los componentes (btn, card, input, table…);
+   aquí mapeamos su contrato de tokens a la paleta AC/DC y redefinimos las
+   clases propias que ya usaban las plantillas, para que ninguna se rompa.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tokens: claro ─────────────────────────────────────────────────────── */
+:root{
+  /* contrato shadcn/Basecoat */
+  --background:#fafafa; --foreground:#0a0a0a;
+  --card:#ffffff; --card-foreground:#0a0a0a;
+  --popover:#ffffff; --popover-foreground:#0a0a0a;
+  --primary:#e10600; --primary-foreground:#ffffff;      /* rojo AC/DC */
+  --secondary:#f1f1f1; --secondary-foreground:#0a0a0a;
+  --muted:#f4f4f4; --muted-foreground:#5a5a5a;
+  --accent-bg:#f4f4f4; --accent-foreground:#0a0a0a;
+  --destructive:#dc2626; --border:#e5e5e5; --input:#e5e5e5; --ring:#e10600;
+  --danger-foreground:#ffffff; --backdrop:rgba(0,0,0,.55);
+  /* Series de gráfico multilínea. Empiezan por el rojo de la casa y siguen
+     con hues distinguibles entre sí; se leen desde JS para que cambien con
+     el tema, en vez de venir escritas desde Python. */
+  --serie-1:#e10600; --serie-2:#7a7a7a; --serie-3:#b45309; --serie-4:#15803d;
+  --serie-5:#1d4ed8; --serie-6:#6d28d9; --serie-7:#be185d; --serie-8:#0f766e;
+  --radius:.65rem;
+  /* alias propios de TNT */
+  --bg:var(--background); --surface:var(--card); --surface-raised:#ffffff;
+  --surface-hover:#f4f4f4; --border-strong:#d4d4d4;
+  --text:var(--foreground); --text-muted:#5a5a5a; --text-subtle:#8a8a8a;
+  --accent:#e10600; --accent-hover:#ff1a1a; --accent-soft:rgba(225,6,0,.12);
+  --silver:#8a8a8a; --success:#16a34a; --warning:#d97706; --danger:#dc2626;
+  --chart-grid:rgba(0,0,0,.07);
+  --radius-sm:.4rem; --radius-md:.65rem; --radius-lg:.9rem;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 4px 14px rgba(0,0,0,.10);
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  /* serif editorial: hero, titulares de sección y KPIs (ver design-system.md) */
+  --font-display:Georgia,"Noto Serif",serif;
+  /* la marca AC/DC se queda en Impact */
+  --font-brand:"Impact","Haettenschweiler","Arial Narrow Bold",sans-serif;
+  --font-mono:"SFMono-Regular",Menlo,Consolas,monospace;
+}
+/* ── Tokens: oscuro (data-theme para TNT, .dark para Basecoat) ─────────── */
+:root[data-theme="dark"], .dark{
+  --background:#0a0a0a; --foreground:#fafafa;
+  --card:#141414; --card-foreground:#fafafa;
+  --popover:#141414; --popover-foreground:#fafafa;
+  --secondary:#1c1c1c; --secondary-foreground:#fafafa;
+  --muted:#1a1a1a; --muted-foreground:#a1a1a1;
+  --accent-bg:#1c1c1c; --accent-foreground:#fafafa;
+  --destructive:#ef4444; --border:#272727; --input:#2a2a2a;
+  --surface-raised:#1a1a1a; --surface-hover:#1f1f1f; --border-strong:#3a3a3a;
+  --text-muted:#a1a1a1; --text-subtle:#7a7a7a;
+  --silver:#c0c0c0; --success:#22c55e; --warning:#f59e0b; --danger:#f87171;
+  --chart-grid:rgba(255,255,255,.07); --backdrop:rgba(0,0,0,.7);
+  --serie-1:#ff4d47; --serie-2:#b0b0b0; --serie-3:#f59e0b; --serie-4:#22c55e;
+  --serie-5:#60a5fa; --serie-6:#a78bfa; --serie-7:#f472b6; --serie-8:#2dd4bf;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 6px 20px rgba(0,0,0,.5);
+}
