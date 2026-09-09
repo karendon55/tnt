@@ -52,3 +52,4 @@ Format:
 - 2026-09-09 [cuentas] ¿Tres botones de texto por fila? -> no; Conciliar en texto, editar y archivar como iconos con aria-label
 - 2026-09-09 [importar] ¿Subnavegación en preview y resultado? -> no; son estados de un flujo, no secciones. Sí en Lotes
 - 2026-09-09 [importar] ¿Cómo se marcan los mensajes de error y de éxito? -> línea de aviso con punto rojo o verde, sin cajas de color
+- 2026-09-09 [traspasos] ¿Cuál es la acción roja? -> "Emparejar como traspaso" del formulario; el de cada sugerencia es acción de fila

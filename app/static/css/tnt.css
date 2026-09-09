@@ -320,6 +320,15 @@ select.select,.select{cursor:pointer}
 /* Anchos de la tabla de movimientos del panel (vivían en style= ) */
 /* Fila presente pero que no va a insertarse: se atenúa, no se oculta. */
 .is-dim{opacity:.55}
+.block{display:block}
+/* Anchos de las dos tablas de Traspasos. Salida y Entrada se repartían 422px
+   cada una y empujaban el botón fuera del contenedor; con anchos fijos en las
+   columnas cortas, las dos largas se quedan con el sobrante. */
+.table-pairs col:nth-child(1){width:86px}
+.table-pairs col:nth-child(3),.table-pairs col:nth-child(5){width:118px}
+.table-pairs col:nth-child(6){width:132px}
+.table-suggest col:nth-child(2),.table-suggest col:nth-child(4),
+.table-suggest col:nth-child(5){width:118px}
 .mov-desc{max-width:240px}
 .mov-cat{max-width:170px}
 .chart-tall{height:250px}

@@ -3,39 +3,52 @@
 {% block title %}Traspasos{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pagehead">
     <div>
-        <h1>Traspasos entre cuentas</h1>
-        <p>Empareja a mano dos movimientos como traspaso, deshaz emparejamientos automáticos incorrectos y revisa sugerencias evidentes.</p>
+        <h1>Traspasos</h1>
+        <p>
+            Un movimiento entre tus cuentas sale de una y entra en otra: si los dos lados no
+            van emparejados, ensucian los ingresos y los gastos del mes. Aquí se revisan los
+            emparejamientos, se deshacen los que estén mal y se emparejan a mano los que
+            falten.
+        </p>
     </div>
 </div>
 
 {% if msg %}
-<div class="card mb-md" style="border-left: 3px solid var(--success, #2ecc71);">
-    <p style="margin:0;">✓ {{ msg }}</p>
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>{{ msg }}</span>
+    </div>
 </div>
 {% endif %}
 {% if err %}
-<div class="card mb-md" style="border-left: 3px solid var(--danger, #e74c3c);">
-    <p style="margin:0;">⚠ {{ err }}</p>
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>{{ err }}</span>
+    </div>
 </div>
 {% endif %}
 
-<div class="card">
-    <h3 class="card-title">Pares emparejados ({{ pairs|length }})</h3>
-    <p class="muted small">Cada fila es un traspaso entre dos cuentas. "Desemparejar" deja los dos lados como movimientos independientes (no los borra).</p>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Emparejados <span class="muted">({{ pairs|length }})</span></h2>
+        <span class="muted small">Desemparejar deja los dos lados sueltos; no borra nada.</span>
+    </div>
     {% if pairs %}
     <div class="table-scroll">
-    <table class="table table-fixed table-trans">
+    <table class="table table-fixed table-trans table-pairs">
         {# Salida y Entrada se repartían 422 px cada una y empujaban el botón
            fuera del contenedor; con anchos fijos se quedan con el sobrante. #}
         <colgroup>
-            <col style="width:86px">    <!-- Fecha    -->
+            <col>    <!-- Fecha    -->
             <col>                       <!-- Salida   -->
-            <col style="width:118px">   <!-- Importe  -->
+            <col>   <!-- Importe  -->
             <col>                       <!-- Entrada  -->
-            <col style="width:118px">   <!-- Importe  -->
-            <col style="width:132px">   <!-- Acciones -->
+            <col>   <!-- Importe  -->
+            <col>   <!-- Acciones -->
         </colgroup>
         <thead>
             <tr>
@@ -58,17 +71,17 @@
             <tr>
                 <td class="tabular small nowrap">{{ p.left_date }}</td>
                 <td class="trunc" title="{{ out_acc }} · {{ out_desc }}">
-                    <strong class="trunc" style="display:block;">{{ out_acc }}</strong>
+                    <strong class="trunc block">{{ out_acc }}</strong>
                     <div class="muted small trunc">{{ out_desc }}</div>
                 </td>
                 <td class="num tabular nowrap amount-neg">{{ out_amount | eur_signed }}</td>
                 <td class="trunc" title="{{ in_acc }} · {{ in_desc }}">
-                    <strong class="trunc" style="display:block;">{{ in_acc }}</strong>
+                    <strong class="trunc block">{{ in_acc }}</strong>
                     <div class="muted small trunc">{{ in_desc }}</div>
                 </td>
                 <td class="num tabular nowrap amount-pos">{{ in_amount | eur_signed }}</td>
                 <td>
-                    <form method="post" action="/traspasos/{{ p.left_id }}/desemparejar" style="display:inline;"
+                    <form method="post" action="/traspasos/{{ p.left_id }}/desemparejar" class="inline-form"
                           onsubmit="return confirm('¿Desemparejar este traspaso? Los dos movimientos quedan independientes.');">
                         <button type="submit" class="btn btn-sm btn-ghost">Desemparejar</button>
                     </form>
@@ -79,22 +92,24 @@
     </table>
     </div>
     {% else %}
-    <p class="muted small">No hay traspasos emparejados todavía.</p>
+    <p class="empty-state">Todavía no hay ningún traspaso emparejado.</p>
     {% endif %}
 </div>
 
 {% if suggestions %}
-<div class="card mt-xl">
-    <h3 class="card-title">Sugerencias automáticas ({{ suggestions|length }})</h3>
-    <p class="muted small">Pares de movimientos sin emparejar con importes opuestos en cuentas distintas y fechas a ±3 días. Pulsa "Emparejar" si son el mismo traspaso.</p>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Sugerencias <span class="muted">({{ suggestions|length }})</span></h2>
+        <span class="muted small">Importes opuestos, cuentas distintas y fechas a ±3 días.</span>
+    </div>
     <div class="table-scroll">
-    <table class="table table-fixed table-trans">
+    <table class="table table-fixed table-trans table-suggest">
         <colgroup>
             <col>                       <!-- Salida   -->
-            <col style="width:118px">   <!-- Importe  -->
+            <col>   <!-- Importe  -->
             <col>                       <!-- Entrada  -->
-            <col style="width:118px">   <!-- Importe  -->
-            <col style="width:118px">   <!-- Acciones -->
+            <col>   <!-- Importe  -->
+            <col>   <!-- Acciones -->
         </colgroup>
         <thead>
             <tr>
@@ -121,10 +136,10 @@
                 </td>
                 <td class="num tabular nowrap amount-pos">{{ s.right_amount | eur_signed }}</td>
                 <td>
-                    <form method="post" action="/traspasos/emparejar" style="display:inline;">
+                    <form method="post" action="/traspasos/emparejar" class="inline-form">
                         <input type="hidden" name="left_id" value="{{ s.left_id }}">
                         <input type="hidden" name="right_id" value="{{ s.right_id }}">
-                        <button type="submit" class="btn btn-sm btn-primary">Emparejar</button>
+                        <button type="submit" class="btn btn-sm">Emparejar</button>
                     </form>
                 </td>
             </tr>
@@ -135,11 +150,13 @@
 </div>
 {% endif %}
 
-<div class="card mt-xl">
-    <h3 class="card-title">Emparejar a mano</h3>
-    <p class="muted small">Selecciona dos movimientos sueltos en cuentas distintas con importes opuestos.</p>
+<div class="sheet is-last">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Emparejar a mano</h2>
+        <span class="muted small">Dos movimientos sueltos, en cuentas distintas y con importes opuestos.</span>
+    </div>
     <form method="post" action="/traspasos/emparejar">
-        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem;">
+        <div class="form-2">
             <div class="field">
                 <label>Movimiento 1</label>
                 <select class="select" name="left_id" required>
@@ -163,7 +180,7 @@
                 </select>
             </div>
         </div>
-        <div class="row wrap gap-lg">
+        <div class="row wrap-w gap-lg mt-lg">
             <button type="submit" class="btn btn-primary">Emparejar como traspaso</button>
         </div>
     </form>
