@@ -3,15 +3,15 @@
 {% block title %}Preview de importación{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="pagehead">
     <div>
-        <h1>Preview de importación</h1>
-        <p>Esto es lo que se insertaría si confirmas. Aún no se ha tocado la base de datos.</p>
+        <h1>Lo que va a entrar</h1>
+        <p>Esto es lo que se insertaría si confirmas. Todavía no se ha tocado la base de datos.</p>
     </div>
-    <div class="row wrap gap-lg">
-        <a href="/importar" class="btn btn-ghost">← Cancelar</a>
+    <div class="pagehead-actions">
+        <a href="/importar" class="lnk">Cancelar</a>
         {% if token and summary.new > 0 %}
-        <form method="post" action="/importar/confirmar" style="display:inline;">
+        <form method="post" action="/importar/confirmar" class="inline-form">
             <input type="hidden" name="token" value="{{ token }}">
             <button type="submit" class="btn btn-primary">
                 Confirmar e insertar {{ summary.new }} movimiento{{ 's' if summary.new != 1 else '' }}
@@ -22,9 +22,12 @@
 </div>
 
 {% if errors %}
-<div class="card mb-md" style="border-left: 3px solid var(--danger, #e74c3c);">
-    <strong>Algunos ficheros no pudieron procesarse:</strong>
-    <ul class="mt-lg">
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <strong>Algunos ficheros no pudieron procesarse</strong>
+    </div>
+    <ul>
         {% for e in errors %}
         <li><code>{{ e.filename }}</code> — {{ e.message }}</li>
         {% endfor %}
@@ -33,25 +36,25 @@
 {% endif %}
 
 {% if previews %}
-<div class="grid grid-kpi mb-md">
-    <div class="card">
-        <div class="card-title">Se insertarán</div>
+<div class="kpiband">
+    <div>
+        <div class="lbl">Se insertarán</div>
         <div class="kpi-value amount-pos">{{ summary.new }}</div>
         <div class="kpi-delta">en {{ summary.files }} fichero{{ 's' if summary.files != 1 else '' }}</div>
     </div>
-    <div class="card">
-        <div class="card-title">Duplicados</div>
+    <div>
+        <div class="lbl">Duplicados</div>
         <div class="kpi-value muted">{{ summary.duplicates }}</div>
-        <div class="kpi-delta">ya estaban en la BD, se ignoran</div>
+        <div class="kpi-delta">ya estaban en la base, se ignoran</div>
     </div>
 </div>
 
 {% for p in previews %}
-<div class="card mt-xl">
-    <h3 class="card-title">
-        {{ p.filename }}
-        <span class="muted small">· {{ p.bank }} · {{ p.account }}</span>
-    </h3>
+<div class="sheet">
+    <div class="sheet-head">
+        <h2 class="sheet-title">{{ p.filename }}</h2>
+        <span class="muted small">{{ p.bank }} · {{ p.account }}</span>
+    </div>
     <p class="muted small">
         {{ p.total }} fila{{ 's' if p.total != 1 else '' }} en el extracto:
         <strong class="amount-pos">{{ p.new }} nuevo{{ 's' if p.new != 1 else '' }}</strong>,
@@ -72,7 +75,7 @@
         </thead>
         <tbody>
             {% for r in p.rows %}
-            <tr {% if not r.will_insert %}style="opacity:.55;"{% endif %}>
+            <tr {% if not r.will_insert %}class="is-dim"{% endif %}>
                 <td class="tabular">{{ r.date }}</td>
                 <td>{{ r.description | truncate(60) }}</td>
                 <td class="muted small">{{ r.source_hint or '—' }}</td>
@@ -95,9 +98,9 @@
 {% endfor %}
 
 {% if summary.new == 0 and not errors %}
-<div class="card mt-md">
-    <p class="muted">No hay movimientos nuevos que insertar — todos los del extracto ya están en la BD.</p>
-</div>
+<p class="empty-state">
+    No hay nada nuevo que insertar: todos los movimientos del extracto ya están en TNT.
+</p>
 {% endif %}
 {% endif %}
 {% endblock %}

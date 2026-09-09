@@ -273,8 +273,14 @@ select.select,.select{cursor:pointer}
 .kpiband>div:last-child{border-right:0;padding-right:0}
 .kpiband .kpi-value{font-family:var(--font-display);font-size:2.15rem;
   font-weight:400;letter-spacing:-.02em;margin-top:.45rem}
+/* El resumen de una importación trae cuatro cifras, no tres. */
+.kpiband.is-4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1000px){.kpiband.is-4{grid-template-columns:repeat(2,1fr)}
+  .kpiband.is-4>div:nth-child(2){border-right:0;padding-right:0}
+  .kpiband.is-4>div:nth-child(3){padding-left:0;border-top:1px solid var(--border);padding-top:1.2rem}
+  .kpiband.is-4>div:nth-child(4){border-top:1px solid var(--border);padding-top:1.2rem}}
 @media(max-width:860px){
-  .kpiband{grid-template-columns:1fr}
+  .kpiband,.kpiband.is-4{grid-template-columns:1fr}
   .kpiband>div,.kpiband>div+div{padding:1.2rem 0;border-right:0;
     border-bottom:1px solid var(--border)}
   .kpiband>div:last-child{border-bottom:0}
@@ -287,6 +293,11 @@ select.select,.select{cursor:pointer}
 .warndot{width:6px;height:6px;border-radius:99px;background:var(--accent);flex:none}
 .warnlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));
   gap:.15rem 1.5rem;margin-top:.55rem}
+/* El punto cambia de color según el tono del mensaje. Sirve igual para un
+   aviso del panel que para un «lote deshecho» o un fichero que falló. */
+.warndot.is-ok{background:var(--success)}
+.warndot.is-bad{background:var(--danger)}
+.warnline ul{margin:.4rem 0 0;padding-left:1.1rem}
 /* Tablas dentro de una hoja: sin acolchado lateral, que manden los filetes. */
 .sheet .table th:first-child,.sheet .table td:first-child{padding-left:0}
 .sheet .table th:last-child,.sheet .table td:last-child{padding-right:0}
@@ -307,6 +318,8 @@ select.select,.select{cursor:pointer}
 .fcrow.is-total{border-top:1px solid var(--border);border-bottom:0;margin-top:.4rem;
   padding-top:.8rem}
 /* Anchos de la tabla de movimientos del panel (vivían en style= ) */
+/* Fila presente pero que no va a insertarse: se atenúa, no se oculta. */
+.is-dim{opacity:.55}
 .mov-desc{max-width:240px}
 .mov-cat{max-width:170px}
 .chart-tall{height:250px}

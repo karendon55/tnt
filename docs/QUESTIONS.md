@@ -50,3 +50,5 @@ Format:
 - 2026-09-09 [gráficos] Al cambiar de tema sin recargar la línea de tinta desaparecía -> tnt.js avisa y los gráficos se repintan; los estáticos llevan sello de versión
 - 2026-09-09 [cuentas] ¿Cómo se marca el estado de conciliación sin emoji? -> texto y color: «cuadra, hace N d» o «difiere −X €»
 - 2026-09-09 [cuentas] ¿Tres botones de texto por fila? -> no; Conciliar en texto, editar y archivar como iconos con aria-label
+- 2026-09-09 [importar] ¿Subnavegación en preview y resultado? -> no; son estados de un flujo, no secciones. Sí en Lotes
+- 2026-09-09 [importar] ¿Cómo se marcan los mensajes de error y de éxito? -> línea de aviso con punto rojo o verde, sin cajas de color
