@@ -17,6 +17,11 @@
   --accent-bg:#f4f4f4; --accent-foreground:#0a0a0a;
   --destructive:#dc2626; --border:#e5e5e5; --input:#e5e5e5; --ring:#e10600;
   --danger-foreground:#ffffff; --backdrop:rgba(0,0,0,.55);
+  /* Series de gráfico multilínea. Empiezan por el rojo de la casa y siguen
+     con hues distinguibles entre sí; se leen desde JS para que cambien con
+     el tema, en vez de venir escritas desde Python. */
+  --serie-1:#e10600; --serie-2:#7a7a7a; --serie-3:#b45309; --serie-4:#15803d;
+  --serie-5:#1d4ed8; --serie-6:#6d28d9; --serie-7:#be185d; --serie-8:#0f766e;
   --radius:.65rem;
   /* alias propios de TNT */
   --bg:var(--background); --surface:var(--card); --surface-raised:#ffffff;
@@ -47,6 +52,8 @@
   --text-muted:#a1a1a1; --text-subtle:#7a7a7a;
   --silver:#c0c0c0; --success:#22c55e; --warning:#f59e0b; --danger:#f87171;
   --chart-grid:rgba(255,255,255,.07); --backdrop:rgba(0,0,0,.7);
+  --serie-1:#ff4d47; --serie-2:#b0b0b0; --serie-3:#f59e0b; --serie-4:#22c55e;
+  --serie-5:#60a5fa; --serie-6:#a78bfa; --serie-7:#f472b6; --serie-8:#2dd4bf;
   --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 6px 20px rgba(0,0,0,.5);
 }
 
@@ -387,6 +394,36 @@ summary::-webkit-details-marker{display:none}
   background:var(--surface-raised);border:1px solid var(--border-strong);
   border-radius:var(--radius);padding:1rem;box-shadow:var(--shadow-md)}
 .chart-mid{height:230px}
+
+/* ── Árbol de categorías ─────────────────────────────────────────────── */
+/* Sin cajas: cada categoría padre es una fila cerrada por un filete y, al
+   abrirse, muestra sus hijas indentadas. Vivía en un <style> dentro de
+   categories.html. */
+.cat-group{border-bottom:1px solid var(--border)}
+.cat-group:last-of-type{border-bottom:0}
+.cat-group summary{cursor:pointer;list-style:none;display:flex;
+  justify-content:space-between;align-items:center;gap:.75rem;padding:.7rem 0}
+.cat-group summary::-webkit-details-marker{display:none}
+.cat-group summary::before{content:"›";color:var(--text-subtle);font-size:1rem;
+  margin-right:.55rem;display:inline-block;transition:transform .15s ease}
+.cat-group[open]>summary::before{transform:rotate(90deg)}
+.cat-group summary:hover .cat-name{color:var(--accent)}
+/* El chevron es un pseudo-elemento y también cuenta como ítem del flex:
+   sin este auto, space-between dejaba el nombre centrado. */
+.cat-name{font-weight:500;margin-right:auto;transition:color .12s}
+.cat-body{padding:.1rem 0 1.1rem 1.15rem}
+.cat-children{list-style:none;padding:0;margin:0 0 .7rem}
+.cat-children li.cat-child{display:flex;flex-wrap:wrap;justify-content:space-between;
+  align-items:center;gap:.5rem;padding:.45rem 0;
+  border-bottom:1px dotted var(--border-strong)}
+.cat-children li.cat-child:last-child{border-bottom:0}
+.cat-child-name{flex:1 1 200px}
+.cat-child-actions{flex:1 1 auto;justify-content:flex-end;gap:.35rem}
+/* Controles pequeños de las filas del árbol (vivían en style= en línea). */
+.input-sm{padding:.3rem .5rem;font-size:.82rem}
+.w-sm{min-width:140px}
+.w-md{min-width:160px}
+.w-lg{min-width:240px}
 
 /* ── Configuración ────────────────────────────────────────────────────── */
 /* Subnavegación: la hermana pequeña de la barra de arriba, mismo idioma. */

@@ -20,13 +20,15 @@
                     <span class="muted">↳</span> {{ c.name }}
                     <span class="muted small">· {{ c.tx_count }} mov</span>
                 </div>
-                <div class="cat-child-actions row wrap" style="gap:.35rem;">
-                    <form method="post" action="/categorias/{{ c.id }}/renombrar" class="row" style="gap:.3rem;">
-                        <input class="input btn-sm" name="name" value="{{ c.name }}" style="padding:.3rem .5rem; min-width:160px;">
+                <div class="cat-child-actions row wrap-w">
+                    <form method="post" action="/categorias/{{ c.id }}/renombrar" class="row gap-sm">
+                        <input class="input input-sm w-md" name="name" value="{{ c.name }}"
+                               aria-label="Nuevo nombre de {{ c.name }}">
                         <button class="btn btn-sm" type="submit">Renombrar</button>
                     </form>
-                    <form method="post" action="/categorias/{{ c.id }}/mover" class="row" style="gap:.3rem;">
-                        <select class="select btn-sm" name="parent_id" style="padding:.3rem .5rem; min-width:140px; font-size:.82rem;">
+                    <form method="post" action="/categorias/{{ c.id }}/mover" class="row gap-sm">
+                        <select class="select input-sm w-sm" name="parent_id"
+                                aria-label="Mover {{ c.name }} a otra categoría">
                             {% for s in siblings %}
                             <option value="{{ s.id }}" {% if s.id == p.id %}selected{% endif %}>{{ s.name }}</option>
                             {% endfor %}
@@ -35,7 +37,7 @@
                         <button class="btn btn-sm" type="submit">Mover</button>
                     </form>
                     {% if c.tx_count == 0 %}
-                    <form method="post" action="/categorias/{{ c.id }}/borrar" style="display:inline;"
+                    <form method="post" action="/categorias/{{ c.id }}/borrar" class="inline-form"
                           onsubmit="return confirm('¿Borrar {{ c.name }}?');">
                         <button type="submit" class="btn btn-sm btn-ghost">Borrar</button>
                     </form>
@@ -47,13 +49,13 @@
         {% endif %}
         <form method="post" action="/categorias/nueva" class="row wrap gap-lg mt-lg">
             <input type="hidden" name="parent_id" value="{{ p.id }}">
-            <input class="input btn-sm" name="name" placeholder="Nueva subcategoría" required
-                   style="padding:.35rem .65rem; min-width:240px;">
-            <button type="submit" class="btn btn-sm btn-primary">Añadir subcategoría</button>
+            <input class="input input-sm w-lg" name="name" placeholder="Nueva subcategoría" required
+                   aria-label="Nombre de la nueva subcategoría de {{ p.name }}">
+            <button type="submit" class="btn btn-sm">Añadir subcategoría</button>
         </form>
         <form method="post" action="/categorias/{{ p.id }}/renombrar" class="row wrap gap-lg mt-lg">
-            <input class="input btn-sm" name="name" value="{{ p.name }}"
-                   style="padding:.35rem .65rem; min-width:240px;">
+            <input class="input input-sm w-lg" name="name" value="{{ p.name }}"
+                   aria-label="Nuevo nombre de {{ p.name }}">
             <button class="btn btn-sm" type="submit">Renombrar padre</button>
         </form>
     </div>
@@ -62,83 +64,41 @@
 
 {% block content %}
 {% include "_settings_nav.html" %}
-<div class="page-header">
+<div class="pagehead">
     <div>
         <h1>Categorías</h1>
-        <p>El árbol que TNT usa para clasificar tus movimientos. ING viene con su propia jerarquía.</p>
+        <p>El árbol con el que TNT clasifica tus movimientos. ING viene con su propia jerarquía.</p>
     </div>
-    <div class="row wrap gap-lg">
-        <a class="btn" href="/categorias/evolucion">📈 Ver evolución</a>
+    <div class="pagehead-actions">
+        <a class="lnk" href="/categorias/evolucion">Ver evolución</a>
     </div>
 </div>
 
-<div class="grid grid-halves">
-    <div class="card">
-        <h3 class="card-title">Gasto</h3>
+<div class="sheet sheet-2 is-last">
+    <div>
+        <div class="sheet-head"><h2 class="sheet-title">Gasto</h2></div>
         {% for p in expense_parents %}
             {{ render_parent(p, expense_parents) }}
         {% endfor %}
         <form method="post" action="/categorias/nueva" class="row wrap gap-lg mt-xl">
             <input type="hidden" name="kind" value="expense">
-            <input class="input btn-sm" name="name" placeholder="Nueva categoría de gasto" required
-                   style="padding:.4rem .75rem; min-width:260px;">
-            <button type="submit" class="btn btn-primary btn-sm">Crear</button>
+            <input class="input input-sm w-lg" name="name" placeholder="Nueva categoría de gasto" required
+                   aria-label="Nombre de la nueva categoría de gasto">
+            <button type="submit" class="btn btn-sm">Crear</button>
         </form>
     </div>
 
-    <div class="card">
-        <h3 class="card-title">Ingreso</h3>
+    <div>
+        <div class="sheet-head"><h2 class="sheet-title">Ingreso</h2></div>
         {% for p in income_parents %}
             {{ render_parent(p, income_parents) }}
         {% endfor %}
         <form method="post" action="/categorias/nueva" class="row wrap gap-lg mt-xl">
             <input type="hidden" name="kind" value="income">
-            <input class="input btn-sm" name="name" placeholder="Nueva categoría de ingreso" required
-                   style="padding:.4rem .75rem; min-width:260px;">
-            <button type="submit" class="btn btn-primary btn-sm">Crear</button>
+            <input class="input input-sm w-lg" name="name" placeholder="Nueva categoría de ingreso" required
+                   aria-label="Nombre de la nueva categoría de ingreso">
+            <button type="submit" class="btn btn-sm">Crear</button>
         </form>
     </div>
 </div>
-
-<style>
-    .cat-group {
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: .6rem .85rem;
-        margin-bottom: .6rem;
-        background: var(--surface-raised);
-    }
-    .cat-group summary {
-        cursor: pointer;
-        list-style: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: .75rem;
-    }
-    .cat-group summary::-webkit-details-marker { display: none; }
-    .cat-group summary::before {
-        content: "▸";
-        color: var(--text-subtle);
-        font-size: .8rem;
-        margin-right: .5rem;
-        transition: transform .15s ease;
-    }
-    .cat-group[open] summary::before { transform: rotate(90deg); display:inline-block; }
-    .cat-name { font-weight: 500; }
-    .cat-body { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
-    .cat-children { list-style: none; padding: 0; margin: 0 0 .6rem; }
-    .cat-children li.cat-child {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: .5rem;
-        padding: .45rem 0;
-        border-bottom: 1px dashed var(--border);
-    }
-    .cat-children li.cat-child:last-child { border-bottom: none; }
-    .cat-child-name { flex: 1 1 200px; }
-    .cat-child-actions { flex: 1 1 auto; justify-content: flex-end; }
-</style>
 {% endblock %}

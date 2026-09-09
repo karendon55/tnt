@@ -53,3 +53,5 @@ Format:
 - 2026-09-09 [importar] ¿Subnavegación en preview y resultado? -> no; son estados de un flujo, no secciones. Sí en Lotes
 - 2026-09-09 [importar] ¿Cómo se marcan los mensajes de error y de éxito? -> línea de aviso con punto rojo o verde, sin cajas de color
 - 2026-09-09 [traspasos] ¿Cuál es la acción roja? -> "Emparejar como traspaso" del formulario; el de cada sugerencia es acción de fila
+- 2026-09-09 [categorias] ¿Cuál es la acción roja del árbol? -> ninguna; hay cinco crear/añadir y ninguno es la principal
+- 2026-09-09 [categorias] Los ocho colores del gráfico vivían en Python -> pasan a tokens --serie-1..8, leídos del tema y repintados al cambiarlo

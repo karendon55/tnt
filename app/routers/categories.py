@@ -100,10 +100,9 @@ def categories_move(cat_id: int, parent_id: str = Form("")):
     return RedirectResponse("/categorias", status_code=303)
 
 
-_LINE_COLORS = [
-    "#e10600", "#ff6b35", "#f7b801", "#4ade80", "#38bdf8",
-    "#a78bfa", "#f472b6", "#94a3b8",
-]
+# Los colores de las series ya no se deciden aquí: son tokens --serie-N de
+# tnt.css que la plantilla lee del tema. Así cambian con el tema claro/oscuro
+# y no hay una paleta escrita a mano fuera del sistema de diseño.
 
 
 @router.get("/categorias/evolucion", response_class=HTMLResponse)
@@ -124,13 +123,10 @@ def categories_evolution(
 
     labels = [month_label(ym) for ym in data["months"]]
     datasets = []
-    for i, s in enumerate(data["series"]):
-        color = _LINE_COLORS[i % len(_LINE_COLORS)]
+    for s in data["series"]:
         datasets.append({
             "label": s["name"],
             "data": s["values"],
-            "borderColor": color,
-            "backgroundColor": color + "22",
             "tension": 0.3,
             "pointRadius": 2,
         })
@@ -138,11 +134,10 @@ def categories_evolution(
         datasets.append({
             "label": "Otros",
             "data": data["others"],
-            "borderColor": "#666",
             "borderDash": [4, 4],
-            "backgroundColor": "transparent",
             "tension": 0.3,
             "pointRadius": 2,
+            "esOtros": True,
         })
 
     has_data = any(any(v > 0 for v in d["data"]) for d in datasets)
