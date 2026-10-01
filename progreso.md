@@ -223,12 +223,10 @@ procesa la primera fila.
 
 ## 7. Pendiente
 
-**Con fecha: el depósito de 9 meses vence el 14/02/2027.** Las reglas
-`deposito a plazo` y `cancelacion plazo` apuntan las dos al depósito **anual**
-(cuenta 9), y el patrón no distingue de cuál es cada movimiento. El apunte de
-mayo se movió a mano a la cuenta 10, así que hoy cuadra, pero al vencer el de
-nueve meses su cancelación se reflejará en el anual. El patrimonio total seguirá
-bien (un traspaso suma cero); el reparto entre los dos depósitos, no.
+**Resuelto (1/10/2026): las reglas de los depósitos.** Las reglas de traspaso
+admiten ahora un importe exacto: 60.000 € van al de nueve meses y 150.000 € al
+anual. Un depósito nuevo de otro importe no casa con ninguna y sale en los KPIs
+como gasto: hay que crearle su cuenta y sus dos reglas.
 
 **Valoración de septiembre de Indexa**, cuando llegue el correo.
 

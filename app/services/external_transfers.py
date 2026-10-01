@@ -29,10 +29,16 @@ def apply_rules(cur: sqlite3.Cursor) -> int:
 
     Devuelve el número de movimientos espejo creados (no pares).
     """
+    # Las reglas con importe van ANTES que las genéricas: si casan las dos, gana
+    # la más específica, como en las reglas de categoría. Cada movimiento solo
+    # se refleja una vez (al crear el espejo deja de tener transfer_id NULL),
+    # así que el orden decide a qué cuenta va. El id desempata para que el
+    # resultado no dependa de cómo devuelva SQLite las filas.
     rules = cur.execute(
-        """SELECT id, pattern, source_account_id, target_account_id
+        """SELECT id, pattern, source_account_id, target_account_id, amount
            FROM external_transfer_rules
-           WHERE active = 1"""
+           WHERE active = 1
+           ORDER BY amount IS NULL, id"""
     ).fetchall()
     if not rules:
         return 0
@@ -43,29 +49,26 @@ def apply_rules(cur: sqlite3.Cursor) -> int:
         if not pattern:
             continue
 
-        # Movimientos candidatos: misma cuenta (o cualquiera si NULL), sin
-        # transfer_id asignado, descripción que contenga el patrón, y que
-        # NO sean ya un espejo (hash con prefijo mirror:).
+        # Movimientos candidatos: de la cuenta origen (o de cualquiera salvo la
+        # destino, si la regla no fija origen), sin transfer_id, con el patrón
+        # en la descripción, que NO sean ya un espejo y, si la regla lleva
+        # importe, con ese importe exacto en valor absoluto: la apertura de un
+        # depósito llega en negativo y su cancelación en positivo. Se compara a
+        # céntimos porque un REAL puede traer ruido en el último decimal.
         if rule["source_account_id"] is None:
-            candidates = cur.execute(
-                """SELECT id, account_id, date, amount, description
-                   FROM transactions
-                   WHERE transfer_id IS NULL
-                     AND account_id != ?
-                     AND hash NOT LIKE 'mirror:%'
-                     AND LOWER(description) LIKE ?""",
-                (rule["target_account_id"], f"%{pattern}%"),
-            ).fetchall()
+            origen_sql, origen = "account_id != ?", rule["target_account_id"]
         else:
-            candidates = cur.execute(
-                """SELECT id, account_id, date, amount, description
-                   FROM transactions
-                   WHERE transfer_id IS NULL
-                     AND account_id = ?
-                     AND hash NOT LIKE 'mirror:%'
-                     AND LOWER(description) LIKE ?""",
-                (rule["source_account_id"], f"%{pattern}%"),
-            ).fetchall()
+            origen_sql, origen = "account_id = ?", rule["source_account_id"]
+        candidates = cur.execute(
+            f"""SELECT id, account_id, date, amount, description
+                FROM transactions
+                WHERE transfer_id IS NULL
+                  AND {origen_sql}
+                  AND hash NOT LIKE 'mirror:%'
+                  AND LOWER(description) LIKE ?
+                  AND (? IS NULL OR ROUND(ABS(amount), 2) = ROUND(?, 2))""",
+            (origen, f"%{pattern}%", rule["amount"], rule["amount"]),
+        ).fetchall()
 
         for tx in candidates:
             if _create_mirror(cur, tx, rule["target_account_id"]):

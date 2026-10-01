@@ -3,6 +3,9 @@
 {% block title %}Reglas{% endblock %}
 
 {% macro render_rules(rs, cat_tree) %}
+{# .table-scroll: en móvil la tabla se desplaza dentro de su hoja en vez de
+   empujar la página entera hacia los lados. #}
+<div class="table-scroll">
 <table class="table">
     <thead>
         <tr>
@@ -66,6 +69,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endmacro %}
 
 {% block content %}
@@ -93,6 +97,23 @@
         </button>
     </div>
 </div>
+
+{% if msg %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>{{ msg }}</span>
+    </div>
+</div>
+{% endif %}
+{% if err %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>{{ err }}</span>
+    </div>
+</div>
+{% endif %}
 
 {% set manual_rules  = rules | selectattr('source', 'equalto', 'manual')  | list %}
 {% set learned_rules = rules | selectattr('source', 'equalto', 'learned') | list %}
@@ -152,10 +173,12 @@
         </button>
     </div>
     {% if transfer_rules %}
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
                 <th>Patrón (la descripción contiene)</th>
+                <th class="num">Importe</th>
                 <th>Cuenta origen</th>
                 <th>Cuenta destino</th>
                 <th>Estado</th>
@@ -166,6 +189,9 @@
             {% for r in transfer_rules %}
             <tr>
                 <td class="tabular small">{{ r.pattern }}</td>
+                <td class="num tabular small">
+                    {% if r.amount is not none %}{{ r.amount | eur }}{% else %}<span class="muted">cualquiera</span>{% endif %}
+                </td>
                 <td class="muted small">{{ r.source_name or 'cualquiera' }}</td>
                 <td>{{ r.target_name }}</td>
                 <td>
@@ -197,6 +223,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
     <p class="empty-state">
         No hay ninguna. Sirven para reflejar aportaciones recurrentes a otra cuenta.
@@ -258,6 +285,16 @@
             </select>
             <p class="muted small field-hint">
                 Crea antes la cuenta destino (por ejemplo «INDEXA Plan de Pensiones») si no existe.
+            </p>
+        </div>
+        <div class="field">
+            <label for="ntr-amount">Importe exacto (opcional)</label>
+            <input class="input tabular" id="ntr-amount" name="amount" type="number"
+                   step="0.01" min="0.01" inputmode="decimal" placeholder="p. ej. 60000">
+            <p class="muted small field-hint">
+                Solo si hay dos cosas con la misma descripción que van a cuentas distintas,
+                como dos depósitos: entonces el importe es lo que las distingue. Vale para la
+                entrada y la salida. Sin puntos de miles.
             </p>
         </div>
         <div class="field">

@@ -95,6 +95,10 @@ CREATE TABLE IF NOT EXISTS external_transfer_rules (
     pattern           TEXT    NOT NULL,                               -- subcadena en descripción (lowercase)
     source_account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,  -- NULL = cualquier cuenta
     target_account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    -- Importe exacto (en valor absoluto) que debe tener el movimiento, o NULL
+    -- para cualquiera. Distingue reglas con la misma descripción: los dos
+    -- depósitos de EuroCaja se llaman igual y solo difieren en el importe.
+    amount            REAL,
     active            INTEGER NOT NULL DEFAULT 1,
     note              TEXT,
     created_at        TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -300,6 +304,10 @@ def _add_columns_if_missing(cur: sqlite3.Cursor) -> None:
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_tx_batch ON transactions(import_batch_id)"
         )
+
+    cols = {row["name"] for row in cur.execute("PRAGMA table_info(external_transfer_rules)")}
+    if "amount" not in cols:
+        cur.execute("ALTER TABLE external_transfer_rules ADD COLUMN amount REAL")
 
 
 # Jerarquía de categorías inspirada en la que ya usa ING,

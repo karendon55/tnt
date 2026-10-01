@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 @router.get("/reglas", response_class=HTMLResponse)
-def rules_list(request: Request):
+def rules_list(request: Request, msg: str = "", err: str = ""):
     with cursor() as cur:
         rows = cur.execute(
             """SELECT r.id, r.pattern, r.category_id, r.priority, r.source, r.hits,
@@ -39,12 +39,12 @@ def rules_list(request: Request):
         # en /cuentas; son reglas, así que su sitio es este.
         transfer_rows = cur.execute(
             """SELECT r.id, r.pattern, r.source_account_id, r.target_account_id,
-                      r.active, r.note,
+                      r.amount, r.active, r.note,
                       sa.name AS source_name, ta.name AS target_name
                FROM external_transfer_rules r
                LEFT JOIN accounts sa ON sa.id = r.source_account_id
                LEFT JOIN accounts ta ON ta.id = r.target_account_id
-               ORDER BY r.active DESC, r.pattern"""
+               ORDER BY r.active DESC, r.pattern, r.amount IS NULL, r.amount"""
         ).fetchall()
         transfer_rules = [dict(r) for r in transfer_rows]
         # Las cuentas alimentan los selectores del formulario de regla nueva.
@@ -64,7 +64,8 @@ def rules_list(request: Request):
     return templates.TemplateResponse(
         request, "rules.html",
         {"active": "rules", "rules": rules, "cat_tree": cat_tree,
-         "transfer_rules": transfer_rules, "accounts": accounts},
+         "transfer_rules": transfer_rules, "accounts": accounts,
+         "msg": msg, "err": err},
     )
 
 
