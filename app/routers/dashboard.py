@@ -63,6 +63,20 @@ def _adjacent_ym(ym: str, offset: int) -> str:
     return f"{y:04d}-{m:02d}"
 
 
+def _variacion_pct(actual: float, anterior: float | None) -> float | None:
+    """Variación porcentual de un mes frente al anterior. Positiva = ha crecido.
+
+    Se calcula sobre magnitudes porque los gastos llegan en negativo de
+    month_income_expense: restados tal cual, un mes que gasta MÁS daba una
+    variación NEGATIVA, y el panel lo enseñaba como un descenso en verde
+    (septiembre de 2026: el gasto casi se duplicó y decía «▼ 99,5 %»).
+    Sin mes de referencia no hay porcentaje posible: devuelve None.
+    """
+    if not anterior:
+        return None
+    return round((abs(actual) - abs(anterior)) / abs(anterior) * 100, 1)
+
+
 @router.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, month: Optional[str] = None):
     with cursor() as cur:
@@ -157,16 +171,8 @@ def dashboard(request: Request, month: Optional[str] = None):
         anomalies = detect_anomalies(cur, recurrentes)
 
     # Delta vs mes anterior
-    delta_expense = None
-    if prev_month["expense"]:
-        delta_expense = round(
-            (cur_month["expense"] - prev_month["expense"]) / abs(prev_month["expense"]) * 100, 1
-        )
-    delta_income = None
-    if prev_month["income"]:
-        delta_income = round(
-            (cur_month["income"] - prev_month["income"]) / abs(prev_month["income"]) * 100, 1
-        )
+    delta_expense = _variacion_pct(cur_month["expense"], prev_month["expense"])
+    delta_income = _variacion_pct(cur_month["income"], prev_month["income"])
 
     # Cuentas: barra proporcional a la mayor, para comparar de un vistazo.
     top_bal = max((abs(r["bal"]) for r in account_rows), default=0) or 1.0
