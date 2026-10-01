@@ -144,6 +144,14 @@ Los extractos traen a veces el IBAN completo (`ES99…`, 24 caracteres) y a vece
 el BBAN (20 dígitos). Comparar en crudo duplicaba cuentas al importar.
 `ensure_account` normaliza y, si no encaja, compara por los últimos 20.
 
+### Los gastos se guardan en negativo
+`month_income_expense` devuelve `expense` como suma de importes negativos. Al
+comparar meses, un gasto **mayor** es un número **más negativo**, así que una
+resta directa da la variación con el signo cambiado. El panel estuvo diciendo
+«▼ 99,5 %» en verde cuando el gasto de septiembre casi se duplicó (venía del
+primer commit). Cualquier variación sobre gastos se calcula sobre magnitudes:
+`_variacion_pct` en `app/routers/dashboard.py`.
+
 ### Al iterar un cursor de SQLite, `fetchall()`
 Reutilizar el mismo cursor dentro del bucle invalida la iteración y solo se
 procesa la primera fila. Ha provocado ya un diagnóstico erróneo.
