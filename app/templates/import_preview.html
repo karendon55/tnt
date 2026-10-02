@@ -63,6 +63,7 @@
     </p>
     {% if p.rows %}
     <p class="muted small">Muestra de las primeras {{ p.rows|length }} filas:</p>
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -93,6 +94,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% endif %}
 </div>
 {% endfor %}

@@ -179,7 +179,9 @@ Una tabla que se pasa del ancho pierde sus últimas columnas en silencio. Patró
 `.table-scroll` + `.table-fixed` + `<colgroup>` con anchos en CSS. Si una columna
 se oculta en el móvil, los anchos van en las cabeceras y no en `<col>`. Las celdas
 no parten línea (Basecoat les pone `nowrap`), así que una tabla sin
-`.table-scroll` acaba empujando la página.
+`.table-scroll` acaba empujando la página o, dentro de un `<details>`, cortada
+en el borde sin que la página se pueda desplazar. Un test exige el contenedor
+en todas las plantillas.
 
 Y si la tabla va en una rejilla, la pista es `minmax(0,1fr)`: una `1fr` a secas
 no baja del ancho mínimo de su contenido, y una tabla así empujó el panel a
@@ -270,16 +272,16 @@ archivarlo o borrarlo, porque su consejo sobre transacciones ya no vale.
 dos de las tres referencias visuales.
 
 **Pequeños.** En los KPIs, un mes sin cambios sale «▲ 0,0 %» en verde, cuando
-debería ir neutro (la línea del patrimonio ya lo hace). Cinco tablas siguen sin
-`.table-scroll` en estados que no se han medido en el móvil: el historial de
-valoraciones de Inversiones (dentro de un desplegable), dos en los diálogos de
-Cuentas, y la vista previa y el resultado de importar. Y una idea sin
+debería ir neutro (la línea del patrimonio ya lo hace). Y una idea sin
 desarrollar: comparar la rentabilidad del fondo con su benchmark, que Indexa
 envía en el mismo correo.
 
 **Resuelto (2/10/2026): el móvil.** Las trece pantallas caben a 375 px, medido
-en navegador con los datos reales. La barra de arriba pasa de 216 px fijos a
-132 que se van al bajar: marca y tema arriba, los seis enlaces debajo.
+en navegador con los datos reales, y también lo que solo sale al abrir algo: el
+histórico de valoraciones, el diálogo de conciliación, la vista previa y el
+resultado de importar. Todas las tablas van en `.table-scroll`. La barra de
+arriba pasa de 216 px fijos a 132 que se van al bajar: marca y tema arriba, los
+seis enlaces debajo.
 
 ---
 

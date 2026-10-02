@@ -19,6 +19,7 @@ en Inversiones (decisión del 2026-09-08).
 | 2026-09-09 | Editar y archivar pasan a iconos con `aria-label`; Conciliar se queda en texto | tres botones de texto por fila comían la mitad del ancho, y Conciliar es la acción que se busca |
 | 2026-09-09 | El formulario flotante de edición comparte clase con el de Reglas (`.inline-edit`) | es el mismo patrón; alcanzar el primitivo antes que inventar otro |
 | 2026-09-09 | La tabla va dentro de `.table-scroll` | ocho columnas no caben a 375px; que scrolle la tabla, no la página |
+| 2026-10-02 | Archivadas y el historial de conciliaciones también van en `.table-scroll` | a 375px, Archivadas medía 480px; el historial, 459px, y lo que se deslizaba era el diálogo entero, formulario incluido |
 
 ## Qué NO hacer aquí
 

@@ -38,7 +38,7 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "movil.db")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app.config import STATIC_DIR  # noqa: E402
+from app.config import STATIC_DIR, TEMPLATES_DIR  # noqa: E402
 from app.db import cursor, init_db  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -211,6 +211,25 @@ class TestPantallasDeConfiguracionEnElMovil(unittest.TestCase):
         reglas = [d for s, d in _reglas(_css()) if s == ".break-any"]
         self.assertTrue(reglas, "no existe .break-any")
         self.assertRegex(reglas[0], r"overflow-wrap\s*:\s*anywhere")
+
+
+class TestTodasLasTablas(unittest.TestCase):
+    def test_ninguna_va_sin_su_contenedor_con_scroll(self):
+        """Las celdas no parten línea (Basecoat les pone nowrap), así que una
+        tabla suelta acaba más ancha que el móvil. En la página la empuja de
+        lado; dentro de un desplegable, ni eso: el histórico de valoraciones
+        de Inversiones se cortaba en el borde, y el botón de borrar quedaba
+        fuera de la pantalla sin forma de llegar a él."""
+        plantillas = sorted(TEMPLATES_DIR.glob("*.html"))
+        self.assertTrue(plantillas, "no se encontró ninguna plantilla")
+        for plantilla in plantillas:
+            texto = plantilla.read_text(encoding="utf-8")
+            for m in re.finditer(r"<table\b", texto):
+                linea = texto.count("\n", 0, m.start()) + 1
+                with self.subTest(plantilla=plantilla.name, linea=linea):
+                    self.assertTrue(
+                        texto[:m.start()].rstrip().endswith('<div class="table-scroll">'),
+                        "la tabla no va justo dentro de un <div class=\"table-scroll\">")
 
 
 class TestBarraEnElMovil(unittest.TestCase):

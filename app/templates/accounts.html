@@ -137,6 +137,7 @@
         <h2 class="sheet-title">Archivadas <span class="muted">({{ archived_accs|length }})</span></h2>
         <span class="muted small">No suman al patrimonio; sus movimientos siguen ahí.</span>
     </div>
+    <div class="table-scroll">
     <table class="table">
         <tbody>
             {% for a in archived_accs %}
@@ -153,6 +154,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 </div>
 {% endif %}
 
@@ -188,6 +190,7 @@
 
     {% if a.recons %}
     <h4 class="card-title mt-xl">Historial</h4>
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -224,6 +227,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% endif %}
 </dialog>
 {% endfor %}

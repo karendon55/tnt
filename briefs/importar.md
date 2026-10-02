@@ -20,6 +20,7 @@ encadenadas: `/importar` (subir), el preview de lo que va a entrar, el resultado
 | 2026-09-09 | Lotes incluye la subnavegación de Configuración; preview y resultado no | son estados de un flujo, no secciones: ahí la subnavegación solo invita a irse |
 | 2026-09-09 | La banda de KPIs solo cuenta lo del lote; lo demás baja al pie | cuatro cifras juntas se leen como una unidad, y una que hablaba de toda la base hacía que un fichero de 3 filas presumiera de 71 |
 | 2026-10-02 | La tabla de Lotes va en `.table-scroll` | a 375px medía 972px (cada fichero, en una línea que no se parte) y empujaba la página; ahora se desliza dentro de su caja |
+| 2026-10-02 | Las tablas de la vista previa y del resultado, también | a 375px, 866px y 835px con un extracto de prueba de descripciones largas |
 
 ## Qué NO hacer aquí
 

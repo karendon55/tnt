@@ -85,8 +85,10 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
 - Una tabla ancha recorta (`.table-fixed`, anchos fijos en las columnas cortas) o se
   desplaza dentro de `.table-scroll`; nunca empuja la página. Si en el móvil sobra una
   columna, se oculta la menos necesaria antes que el importe.
-- Las celdas de tabla no parten línea (Basecoat les pone `nowrap`): una tabla sin
-  `.table-scroll` es una tabla que acabará empujando la página.
+- Las celdas de tabla no parten línea (Basecoat les pone `nowrap`), así que **toda tabla
+  va justo dentro de un `.table-scroll`**. Suelta, empuja la página o, dentro de un
+  desplegable, se corta sin forma de llegar a sus últimas columnas. Lo exige un test que
+  recorre todas las plantillas (`tests/test_movil.py`).
 - Rutas y demás cadenas sin espacios llevan `.break-any`, que las parte donde haga falta.
 - La barra de arriba: en el escritorio, fija y en una línea. Bajo 640px, los enlaces van
   en su propia fila, debajo de la marca y el botón de tema, y la barra deja de ser fija.

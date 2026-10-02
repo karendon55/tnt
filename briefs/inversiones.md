@@ -18,6 +18,7 @@ el 2026-09-08.
 | 2026-09-09 | El formulario de valoración usa la fila de filtros de Movimientos | alcanzar el patrón antes que inventar otro |
 | 2026-09-09 | **Guardar valoración** se queda en rojo aunque se repita por fondo | es la misma acción repetida, no dos compitiendo: la regla veta acciones rivales en rojo, no un listado |
 | 2026-09-09 | La línea de valor pasa a tinta y pierde el relleno; el rojo marca solo el último punto | igual que la curva del panel |
+| 2026-10-02 | El histórico de valoraciones va en `.table-scroll` | a 375px medía 425px dentro del desplegable, que lo cortaba en el borde: la nota se truncaba y el botón de borrar quedaba fuera, sin forma de llegar a él |
 
 ## Qué NO hacer aquí
 

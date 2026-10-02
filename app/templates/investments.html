@@ -113,6 +113,7 @@
         <summary class="detail-toggle">
             Histórico de valoraciones ({{ inv.valuations|length }})
         </summary>
+        <div class="table-scroll">
         <table class="table mt-md">
             <thead><tr><th>Fecha</th><th class="num">Valor</th><th>Nota</th><th></th></tr></thead>
             <tbody>
@@ -137,6 +138,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </details>
     {% endif %}
 </div>

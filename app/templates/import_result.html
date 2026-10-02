@@ -56,6 +56,7 @@
 
 <div class="sheet is-last">
     <div class="sheet-head"><h2 class="sheet-title">Detalle por fichero</h2></div>
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -82,6 +83,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% if summary.rules_created or summary.auto_applied_otros %}
     <p class="small muted mt-lg">
         {%- if summary.rules_created %}
