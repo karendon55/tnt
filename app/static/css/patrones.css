@@ -71,16 +71,17 @@
 .warnline-top .lnk{margin-left:auto}
 .backup-results{list-style:none;padding:0;margin:.4rem 0 0;width:100%}
 .backup-results li{margin:.1rem 0}
-/* Movimientos y lateral: la tabla manda, el lateral acompaña. */
-.sheet-mov{display:grid;grid-template-columns:1.55fr 1fr;gap:3.5rem}
-@media(max-width:1000px){.sheet-mov{grid-template-columns:1fr;gap:2.2rem}}
+/* Movimientos y lateral: la tabla manda, el lateral acompaña. minmax(0,…) y
+   no 1fr a secas: una pista 1fr no baja del ancho mínimo de su contenido, y la
+   tabla empujaba la página entera fuera de la pantalla del móvil. */
+.sheet-mov{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:3.5rem}
+@media(max-width:1000px){.sheet-mov{grid-template-columns:minmax(0,1fr);gap:2.2rem}}
 /* Fila de dos columnas (previsión, totales), hermana de .acct. */
 .fcrow{display:grid;grid-template-columns:1fr auto;gap:.9rem;align-items:baseline;
   padding:.62rem 0;border-bottom:1px dotted var(--border-strong)}
 .fcrow:last-of-type{border-bottom:0}
 .fcrow.is-total{border-top:1px solid var(--border);border-bottom:0;margin-top:.4rem;
   padding-top:.8rem}
-/* Anchos de la tabla de movimientos del panel (vivían en style= ) */
 /* Fila presente pero que no va a insertarse: se atenúa, no se oculta. */
 .is-dim{opacity:.55}
 .block{display:block}
@@ -92,8 +93,6 @@
 .table-pairs col:nth-child(6){width:132px}
 .table-suggest col:nth-child(2),.table-suggest col:nth-child(4),
 .table-suggest col:nth-child(5){width:118px}
-.mov-desc{max-width:240px}
-.mov-cat{max-width:170px}
 .chart-tall{height:250px}
 /* El hero no lleva filete: el de la barra de mes, justo debajo, hace de cierre. */
 .hero{padding:2.6rem 0 1.5rem}

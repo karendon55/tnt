@@ -123,9 +123,19 @@ input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
 .table-mov col:nth-child(6){width:150px}
 .table-mov col:nth-child(7){width:116px}
 .table-mov col:nth-child(8){width:74px}
+/* Últimos movimientos del panel. Los anchos van en las cabeceras y no en un
+   <colgroup>: así la columna que se oculta en el móvil se lleva su ancho con
+   ella. Fecha e importe fijos (caben 30/09/2026 y -999.999,99 €), la
+   categoría un 30 % y la descripción, el resto. */
+.table-ultimos .mov-fecha{width:90px}
+.table-ultimos .mov-cat{width:30%}
+.table-ultimos .mov-importe{width:104px}
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
+/* En el móvil no caben cuatro columnas: la descripción se quedaba en nada.
+   La categoría se va; fecha, concepto e importe es lo que se mira aquí. */
+@media(max-width:640px){.table-ultimos .mov-cat{display:none}}
 
 /* ── Movimiento reducido ───────────────────────────────────────────────
    Quien lo pida en el sistema no ve ni el pulso del rayo ni las

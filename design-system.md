@@ -76,6 +76,16 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
   `border-radius:50%`/pill solo en avatares y chips.
 - Bordes de 1px, color `--border` (o `--border-strong` cuando hace falta contraste).
 
+## Pantallas estrechas
+
+- La página no se desplaza de lado a ningún ancho desde 320px. Se mide, no se mira:
+  `scrollWidth` igual a `clientWidth`.
+- Pista de rejilla con una tabla o texto sin partir dentro: `minmax(0,1fr)`, nunca `1fr`
+  a secas, que no baja del ancho mínimo de su contenido.
+- Una tabla ancha recorta (`.table-fixed`, anchos fijos en las columnas cortas) o se
+  desplaza dentro de `.table-scroll`; nunca empuja la página. Si en el móvil sobra una
+  columna, se oculta la menos necesaria antes que el importe.
+
 ## Sombras
 
 - `--shadow-sm` tarjetas en reposo · `--shadow-md` elevado u hover. No hay una tercera.

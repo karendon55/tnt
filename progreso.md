@@ -176,7 +176,13 @@ Reordenarlos cambia el resultado sin tocar una regla; lo fija un test. Sin
 
 ### Las tablas anchas se recortan, no se desplazan
 Una tabla que se pasa del ancho pierde sus últimas columnas en silencio. Patrón:
-`.table-scroll` + `.table-fixed` + `<colgroup>` con anchos en CSS.
+`.table-scroll` + `.table-fixed` + `<colgroup>` con anchos en CSS. Si una columna
+se oculta en el móvil, los anchos van en las cabeceras y no en `<col>`.
+
+Y si la tabla va en una rejilla, la pista es `minmax(0,1fr)`: una `1fr` a secas
+no baja del ancho mínimo de su contenido, y una tabla así empujó el panel a
+598 px en una pantalla de 375. Se comprueba midiendo, no mirando:
+`scrollWidth` igual a `clientWidth`.
 
 ### SQLite en modo WAL y las copias
 Lo confirmado vive en `tnt.db-wal` hasta el checkpoint: copiar `tnt.db` a pelo
@@ -262,10 +268,12 @@ archivarlo o borrarlo, porque su consejo sobre transacciones ya no vale.
 dos de las tres referencias visuales.
 
 **Pequeños.** En los KPIs, un mes sin cambios sale «▲ 0,0 %» en verde, cuando
-debería ir neutro (la línea del patrimonio ya lo hace). A 375 px el panel se
-desborda: la tabla de últimos movimientos fuerza 574 px porque `.sheet-mov`
-pasa a una columna `1fr`, que no baja de lo que pide la tabla; falta
-`minmax(0,1fr)` y `.table-scroll`. Y una idea sin desarrollar: comparar la rentabilidad del fondo con su
+debería ir neutro (la línea del patrimonio ya lo hace). A 375 px aún se desbordan
+tres pantallas (el panel ya no, resuelto el 2/10/2026): Backup (607 px, unas
+píldoras que no parten el texto), Alias (551 px) y Lotes de importación (996 px),
+estas dos por tablas sin `.table-scroll`. En el móvil, además, la barra de
+arriba ocupa 216 px y es fija: más de un cuarto de la pantalla. Y una idea sin
+desarrollar: comparar la rentabilidad del fondo con su
 benchmark, que Indexa envía en el mismo correo.
 
 ---

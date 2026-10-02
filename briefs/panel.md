@@ -39,6 +39,7 @@ y punto de aviso; `--success` / `--danger` en importes.
 | Cuentas | `.acct` | punto de color de la cuenta (es dato), sin barra |
 | Previsión / totales | `.fcrow` | dos columnas con punteado |
 | Gráfico | `.chart-box.chart-tall` | línea en `--text` a 1,6px, sin relleno, punto rojo solo en el último mes |
+| Últimos movimientos | `.table-ultimos` (`.table-fixed` en `.table-scroll`) | anchos en las cabeceras: fecha e importe fijos, categoría 30 %, descripción el resto; bajo 640px sin categoría |
 
 ## Qué NO hacer en esta superficie
 
@@ -143,3 +144,5 @@ El panel renderiza **el mismo HTML byte a byte** que antes del cambio.
 | 2026-09-08 | El segmentado Saldo/Neto deja de ser rojo | el rojo sólido se reserva a la acción principal |
 | 2026-09-09 | El panel vacío pasa a hoja y filete, sin rayo decorativo | era la única pantalla sin migrar, y encima la clase que dimensionaba el rayo no existía |
 | 2026-09-09 | La sublínea del hero se alinea con la cifra | `.wrap` le metía 24px de sangrado que nadie quería |
+| 2026-10-02 | La sublínea del hero es la variación del patrimonio en el mes que se ve, y lo nombra | era el neto del mes: repetía su KPI, no contaba el fondo y no cuadraba con la curva |
+| 2026-10-02 | En el móvil, últimos movimientos deja la categoría | a 375px la página medía 598px; cuatro columnas no caben en 327px, y desplazar la tabla escondía el importe |

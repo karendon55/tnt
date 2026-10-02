@@ -148,15 +148,16 @@
             <a class="lnk" href="/movimientos">Ver todos</a>
         </div>
         {% if last_transactions %}
-        <table class="table">
+        <div class="table-scroll">
+        <table class="table table-fixed table-ultimos">
             <thead>
-                <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="num">Importe</th></tr>
+                <tr><th class="mov-fecha">Fecha</th><th>Descripción</th><th class="mov-cat">Categoría</th><th class="num mov-importe">Importe</th></tr>
             </thead>
             <tbody>
                 {% for t in last_transactions %}
                 <tr>
                     <td class="tabular muted nowrap">{{ t.date | fecha }}</td>
-                    <td class="trunc mov-desc">
+                    <td class="trunc">
                         {{ t.description | alias }}{% if t.is_transfer %} <span class="pill">transfer.</span>{% endif %}
                     </td>
                     <td class="muted small trunc mov-cat">{{ t.category }}</td>
@@ -167,6 +168,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
         {% else %}
             <p class="empty-state">Sin movimientos todavía.</p>
         {% endif %}
