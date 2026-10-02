@@ -123,6 +123,11 @@ def dashboard(request: Request, month: Optional[str] = None):
 
         cur_month = month_income_expense(cur, m_start, m_end)
         prev_month = month_income_expense(cur, p_start, p_end)
+        # Lo que cambió el patrimonio en el mes que se ve: su cierre menos el
+        # del anterior. No es el neto, que ya tiene su KPI y no cuenta lo que
+        # gana o pierde el fondo; así la cifra cuadra con la curva de saldo.
+        delta_patrimonio = round(
+            total_balance(cur, m_end) - total_balance(cur, p_end), 2)
 
         cats = by_category(cur, m_start, m_end, limit=8)
         prev_cats = {c["id"]: c["total"] for c in by_category(cur, p_start, p_end, limit=50)}
@@ -231,6 +236,7 @@ def dashboard(request: Request, month: Optional[str] = None):
         "months_for_selector": months_for_selector,
         "cur_month": cur_month,
         "prev_month": prev_month,
+        "delta_patrimonio": delta_patrimonio,
         "delta_expense": delta_expense,
         "delta_income": delta_income,
         "last_transactions": last_transactions,

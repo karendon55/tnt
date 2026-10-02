@@ -8,10 +8,13 @@
     <h1 class="card-title">Patrimonio total</h1>
     <div class="hero-value tabular">{{ balance | eur }}</div>
     <div class="row wrap gap-lg mt-md small">
-        {% if cur_month.net >= 0 %}
-            <span class="amount-pos">▲ {{ cur_month.net | eur }} este mes</span>
+        {# Nombra el mes: el panel puede estar enseñando uno que no es el de hoy. #}
+        {% if delta_patrimonio > 0 %}
+            <span class="amount-pos">▲ {{ delta_patrimonio | eur }} en {{ month_name }}</span>
+        {% elif delta_patrimonio < 0 %}
+            <span class="amount-neg">▼ {{ delta_patrimonio|abs | eur }} en {{ month_name }}</span>
         {% else %}
-            <span class="amount-neg">▼ {{ cur_month.net|abs | eur }} este mes</span>
+            <span class="muted">Sin cambios en {{ month_name }}</span>
         {% endif %}
         <span class="muted">{{ accounts|length }} cuenta{{ 's' if accounts|length != 1 }} activa{{ 's' if accounts|length != 1 }}</span>
     </div>

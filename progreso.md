@@ -58,8 +58,8 @@ y deshacer un lote entero.
 **Categorización.** Reglas integradas, aprendidas y manuales; aprende de las
 correcciones y sugiere reglas nuevas.
 
-**Panel.** Patrimonio en grande, selector de mes, banda de KPIs del mes con su
-variación, avisos, gasto por categoría, evolución de saldo o neto mensual,
+**Panel.** Patrimonio en grande con lo que varió en el mes que se ve, selector
+de mes, banda de KPIs del mes con su variación, avisos, gasto por categoría, evolución de saldo o neto mensual,
 últimos movimientos, previsión y desglose de cuentas.
 
 **Inversiones.** Cuentas cuyo valor marca la última valoración declarada, con
@@ -238,10 +238,10 @@ ahora el último día del mes anterior, que es la fecha del informe, y al guarda
 dice qué fecha ha quedado. La de septiembre pasó del 01/10 al 30/09: la curva ya
 no tiene punto de octubre y la subida de septiembre (+424,98 €) cae en su mes.
 
-**El «▲ … este mes» del patrimonio es el neto del mes.** No cuenta lo que gana
-o pierde el fondo: en septiembre dice 4.539,12 € y el patrimonio subió
-4.964,10 € (los 424,98 del fondo). Falta decidir si cambia la cifra (variación
-del patrimonio) o la etiqueta.
+**Resuelto (2/10/2026): la línea bajo el patrimonio.** Era el neto del mes, que
+repetía su tarjeta y no contaba lo que gana o pierde el fondo. Ahora es la
+variación del patrimonio en el mes que se ve (cierre menos cierre del anterior),
+cuadra con la curva y nombra el mes: «▲ 4.964,10 € en septiembre 2026».
 
 **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
 `Otros gastos | Transferencias` (5). Mismo caso que "Bizum enviado", que ya se
@@ -261,8 +261,11 @@ archivarlo o borrarlo, porque su consejo sobre transacciones ya no vale.
 **Diseño, pendiente del usuario.** La intención estética de TNT en una línea, y
 dos de las tres referencias visuales.
 
-**Pequeños.** Un mes sin cambios sale «▲ 0,0 %» en verde, cuando debería ir
-neutro. Y una idea sin desarrollar: comparar la rentabilidad del fondo con su
+**Pequeños.** En los KPIs, un mes sin cambios sale «▲ 0,0 %» en verde, cuando
+debería ir neutro (la línea del patrimonio ya lo hace). A 375 px el panel se
+desborda: la tabla de últimos movimientos fuerza 574 px porque `.sheet-mov`
+pasa a una columna `1fr`, que no baja de lo que pide la tabla; falta
+`minmax(0,1fr)` y `.table-scroll`. Y una idea sin desarrollar: comparar la rentabilidad del fondo con su
 benchmark, que Indexa envía en el mismo correo.
 
 ---
