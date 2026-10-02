@@ -85,5 +85,8 @@ body>.topbar{max-width:none;background:color-mix(in srgb,var(--bg) 88%,transpare
 .warnc{color:var(--warning)}
 .right{text-align:right}.nowrap{white-space:nowrap}
 .trunc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+/* Rutas y demás cadenas sin espacios: se parten donde haga falta antes que
+   empujar la página fuera de la pantalla. */
+.break-any{overflow-wrap:anywhere}
 code{font-family:var(--font-mono);font-size:.85em;background:var(--muted);
   padding:.1rem .3rem;border-radius:var(--radius-sm)}

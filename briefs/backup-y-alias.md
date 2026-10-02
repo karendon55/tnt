@@ -18,6 +18,8 @@ tocan poco, pero cuando se tocan importa mucho no equivocarse.
 | 2026-09-09 | La acción roja de Backup es **Hacer backup ahora**; Restaurar se queda en `btn-danger` | son tokens distintos: uno es la acción principal, el otro avisa de que destruye |
 | 2026-09-09 | El JS de los campos de contraseña usa `hidden`, no `style.display` | el vocabulario visual vive en el CSS, también cuando lo cambia el JS |
 | 2026-09-09 | En Alias, editar y borrar pasan a iconos con `aria-label` | mismo patrón que Reglas, Cuentas y Movimientos |
+| 2026-10-02 | En Backup, la fila de la base parte línea (`wrap-w`) y las rutas llevan `.break-any` | a 375px la ruta, sin espacios, echaba las píldoras fuera: la página medía 607px. Solo esa fila: con `wrap-w` en todos los `.warnline-top`, el punto de un aviso largo se quedaría solo arriba |
+| 2026-10-02 | La tabla de Alias va en `.table-scroll` | a 375px medía 527px y empujaba la página; ahora se desliza dentro de su caja |
 
 ## La trampa que apareció al probar
 

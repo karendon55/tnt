@@ -26,6 +26,7 @@
 
 <div class="sheet is-last">
     {% if batches %}
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -68,6 +69,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
     {% else %}
     <p class="empty-state">Aún no hay lotes. Importa un extracto y aparecerá aquí.</p>
     {% endif %}

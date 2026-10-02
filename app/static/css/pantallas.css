@@ -133,9 +133,18 @@ input.cell-edit:focus,select.cell-edit:focus{border-color:var(--accent);
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media(max-width:900px){.grid-halves,.c2,.c3{grid-template-columns:1fr}}
-/* En el móvil no caben cuatro columnas: la descripción se quedaba en nada.
-   La categoría se va; fecha, concepto e importe es lo que se mira aquí. */
-@media(max-width:640px){.table-ultimos .mov-cat{display:none}}
+/* En el móvil, la tabla de últimos movimientos no admite cuatro columnas: la
+   descripción se quedaba en nada. La categoría se va; fecha, concepto e
+   importe es lo que se mira aquí.
+   Y la barra: los seis enlaces, apretados entre la marca y el botón de tema,
+   se partían en cuatro filas, y fija se comía 216 px. Van en su propia fila,
+   debajo, y la barra deja de ser fija: al bajar, la pantalla es del contenido. */
+@media(max-width:640px){
+  .table-ultimos .mov-cat{display:none}
+  .topbar{position:static;row-gap:.45rem}
+  .topbar .nav{order:3;flex-basis:100%;gap:.15rem 1rem}
+  .topbar .theme-toggle{margin-left:auto}
+}
 
 /* ── Movimiento reducido ───────────────────────────────────────────────
    Quien lo pida en el sistema no ve ni el pulso del rayo ni las

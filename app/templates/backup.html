@@ -15,10 +15,12 @@
 </div>
 
 <div class="warnline">
-    <div class="warnline-top">
+    {# wrap-w solo en esta fila: la ruta no tiene espacios y, en una sola
+       línea, echaba las dos píldoras fuera de la pantalla del móvil. #}
+    <div class="warnline-top wrap-w">
         {% if db_info %}
         <span class="muted small">Base de datos actual</span>
-        <span class="tabular">{{ db_info.path }}</span>
+        <span class="tabular break-any">{{ db_info.path }}</span>
         <span class="pill">{{ db_info.size_kb }} KB</span>
         <span class="pill">modificada {{ db_info.mtime }}</span>
         {% else %}
@@ -36,7 +38,7 @@
     </div>
     <ul class="small muted list-plain">
         {% for d in destinations %}
-        <li>· <span class="tabular">{{ d.path }}</span>
+        <li>· <span class="tabular break-any">{{ d.path }}</span>
             {% if d.mode == "encrypted" %}<span class="pill">cifrado</span>{% else %}<span class="pill">sin cifrar</span>{% endif %}
         </li>
         {% endfor %}
@@ -82,7 +84,7 @@
     {% set i = loop.index0 %}
     <div class="destrow">
         <div class="row wrap-w gap-md">
-            <span class="tabular small">{{ d.path }}</span>
+            <span class="tabular small break-any">{{ d.path }}</span>
             {% if d.mode == "encrypted" %}
             <span class="pill">cifrado{% if d.has_password %} · contraseña guardada{% endif %}</span>
             {% else %}
