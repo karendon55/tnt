@@ -209,8 +209,8 @@ procesa la primera fila.
 
 1.108 movimientos de enero a septiembre de 2026, en 9 cuentas activas.
 
-- **Indexa Capital**, de tipo inversión: 60.440 € aportados y 63.334,26 € de
-  valor a 31 de agosto, con 8 valoraciones. Las aportaciones son anteriores al
+- **Indexa Capital**, de tipo inversión: 60.440 € aportados y 63.759,24 € de
+  valor en septiembre, con 9 valoraciones. Las aportaciones son anteriores al
   histórico de TNT, por eso son saldo inicial y no movimientos: no hay
   contrapartida bancaria con la que emparejarlas.
 - **Plan pensiones Olga** sigue de tipo banco por decisión del usuario, con sus
@@ -228,7 +228,10 @@ admiten ahora un importe exacto: 60.000 € van al de nueve meses y 150.000 € 
 anual. Un depósito nuevo de otro importe no casa con ninguna y sale en los KPIs
 como gasto: hay que crearle su cuenta y sus dos reglas.
 
-**Valoración de septiembre de Indexa**, cuando llegue el correo.
+**La valoración de septiembre lleva fecha 01/10.** El formulario propone hoy como
+fecha, pero el informe llega con el mes ya cerrado: la subida de septiembre
+(+424,98 €) sale en la curva como de octubre, y pasará cada mes. Falta corregir
+esa fecha a 30/09 y que el formulario proponga el último día del mes anterior.
 
 **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
 `Otros gastos | Transferencias` (5). Mismo caso que "Bizum enviado", que ya se
