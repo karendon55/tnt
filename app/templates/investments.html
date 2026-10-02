@@ -15,6 +15,23 @@
     </div>
 </div>
 
+{% if msg %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>{{ msg }}</span>
+    </div>
+</div>
+{% endif %}
+{% if err %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>{{ err }}</span>
+    </div>
+</div>
+{% endif %}
+
 {% if inv_accs %}
 {% for a in inv_accs %}
 {% set inv = a.investment %}
@@ -62,7 +79,7 @@
         <div class="field">
             <label for="val-date-{{ a.id }}">Fecha del informe</label>
             <input class="input" type="date" id="val-date-{{ a.id }}" name="date"
-                   value="{{ today_iso }}" required>
+                   value="{{ fecha_valoracion }}" required>
         </div>
         <div class="field">
             <label for="val-value-{{ a.id }}">Valor declarado (€)</label>

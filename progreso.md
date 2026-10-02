@@ -199,6 +199,11 @@ compara por los últimos 20.
   Cambiarlo rompe las bases existentes: reimportar dejaría de reconocer lo que
   ya está.
 
+### Los avisos (`msg`, `err`) viajan en la URL
+Tras guardar, la redirección lleva el aviso en la query string, y esa URL queda
+en el historial del navegador, que puede sincronizarse fuera de la máquina.
+Ningún importe en un aviso: la cifra ya está en la pantalla a la que se vuelve.
+
 ### Al iterar un cursor de SQLite, `fetchall()`
 Reutilizar el mismo cursor dentro del bucle invalida la iteración y solo se
 procesa la primera fila.
@@ -228,10 +233,15 @@ admiten ahora un importe exacto: 60.000 € van al de nueve meses y 150.000 € 
 anual. Un depósito nuevo de otro importe no casa con ninguna y sale en los KPIs
 como gasto: hay que crearle su cuenta y sus dos reglas.
 
-**La valoración de septiembre lleva fecha 01/10.** El formulario propone hoy como
-fecha, pero el informe llega con el mes ya cerrado: la subida de septiembre
-(+424,98 €) sale en la curva como de octubre, y pasará cada mes. Falta corregir
-esa fecha a 30/09 y que el formulario proponga el último día del mes anterior.
+**Resuelto (2/10/2026): la fecha de las valoraciones.** El formulario propone
+ahora el último día del mes anterior, que es la fecha del informe, y al guardar
+dice qué fecha ha quedado. La de septiembre pasó del 01/10 al 30/09: la curva ya
+no tiene punto de octubre y la subida de septiembre (+424,98 €) cae en su mes.
+
+**El «▲ … este mes» del patrimonio es el neto del mes.** No cuenta lo que gana
+o pierde el fondo: en septiembre dice 4.539,12 € y el patrimonio subió
+4.964,10 € (los 424,98 del fondo). Falta decidir si cambia la cifra (variación
+del patrimonio) o la etiqueta.
 
 **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
 `Otros gastos | Transferencias` (5). Mismo caso que "Bizum enviado", que ya se
@@ -263,7 +273,7 @@ benchmark, que Indexa envía en el mismo correo.
 ./run.sh                     # desarrollo — OJO: sobre la base REAL (TNT_DB)
 ./run.sh --demo              # base inventada, para probar sin riesgo
 PORT=8001 ./run.sh --demo    # sin tirar la app instalada del 8000
-./run_tests.sh               # los 212 tests
+./run_tests.sh               # toda la suite
 ./packaging/install.sh --no-venv   # llevar el código a la app instalada
 ```
 
