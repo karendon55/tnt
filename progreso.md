@@ -266,10 +266,10 @@ archivarlo o borrarlo, porque su consejo sobre transacciones ya no vale.
 
 **Ficheros sobre el tope blando de 350 líneas**, por debajo del duro de 500:
 `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-`import_page.py` (397).
+`import_page.py` (397) y `db.py` (369).
 
-**Diseño, pendiente del usuario.** La intención estética de TNT en una línea, y
-dos de las tres referencias visuales.
+**Diseño, pendiente del usuario.** La tercera referencia visual: la intención
+estética («papel en oscuro») y las dos primeras ya están en `design-system.md`.
 
 **Pequeños.** En los KPIs, un mes sin cambios sale «▲ 0,0 %» en verde, cuando
 debería ir neutro (la línea del patrimonio ya lo hace). Y una idea sin
