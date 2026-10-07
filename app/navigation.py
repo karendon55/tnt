@@ -50,10 +50,19 @@ SECCIONES_CONFIG = [
         "url": "/alias",
         "resumen": "Nombres legibles para descripciones del banco que no hay quien lea.",
     },
+    # Se consulta una vez al año, en la campaña: de vez en cuando, como el
+    # resto de Configuración.
+    {
+        "key": "renta",
+        "titulo": "Renta",
+        "url": "/renta",
+        "resumen": "Lo que pide la declaración del piso alquilado: alquileres, seguros, "
+                   "IBI y comunidad de cada año.",
+    },
 ]
 
 
 # Qué valores de `active` cuelgan de Configuración, para iluminar la pestaña
 # padre. Traspasos NO está: vive arriba, y en Configuración solo se enlaza.
 ACTIVOS_CONFIG = {"settings", "backup", "accounts", "categories",
-                  "rules", "import", "aliases"}
+                  "rules", "import", "aliases", "renta"}

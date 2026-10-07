@@ -86,6 +86,7 @@ CONFIGURACION = [
     ("Categorías", "/categorias"),
     ("Reglas", "/reglas"),
     ("Importar", "/importar"),
+    ("Renta", "/renta"),
 ]
 
 

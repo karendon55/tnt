@@ -65,6 +65,14 @@ de mes, banda de KPIs del mes con su variación, avisos, gasto por categoría, e
 **Inversiones.** Cuentas cuyo valor marca la última valoración declarada, con
 aportado, valor, rentabilidad y la curva de los dos.
 
+**Renta** (en Configuración, `/renta`). Por ejercicio, lo que pide la
+declaración del piso alquilado: ingresos por alquiler, seguro de impago, seguro
+de la vivienda, IBI y comunidad, cada uno con su detalle y su total, más el total
+de los dos seguros. No guarda importes: los saca de los movimientos de la
+categoría «Alquiler» y de las subcategorías de «Inmueble alquilado», y suma en
+céntimos exactos. Al final, «por revisar»: lo que menciona el piso sin estar en
+ningún concepto. Brief en `briefs/renta.md`.
+
 **Backup.** Por destino, cifrado o plano; la contraseña, protegida con clave
 maestra. Restauración desde `.tnt`.
 
@@ -214,6 +222,14 @@ Tras guardar, la redirección lleva el aviso en la query string, y esa URL queda
 en el historial del navegador, que puede sincronizarse fuera de la máquina.
 Ningún importe en un aviso: la cifra ya está en la pantalla a la que se vuelve.
 
+### Las reglas no distinguen los recibos de un piso de los del otro
+El IBI de los dos pisos llega como «Recibo Ayuntamiento de Madrid», y los seguros
+con el nombre de la aseguradora: las reglas, que solo miran la descripción, los
+meten donde caiga (normalmente «Pago de impuestos» o «Seguros del hogar»). Los del
+piso alquilado tienen que pasar a mano a su subcategoría de «Inmueble alquilado».
+Para eso está «por revisar» en la Renta: los encuentra por la nota del banco.
+Sin esa nota, no hay forma de que aparezcan.
+
 ### Al iterar un cursor de SQLite, `fetchall()`
 Reutilizar el mismo cursor dentro del bucle invalida la iteración y solo se
 procesa la primera fila.
@@ -233,6 +249,12 @@ procesa la primera fila.
 - **Dos depósitos de EuroCaja Rural** (anual al 2,30 %, vence 20/08/2027; nueve
   meses al 3,00 %, vence 14/02/2027), con reglas de traspaso en los dos
   sentidos.
+- **Dos pisos, uno alquilado.** Sus gastos de 2026 (impago, seguro de la
+  vivienda, tres plazos de IBI y la comunidad: 9 movimientos) se pasaron el
+  7/10/2026 a las subcategorías de «Inmueble alquilado»; los del otro piso siguen
+  donde estaban. El nombre del piso y la palabra a ignorar (la tasa de basuras,
+  que no cuenta) están en los ajustes de la Renta, en la base, no en el código.
+  Copia previa: `tnt.db.pre-renta.2026-10-07-111648`.
 
 ---
 
@@ -275,6 +297,11 @@ estética («papel en oscuro») y las dos primeras ya están en `design-system.m
 debería ir neutro (la línea del patrimonio ya lo hace). Y una idea sin
 desarrollar: comparar la rentabilidad del fondo con su benchmark, que Indexa
 envía en el mismo correo.
+
+**Renta, al importar octubre.** El cuarto plazo del IBI del piso alquilado
+llegará como «Recibo Ayuntamiento de Madrid» y las reglas lo meterán en «Pago
+de impuestos»: saldrá en «por revisar» y hay que pasarlo a «Inmueble alquilado ›
+IBI». Lo mismo cada año con los seguros, al renovarse.
 
 **Resuelto (2/10/2026): el móvil.** Las trece pantallas caben a 375 px, medido
 en navegador con los datos reales, y también lo que solo sale al abrir algo: el

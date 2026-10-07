@@ -103,6 +103,16 @@ select.select,.select{cursor:pointer}
 .table-mov{min-width:1120px}
 .table-mov td form{width:100%}
 .table-trans{min-width:1000px}
+/* Movimientos de solo lectura (últimos del panel, detalle de la Renta). Los
+   anchos van en las cabeceras y no en un <colgroup>: así la columna que se
+   oculta en el móvil se lleva su ancho con ella. Fecha e importe fijos (caben
+   30/09/2026 y -999.999,99 €), la secundaria un 30 % y la descripción, el
+   resto. En el móvil no caben cuatro columnas: la descripción se quedaba en
+   nada, así que la secundaria se va; fecha, concepto e importe es lo que se mira. */
+.table-detalle .col-fecha{width:90px}
+.table-detalle .col-secundaria{width:30%}
+.table-detalle .col-importe{width:104px}
+@media(max-width:640px){.table-detalle .col-secundaria{display:none}}
 
 /* ── Avisos ────────────────────────────────────────────────────────────── */
 .notice{border:1px solid var(--border);border-left:3px solid var(--text-muted);

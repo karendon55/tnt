@@ -90,6 +90,10 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
   desplegable, se corta sin forma de llegar a sus últimas columnas. Lo exige un test que
   recorre todas las plantillas (`tests/test_movil.py`).
 - Rutas y demás cadenas sin espacios llevan `.break-any`, que las parte donde haga falta.
+- **Tabla de movimientos de solo lectura: `.table-detalle`**, la del panel y la de la Renta.
+  Fecha (`.col-fecha`) e importe (`.col-importe`) con ancho fijo, una columna secundaria
+  (`.col-secundaria`: categoría, cuenta) al 30 % y la descripción con el resto. Bajo 640px
+  la secundaria se oculta. Una tabla así nueva reutiliza estas clases; no se inventan anchos.
 - La barra de arriba: en el escritorio, fija y en una línea. Bajo 640px, los enlaces van
   en su propia fila, debajo de la marca y el botón de tema, y la barra deja de ser fija.
 

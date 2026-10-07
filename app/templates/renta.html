@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Declaración de la Renta{% endblock %}
+
+{% block content %}
+{% include "_settings_nav.html" %}
+<div class="pagehead">
+    <div>
+        <h1>Declaración de la Renta</h1>
+        <p>
+            Lo que pide la declaración del piso alquilado, año a año. Todo sale de tus
+            movimientos: cada concepto es una categoría, y lo que menciona el piso sin estar
+            clasificado aparece al final, por revisar.
+        </p>
+    </div>
+    <div class="pagehead-actions">
+        <form method="get" action="/renta" class="row gap-md">
+            <label class="lbl" for="renta-ejercicio">Ejercicio</label>
+            <select id="renta-ejercicio" name="ejercicio" class="select select-month"
+                    onchange="this.form.submit()">
+                {% for a in ejercicios %}
+                <option value="{{ a }}"{% if a == ejercicio %} selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-sm">Ver</button></noscript>
+        </form>
+    </div>
+</div>
+
+{% if msg %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>{{ msg }}</span>
+    </div>
+</div>
+{% endif %}
+{% if err %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>{{ err }}</span>
+    </div>
+</div>
+{% endif %}
+{% if not informe.hay_movimientos %}
+<div class="warnline">
+    <div class="warnline-top">
+        <span class="warndot" aria-hidden="true"></span>
+        <span>No hay movimientos de {{ ejercicio }} en TNT. Si los tienes en HomeBank, puedes
+              traerlos desde <a class="lnk" href="/importar">Importar</a>.</span>
+    </div>
+</div>
+{% endif %}
+
+{# ── Resumen y seguros: lo que se copia a la declaración ──────────────── #}
+<div class="sheet sheet-2">
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title">Resumen · {{ ejercicio }}</h2>
+        </div>
+        <div class="table-scroll">
+        <table class="table" id="resumen">
+            <thead><tr><th>Concepto</th><th class="num">Total</th></tr></thead>
+            <tbody>
+                {% for clave, ap in informe.apartados.items() %}
+                <tr>
+                    <td>{{ ap.concepto.titulo }}</td>
+                    <td class="num tabular">{{ ap.total | eur }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    <div>
+        <div class="sheet-head">
+            <h2 class="sheet-title">Seguros</h2>
+        </div>
+        {% for clave in seguros %}
+        {% set ap = informe.apartados[clave] %}
+        <div class="fcrow"><span>{{ ap.concepto.titulo }}</span><span class="tabular">{{ ap.total | eur }}</span></div>
+        {% endfor %}
+        <div class="fcrow is-total" id="total-seguros"><span>Total seguros</span><span class="tabular">{{ informe.total_seguros | eur }}</span></div>
+    </div>
+</div>
+
+{# ── Un apartado por concepto: su detalle y su total ───────────────────── #}
+{% for clave, ap in informe.apartados.items() %}
+<div class="sheet" id="concepto-{{ clave }}">
+    <div class="sheet-head">
+        <h2 class="sheet-title">{{ ap.concepto.titulo }}</h2>
+        {% if clave in enlaces %}
+        <div class="row gap-lg">
+            <a class="lnk" href="{{ enlaces[clave].ver }}"
+               aria-label="Ver en Movimientos: {{ ap.concepto.titulo }}, {{ ejercicio }}">Ver en Movimientos</a>
+            <a class="lnk" href="{{ enlaces[clave].csv }}"
+               aria-label="Exportar a CSV: {{ ap.concepto.titulo }}, {{ ejercicio }}">Exportar CSV</a>
+        </div>
+        {% endif %}
+    </div>
+    {# Dentro de una hoja, el aviso va sin su marco (.warnline): su filete
+       se sumaba al de la hoja y salían dos rayas seguidas. #}
+    {% if ap.falta_categoria %}
+    <div class="warnline-top wrap-w mb-md">
+        <span class="warndot is-bad" aria-hidden="true"></span>
+        <span>Falta la categoría de «{{ ap.concepto.titulo }}»: se ha borrado, y este concepto
+              no suma nada hasta que exista otra vez.</span>
+        <form method="post" action="/renta/categorias" class="inline-form">
+            <input type="hidden" name="ejercicio" value="{{ ejercicio }}">
+            <button type="submit" class="btn btn-sm">Volver a crearla</button>
+        </form>
+    </div>
+    {% elif ap.lineas %}
+    <div class="table-scroll">
+    <table class="table table-fixed table-detalle">
+        <thead>
+            <tr><th class="col-fecha">Fecha</th><th>Descripción</th><th class="col-secundaria">Cuenta</th><th class="num col-importe">Importe</th></tr>
+        </thead>
+        <tbody>
+            {% for l in ap.lineas %}
+            <tr>
+                <td class="tabular muted nowrap">{{ l.fecha | fecha }}</td>
+                <td class="trunc">{{ l.descripcion | alias }}{% if l.nota %} <span class="muted">· {{ l.nota }}</span>{% endif %}</td>
+                <td class="muted small trunc col-secundaria">{{ l.cuenta }}</td>
+                <td class="num tabular {% if l.importe < 0 %}amount-neg{% else %}amount-pos{% endif %}">{{ l.importe | eur_signed }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="empty-state">Sin movimientos en {{ ejercicio }}.</p>
+    {% endif %}
+    <div class="fcrow is-total"><span>{{ ap.concepto.rotulo_total }}</span><span class="tabular">{{ ap.total | eur }}</span></div>
+</div>
+{% endfor %}
+
+{# ── Lo que se ha quedado fuera de los totales ─────────────────────────── #}
+<div class="sheet" id="por-revisar">
+    <div class="sheet-head">
+        <h2 class="sheet-title">Por revisar</h2>
+    </div>
+    <p class="muted small">
+        {% if informe.revision_por_nombre %}
+        Movimientos de {{ ejercicio }} que mencionan «{{ ajustes.inmueble }}» o cuelgan de
+        «Inmueble alquilado» sin concepto, y no suman en ningún total. Clasifícalos en
+        Movimientos; lo que no cuente, añádelo a las palabras a ignorar.
+        {% else %}
+        Escribe en los ajustes cómo aparece el piso en tus notas y aquí saldrá lo que lo
+        mencione sin estar clasificado.
+        {% endif %}
+    </p>
+    {% if informe.por_revisar %}
+    <div class="table-scroll">
+    <table class="table table-fixed table-detalle">
+        <thead>
+            <tr><th class="col-fecha">Fecha</th><th>Descripción</th><th class="col-secundaria">Categoría</th><th class="num col-importe">Importe</th></tr>
+        </thead>
+        <tbody>
+            {% for l in informe.por_revisar %}
+            <tr>
+                <td class="tabular nowrap"><a class="lnk" href="/movimientos?date_from={{ l.fecha }}&amp;date_to={{ l.fecha }}"
+                    aria-label="Abrir en Movimientos los del {{ l.fecha | fecha }}">{{ l.fecha | fecha }}</a></td>
+                <td class="trunc">{{ l.descripcion | alias }}{% if l.nota %} <span class="muted">· {{ l.nota }}</span>{% endif %}</td>
+                <td class="muted small trunc col-secundaria">{{ l.categoria }}</td>
+                <td class="num tabular {% if l.importe < 0 %}amount-neg{% else %}amount-pos{% endif %}">{{ l.importe | eur_signed }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% elif informe.revision_por_nombre %}
+    <div class="warnline-top">
+        <span class="warndot is-ok" aria-hidden="true"></span>
+        <span>Nada por revisar en {{ ejercicio }}.</span>
+    </div>
+    {% endif %}
+</div>
+
+{# ── Ajustes de la revisión: no tocan ningún total ─────────────────────── #}
+<div class="sheet is-last">
+    <details{% if not ajustes.inmueble %} open{% endif %}>
+        <summary class="detail-toggle">Ajustes de la revisión</summary>
+        <form method="post" action="/renta/ajustes" class="filterbar mt-md">
+            <input type="hidden" name="ejercicio" value="{{ ejercicio }}">
+            <div class="field">
+                <label for="renta-inmueble">Cómo aparece el piso en tus notas</label>
+                <input class="input" id="renta-inmueble" name="inmueble" value="{{ ajustes.inmueble }}"
+                       maxlength="{{ max_inmueble }}" placeholder="p. ej. Calle Mayor 5">
+            </div>
+            <div class="field">
+                <label for="renta-ignorar">Palabras a ignorar al revisar</label>
+                <input class="input" id="renta-ignorar" name="ignorar"
+                       value="{{ ajustes.ignorar | join(', ') }}" placeholder="p. ej. TGR, basuras">
+            </div>
+            <div class="filterbar-actions">
+                <button type="submit" class="btn">Guardar ajustes</button>
+            </div>
+        </form>
+        <p class="muted small field-hint">
+            Separadas por comas. Solo sacan movimientos de la revisión: los totales no cambian.
+        </p>
+    </details>
+</div>
+{% endblock %}
