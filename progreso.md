@@ -5,7 +5,7 @@ Documento de contexto para retomar el trabajo sin releerlo todo. Recoge el
 mordido. El detalle de cada decisión está en `docs/QUESTIONS.md`; aquí solo lo
 que hace falta para orientarse.
 
-Última actualización: **1 de octubre de 2026**. Proyecto iniciado el 21 de abril.
+Última actualización: **7 de octubre de 2026**. Proyecto iniciado el 21 de abril.
 
 ---
 
@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 5.800 líneas de Python, 2.800 de plantillas, 590 de CSS, 212 tests |
+| Tamaño | 6.300 líneas de Python, 3.100 de plantillas, 610 de CSS, 298 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,9 +34,9 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (83). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (103). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
-| `briefs/*.md` | una por pantalla (10), con lo que vale y no vale en cada una |
+| `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
 | `CLAUDE.md` | convenciones del repo para el agente |
 | `HANDOFF.md` | ⚠️ **histórico, de abril**. Ver la trampa de la sección 5 |
@@ -48,7 +48,7 @@ La documentación está repartida; esto es el mapa.
 
 **Navegación.** Arriba, lo que se hace cada mes: Panel, Movimientos, Traspasos,
 Inversiones, Presupuestos. En **Configuración**, lo de vez en cuando: Backup,
-Cuentas, Categorías, Reglas, Importar y Alias. El mapa vive en
+Cuentas, Categorías, Reglas, Importar, Alias y Renta. El mapa vive en
 `app/navigation.py` y las URLs antiguas siguen funcionando.
 
 **Importación.** ING y CaixaBank (XLS), EuroCaja Rural (CSV) y HomeBank (CSV,
@@ -59,8 +59,9 @@ y deshacer un lote entero.
 correcciones y sugiere reglas nuevas.
 
 **Panel.** Patrimonio en grande con lo que varió en el mes que se ve, selector
-de mes, banda de KPIs del mes con su variación, avisos, gasto por categoría, evolución de saldo o neto mensual,
-últimos movimientos, previsión y desglose de cuentas.
+de mes, banda de KPIs del mes con su variación, avisos, gasto por categoría,
+evolución de saldo o neto mensual, últimos movimientos, previsión y desglose de
+cuentas.
 
 **Inversiones.** Cuentas cuyo valor marca la última valoración declarada, con
 aportado, valor, rentabilidad y la curva de los dos.
@@ -260,55 +261,68 @@ procesa la primera fila.
 
 ## 7. Pendiente
 
-**Resuelto (1/10/2026): las reglas de los depósitos.** Las reglas de traspaso
-admiten ahora un importe exacto: 60.000 € van al de nueve meses y 150.000 € al
-anual. Un depósito nuevo de otro importe no casa con ninguna y sale en los KPIs
-como gasto: hay que crearle su cuenta y sus dos reglas.
+Comprobado contra el código y los datos el 7 de octubre de 2026.
 
-**Resuelto (2/10/2026): la fecha de las valoraciones.** El formulario propone
-ahora el último día del mes anterior, que es la fecha del informe, y al guardar
-dice qué fecha ha quedado. La de septiembre pasó del 01/10 al 30/09: la curva ya
-no tiene punto de octubre y la subida de septiembre (+424,98 €) cae en su mes.
+### Necesita una decisión del usuario
 
-**Resuelto (2/10/2026): la línea bajo el patrimonio.** Era el neto del mes, que
-repetía su tarjeta y no contaba lo que gana o pierde el fondo. Ahora es la
-variación del patrimonio en el mes que se ve (cierre menos cierre del anterior),
-cuadra con la curva y nombra el mes: «▲ 4.964,10 € en septiembre 2026».
+- **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
+  `Otros gastos › Transferencias` (5). Es el mismo caso que «Bizum enviado», que
+  se unificó en la segunda. Al unificar hay que mover también la regla integrada
+  de BIZUM, que apunta a la primera.
+- **`HANDOFF.md`: archivarlo o borrarlo.** Su consejo de envolver cada escritura
+  en `BEGIN`/`COMMIT` rompe el código actual (ver «Trampas»).
+- **Diseño: la tercera referencia visual.** La intención estética («papel en
+  oscuro») y las dos primeras ya están en `design-system.md`.
 
-**Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
-`Otros gastos | Transferencias` (5). Mismo caso que "Bizum enviado", que ya se
-unificó; falta decidir cuál sobrevive.
+### Se puede hacer sin decisiones
 
-**Documentación.** El manual es de mayo: no recoge el rediseño, la navegación
-nueva, las inversiones ni el modo demostración. `HANDOFF.md` habría que
-archivarlo o borrarlo, porque su consejo sobre transacciones ya no vale.
+- **«▲ 0,0 %» en verde en los KPIs.** Un mes sin cambios debería ir en neutro,
+  como ya hace la línea del patrimonio. Pequeño.
+- **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
+  inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
+  lista.
+- **Rendimiento del panel.** El 58 % de su tiempo es la consulta de duplicados
+  de `detect_anomalies`: un JOIN de `transactions` consigo misma sin cota de
+  fechas. Hoy no se nota; crece con cada mes de datos.
+- **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
+  `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
+  `import_page.py` (397), `db.py` (369) y `tests/test_analytics.py` (398). Se
+  parten cuando toque cambiarlos, empezando por `analytics.py`.
+- **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
+  primera vez, podría duplicar «Inmueble alquilado»: las categorías principales no tienen
+  índice único. En la base real ya están creadas, así que solo afectaría a una
+  base nueva.
 
-**Rendimiento.** El 58 % del tiempo del panel es la consulta de duplicados de
-`detect_anomalies`: un JOIN de `transactions` consigo misma sin cota de fechas.
+### Recurrente (no es código)
 
-**Ficheros sobre el tope blando de 350 líneas**, por debajo del duro de 500:
-`analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-`import_page.py` (397) y `db.py` (369).
+- **Al importar octubre:** el cuarto plazo del IBI del piso alquilado llegará
+  como «Recibo Ayuntamiento de Madrid» y las reglas lo meterán en «Pago de
+  impuestos». Saldrá en «por revisar» de la Renta y hay que pasarlo a «Inmueble
+  alquilado › IBI». Igual cada año con los seguros, al renovarse.
+- **Cada mes:** importar los extractos y meter la valoración de Indexa del mes
+  anterior; el formulario ya propone el último día de ese mes.
+- **Depósitos:** el de nueve meses vence el 14/02/2027 y el anual el 20/08/2027.
+  Sus reglas reflejan la cancelación por el importe; uno nuevo de otro importe
+  necesita su propia cuenta y sus dos reglas.
 
-**Diseño, pendiente del usuario.** La tercera referencia visual: la intención
-estética («papel en oscuro») y las dos primeras ya están en `design-system.md`.
+### Ideas sin desarrollar
 
-**Pequeños.** En los KPIs, un mes sin cambios sale «▲ 0,0 %» en verde, cuando
-debería ir neutro (la línea del patrimonio ya lo hace). Y una idea sin
-desarrollar: comparar la rentabilidad del fondo con su benchmark, que Indexa
-envía en el mismo correo.
+- Comparar la rentabilidad del fondo con su benchmark, que Indexa envía en el
+  mismo correo.
+- Traer el histórico de HomeBank (Importar ya lo admite) para que el panel y la
+  Renta tengan años anteriores a 2026.
 
-**Renta, al importar octubre.** El cuarto plazo del IBI del piso alquilado
-llegará como «Recibo Ayuntamiento de Madrid» y las reglas lo meterán en «Pago
-de impuestos»: saldrá en «por revisar» y hay que pasarlo a «Inmueble alquilado ›
-IBI». Lo mismo cada año con los seguros, al renovarse.
+### Resuelto en octubre
 
-**Resuelto (2/10/2026): el móvil.** Las trece pantallas caben a 375 px, medido
-en navegador con los datos reales, y también lo que solo sale al abrir algo: el
-histórico de valoraciones, el diálogo de conciliación, la vista previa y el
-resultado de importar. Todas las tablas van en `.table-scroll`. La barra de
-arriba pasa de 216 px fijos a 132 que se van al bajar: marca y tema arriba, los
-seis enlaces debajo.
+- **1/10** — Las reglas de los depósitos distinguen cada uno por su importe exacto.
+- **2/10** — La valoración del fondo propone el cierre del mes anterior; la de
+  septiembre pasó del 01/10 al 30/09.
+- **2/10** — La línea bajo el patrimonio es su variación en el mes que se ve, y
+  cuadra con la curva.
+- **2/10** — Las trece pantallas caben a 375 px: todas las tablas en
+  `.table-scroll` y la barra del móvil en dos filas, sin fijar.
+- **7/10** — Sección Renta en Configuración, con los 9 movimientos de 2026 del
+  piso alquilado ya clasificados.
 
 ---
 
