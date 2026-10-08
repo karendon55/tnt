@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 370 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 373 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (121). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (122). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -306,8 +306,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 ### Se puede hacer sin decisiones
 
-- **«▲ 0,0 %» en verde en los KPIs.** Un mes sin cambios debería ir en neutro,
-  como ya hace la línea del patrimonio. Pequeño.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
@@ -316,8 +314,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   `import_page.py` (397), `db.py` (372), `categorizer.py` (369),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (367). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
-- **Una copia de más en la app instalada:** `~/.local/share/tnt/download.csv`,
-  que dejó allí el instalador antiguo; el original sigue en la raíz del repo.
 - **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
   primera vez, podría duplicar «Inmueble alquilado»: las categorías principales no tienen
   índice único. En la base real ya están creadas, así que solo afectaría a una
@@ -364,6 +360,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   los mismos avisos.
 - **8/10** — Clasificados los 13 movimientos de 2025 que llegaron de HomeBank sin
   categoría: no queda ninguno sin ella.
+- **8/10** — Un 0,0 % en los indicadores del panel sale «= 0,0 %» en neutro, no
+  «▲» en verde. Fuera la copia de `download.csv` de la app instalada.
 
 ---
 
