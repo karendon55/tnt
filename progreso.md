@@ -39,7 +39,6 @@ La documentación está repartida; esto es el mapa.
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
 | `CLAUDE.md` | convenciones del repo para el agente |
-| `HANDOFF.md` | ⚠️ **histórico, de abril**. Ver la trampa de la sección 5 |
 | `docs/Manual-TNT.*` | manual de usuario, **desfasado** (mayo) |
 
 ---
@@ -157,11 +156,11 @@ En cambio la **base de datos es una sola**: `.env.local` (fuera de git) apunta
 verdad**: cualquier prueba de importar, restaurar o borrar lo toca. Para
 experimentar, `./run.sh --demo`.
 
-### `HANDOFF.md` aconseja algo que ahora rompe
-Dice que la conexión va en autocommit y que se envuelva cada escritura en
-`BEGIN`/`COMMIT`. Ya no: `cursor()` abre su propia transacción, y un `BEGIN`
-manual dentro provoca *cannot start a transaction within a transaction*. El
-resto de sus trampas (abajo) siguen vigentes.
+### Un `BEGIN` a mano dentro de `cursor()` rompe
+La conexión va en autocommit, pero `cursor()` abre su propia transacción: un
+`BEGIN` manual dentro provoca *cannot start a transaction within a
+transaction*. Para lotes donde un elemento malo no debe tirar los buenos,
+`savepoint()`.
 
 ### Los gastos se guardan en negativo
 `month_income_expense` devuelve `expense` como suma de importes negativos. Al
@@ -218,7 +217,7 @@ IBAN completo (`ES99…`, 24 caracteres) o BBAN (20 dígitos). Comparar en crudo
 duplicaba cuentas al importar; `ensure_account` normaliza y, si no encaja,
 compara por los últimos 20.
 
-### Heredadas de `HANDOFF.md`, siguen vigentes
+### Las de los primeros meses, siguen vigentes
 - `TemplateResponse(request, "x.html", {...})`: la firma antigua, con `request`
   dentro del diccionario, da `TypeError`.
 - Los `.xls` de los bancos son BIFF antiguo, que `openpyxl` no lee: se
@@ -283,8 +282,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   `Otros gastos › Transferencias` (5). Es el mismo caso que «Bizum enviado», que
   se unificó en la segunda. Al unificar hay que mover también la regla integrada
   de BIZUM, que apunta a la primera.
-- **`HANDOFF.md`: archivarlo o borrarlo.** Su consejo de envolver cada escritura
-  en `BEGIN`/`COMMIT` rompe el código actual (ver «Trampas»).
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
 - **Reglas que casan dentro de otras palabras.** La manual «IBI» casa con
