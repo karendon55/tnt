@@ -299,8 +299,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   sin categoría del banco acabaría en Impuestos. En marcha en otra sesión
   (rama `claude/fervent-wright-bdf174`), que propondrá palabra entera o inicio
   de palabra.
-- **Clasificar 13 movimientos de 2025 sin categoría**, que ya venían así de
-  HomeBank.
 
 ### Se puede hacer sin decisiones
 
@@ -360,6 +358,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   ingresos y gastos idénticos. Copia previa junto a la base.
 - **8/10** — El panel busca los duplicados por índice: de 0,32 s a 0,03 s, con
   los mismos avisos.
+- **8/10** — Clasificados los 13 movimientos de 2025 que llegaron de HomeBank sin
+  categoría: no queda ninguno sin ella.
 
 ---
 
