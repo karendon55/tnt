@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_tx_date     ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_tx_account  ON transactions(account_id);
 CREATE INDEX IF NOT EXISTS idx_tx_category ON transactions(category_id);
+-- Los duplicados del panel se buscan por cuenta e importe (ver SQL_DUPLICADOS).
+CREATE INDEX IF NOT EXISTS idx_tx_account_amount ON transactions(account_id, amount);
 
 CREATE TABLE IF NOT EXISTS budgets (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

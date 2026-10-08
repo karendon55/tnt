@@ -19,6 +19,7 @@ _TMP = tempfile.mkdtemp(prefix="tnt-recu-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "recu.db")
 
 from app.db import cursor, init_db  # noqa: E402
+from app.services import recurring  # noqa: E402
 from app.services.recurring import detect_anomalies, find_recurring  # noqa: E402
 
 init_db()
@@ -193,6 +194,18 @@ class TestDuplicados(unittest.TestCase):
             _mov(cur, cta, -35.0, "COMPRA ZARA", "2026-08-20")
             avisos = [x for x in detect_anomalies(cur) if x.kind == "duplicate"]
         self.assertEqual(avisos, [])
+
+
+
+class TestLaBusquedaDeDuplicadosVaPorIndice(unittest.TestCase):
+    """Sin un índice por cuenta e importe, cada movimiento se compara con todos
+    los de su cuenta y el panel crece con el cuadrado de los datos: con el
+    histórico de 2025 dentro, 290 ms de los 320 de la portada. Con él, 7 ms."""
+
+    def test_busca_por_cuenta_e_importe(self):
+        with cursor() as cur:
+            plan = " ".join(r[3] for r in cur.execute("EXPLAIN QUERY PLAN " + recurring.SQL_DUPLICADOS))
+        self.assertRegex(plan, r"SEARCH t2 USING (COVERING )?INDEX \w+ \(account_id=\? AND amount=\?")
 
 
 if __name__ == "__main__":
