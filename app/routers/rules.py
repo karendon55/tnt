@@ -11,14 +11,24 @@ no pisar decisiones manuales del usuario).
 """
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.services.analytics import category_tree
+from app.services.categorizer import apply_rule_retroactively
 from app.templating import templates
 
 router = APIRouter()
+
+_PATRON_VACIO = "La regla necesita un patrón que buscar en la descripción."
+
+
+def _volver(*, err: str = "") -> RedirectResponse:
+    return RedirectResponse(f"/reglas?{urlencode({'err': err})}" if err else "/reglas",
+                            status_code=303)
 
 
 @router.get("/reglas", response_class=HTMLResponse)
@@ -85,7 +95,7 @@ def rule_create(
     if not clean:
         if tx_id is not None:
             return HTMLResponse("")
-        return RedirectResponse("/reglas", status_code=303)
+        return _volver(err=_PATRON_VACIO)
 
     with cursor() as cur:
         existing = cur.execute(
@@ -102,14 +112,9 @@ def rule_create(
             )
             rule_id = cur.lastrowid
 
-        # Aplicar retroactivamente sólo a los NO categorizados.
-        applied = cur.execute(
-            """UPDATE transactions
-               SET category_id = ?, auto_categorized = 1, confidence = 0.9
-               WHERE category_id IS NULL
-                 AND UPPER(description) LIKE ?""",
-            (category_id, f"%{clean}%"),
-        ).rowcount
+        # Aplicar retroactivamente sólo a los NO categorizados, con el mismo
+        # criterio con el que casa al importar (antes, LIKE '%…%').
+        applied = apply_rule_retroactively(cur, clean, category_id)
 
         # Actualizar hits
         cur.execute(
@@ -141,12 +146,16 @@ def rule_update(
     category_id: int = Form(...),
     priority: int = Form(100),
 ):
+    # Un patrón vacío no casaría con nada: la regla quedaría muda en la lista.
+    clean = pattern.strip().upper()
+    if not clean:
+        return _volver(err=_PATRON_VACIO)
     with cursor() as cur:
         cur.execute(
             """UPDATE category_rules
                SET pattern = ?, category_id = ?, priority = ?
                WHERE id = ?""",
-            (pattern.strip().upper(), category_id, priority, rule_id),
+            (clean, category_id, priority, rule_id),
         )
     return RedirectResponse("/reglas", status_code=303)
 

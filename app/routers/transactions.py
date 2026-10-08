@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from app.db import cursor
 from app.services.analytics import category_tree
 from app.services.categorizer import extract_tokens
+from app.services.rule_matching import pattern_matches
 from app.templating import templates
 from app.utils.forms import to_int_or_none
 
@@ -208,33 +209,32 @@ def _best_rule_suggestion(
     Criterio: el token debe aparecer en ≥1 movimiento *sin* categoría o con
     otra categoría distinta, y NO debe existir ya una regla activa con ese
     mismo patrón apuntando a esta misma categoría.
-    """
-    tokens = extract_tokens(description)
-    if not tokens:
-        return None
 
-    best = None
-    for tok in tokens:
-        # ¿Hay ya una regla igual?
-        exists = cur.execute(
+    Cuenta con el criterio con el que la regla casará (`pattern_matches`):
+    contando con LIKE '%…%' prometía movimientos que la regla luego no tocaba.
+    """
+    tokens = [
+        tok for tok in extract_tokens(description)
+        if not cur.execute(  # ¿Hay ya una regla igual?
             "SELECT 1 FROM category_rules WHERE pattern = ? AND category_id = ?",
             (tok, category_id),
         ).fetchone()
-        if exists:
-            continue
+    ]
+    if not tokens:
+        return None
 
-        # Cuántos otros movimientos tienen este token Y no tienen ya esta categoría.
-        # Usamos LIKE sobre UPPER(description) porque extract_tokens devuelve mayúsculas.
-        n = cur.execute(
-            """SELECT COUNT(*) AS n
-               FROM transactions
-               WHERE UPPER(description) LIKE ?
-                 AND (category_id IS NULL OR category_id != ?)""",
-            (f"%{tok}%", category_id),
-        ).fetchone()["n"]
+    # Los otros movimientos que no tienen ya esta categoría, leídos una vez
+    # para todos los tokens.
+    others = [r["description"].upper() for r in cur.execute(
+        "SELECT description FROM transactions WHERE category_id IS NULL OR category_id != ?",
+        (category_id,),
+    ).fetchall()]
+
+    best = None
+    for tok in tokens:
+        n = sum(1 for text in others if pattern_matches(tok, text))
         if n < 1:
             continue
-
         if best is None or n > best["matches"]:
             best = {"token": tok, "matches": n, "category_id": category_id}
     return best

@@ -32,7 +32,7 @@ from pathlib import Path
 
 from app.importers.homebank_xhb import LibroHB, OperacionHB
 from app.services.analytics import balances_by_account
-from app.services.categorizer import best_rule
+from app.services.rule_matching import best_rule
 
 SIN_CATEGORIA = "(sin categoría)"
 NOTA_DISCREPANCIA = "Discrepancia en la importación"

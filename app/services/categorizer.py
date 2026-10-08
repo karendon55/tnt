@@ -7,14 +7,17 @@ Estrategia:
   descripción para generar reglas aprendidas ("MERCADONA" → Alimentación).
 - Fuente B: el usuario puede recategorizar cualquier movimiento. Eso refuerza
   reglas y reentrena.
-- Aplicación: para cada tx sin categoría, busca reglas por subcadena, elige la
-  de mayor score (priority * hits).
+- Aplicación: para cada tx sin categoría, busca las reglas que casan con su
+  descripción por palabra entera y se queda con la que gana. Las dos cosas las
+  decide rule_matching.py, el único sitio que lo hace.
 """
 from __future__ import annotations
 
 import re
 import sqlite3
 from collections import Counter, defaultdict
+
+from app.services.rule_matching import matching_rules, pattern_matches, rule_rank
 
 # Palabras a ignorar al extraer tokens distintivos
 _STOPWORDS = {
@@ -192,39 +195,12 @@ def _revoke_unsupported_learned_rules(
 
 # ====== Aplicación de reglas a transacciones sin categoría ======
 
-def _rule_rank(rule) -> tuple[int, int, int]:
-    """Criterio de desempate cuando varias reglas coinciden, de más a menos peso:
-
-    1. Regla manual — lo que el usuario escribió explícitamente manda.
-    2. Patrón más largo — el más específico gana. Es lo que permite que
-       "REPSOL WAYLET" gane a "REPSOL" en la misma descripción; ordenar solo
-       por frecuencia hacía que el token genérico y repetido se impusiera al
-       específico.
-    3. priority * hits — a igual especificidad, la mejor respaldada.
-    """
-    return (
-        1 if rule["source"] == "manual" else 0,
-        len(rule["pattern"]),
-        rule["priority"] * max(rule["hits"], 1),
-    )
-
-
-def best_rule(rules, description: str | None):
-    """La regla que ganaría para esa descripción, con el mismo desempate que
-    al categorizar (`_rule_rank`), o None si no casa ninguna. La usa también
-    la carga del histórico de HomeBank para no tener otro criterio distinto."""
-    up = (description or "").upper()
-    matching = [r for r in rules if r["pattern"] in up]
-    return max(matching, key=_rule_rank) if matching else None
-
-
 def apply_rules_to_uncategorized(
     cur: sqlite3.Cursor, batch_id: int | None = None
 ) -> tuple[int, int]:
     """
-    Para cada transacción con category_id NULL, busca reglas cuyo patrón
-    aparezca en la descripción y se queda con la más específica (ver
-    `_rule_rank`).
+    Para cada transacción con category_id NULL, busca las reglas que casan con
+    su descripción y se queda con la que gana (ver `rule_matching`).
 
     Recorre TODA la base, no solo lo que acaba de entrar: una regla nueva
     también rescata movimientos viejos que estaban sin categoría, y eso es
@@ -248,11 +224,10 @@ def apply_rules_to_uncategorized(
     updated = 0
     updated_batch = 0
     for tx in uncat:
-        up = tx["description"].upper()
-        matching = [r for r in rules if r["pattern"] in up]
+        matching = matching_rules(rules, tx["description"])
         if not matching:
             continue
-        best = max(matching, key=_rule_rank)
+        best = max(matching, key=rule_rank)
 
         # Confianza: qué parte de la evidencia coincidente apoya la categoría
         # elegida (no solo los hits del ganador).
@@ -272,6 +247,21 @@ def apply_rules_to_uncategorized(
         if batch_id is not None and tx["import_batch_id"] == batch_id:
             updated_batch += 1
     return updated, updated_batch
+
+
+def apply_rule_retroactively(cur: sqlite3.Cursor, pattern: str, category_id: int) -> int:
+    """Pone `category_id` a los movimientos sin categoría con los que casa
+    `pattern`: lo que hace una regla recién creada. No mira las demás reglas
+    ni toca nada que ya tenga categoría. Devuelve cuántos ha categorizado."""
+    ids = [tx["id"] for tx in cur.execute(
+        "SELECT id, description FROM transactions WHERE category_id IS NULL"
+    ).fetchall() if pattern_matches(pattern, tx["description"].upper())]
+    cur.executemany(
+        "UPDATE transactions SET category_id = ?, auto_categorized = 1, "
+        "confidence = 0.9 WHERE id = ?",
+        [(category_id, tx_id) for tx_id in ids],
+    )
+    return len(ids)
 
 
 def retrain_and_apply(
@@ -316,7 +306,7 @@ _BUILTIN: list[tuple[str, str, int]] = [
     ("CARREFOUR",      "Alimentación|Supermercados y alimentación",   150),
     # Repsol vende carburante y también es comercializadora de luz/gas. El
     # patrón compuesto desambigua: gana al genérico "REPSOL" por ser más
-    # específico (ver _rule_rank).
+    # específico (ver rule_matching.rule_rank).
     ("REPSOL WAYLET",  "Transporte|Combustible",             160),
     ("RECIBO REPSOL",  "Hogar|Luz y gas",                    160),
     ("REPSOL",         "Transporte|Combustible",             150),

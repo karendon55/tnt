@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS budgets (
 
 CREATE TABLE IF NOT EXISTS category_rules (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    pattern     TEXT    NOT NULL,                        -- subcadena en descripción (lowercase)
+    pattern     TEXT    NOT NULL,                        -- palabras enteras de la descripción, en MAYÚSCULAS
     category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
     priority    INTEGER NOT NULL DEFAULT 100,
     source      TEXT    NOT NULL DEFAULT 'manual',       -- 'manual' | 'learned'

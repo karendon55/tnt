@@ -200,6 +200,18 @@ class TestCategorias(_Base):
         # La regla de Bizum diría «Bizum enviado», que aquí no se acepta.
         self.assertEqual(self._categoria("BIZUM ENVIADO"), self.cat["super"])
 
+    def test_las_reglas_casan_por_palabra_entera(self):
+        # El mismo criterio que al importar: por subcadena, «SOL» casaba
+        # dentro de «GIRASOLES» y se llevaba la compra a restaurantes.
+        with cursor() as cur:
+            cur.execute("INSERT INTO category_rules(pattern, category_id, priority, source, hits) "
+                        "VALUES ('SOL', ?, 100, 'manual', 1)", (self.cat["restaurante"],))
+        self.libro.operaciones.append(homebank_xhb.OperacionHB(
+            900, date(2025, 2, 6), D("-12.00"), 1, "Comida", "Pago en GIRASOLES", "", False))
+        self._cargar()
+        self.assertEqual(self._categoria("Pago en GIRASOLES"), self.cat["super"])
+        self.assertEqual(self._categoria("Pago en RESTAURANTE SOL"), self.cat["restaurante"])
+
     def test_una_categoria_sin_equivalencia_no_escribe_nada(self):
         plan = self._plan()
         del plan.equivalencias["Ahorro"]
