@@ -120,11 +120,11 @@ class TestComparar(_Base):
 
 
 class TestReglas(_Base):
-    def _fruteria(self):
+    def _fruteria(self, huella="v-fruta-"):
         for i in range(3):
             self.despues.execute("INSERT INTO transactions(account_id, date, amount, description, category_id, "
                                  "hash) VALUES (?, '2025-05-01', -9, 'FRUTERIA PEPITO', ?, ?)",
-                                 (self.banco, self.super, f"homebank:2025:{i}"))
+                                 (self.banco, self.super, f"{huella}{i}"))
 
     def test_avisa_de_las_reglas_que_aprenderia_la_proxima_importacion(self):
         self._fruteria()
@@ -135,6 +135,11 @@ class TestReglas(_Base):
         # Y no las escribe: solo avisa.
         self.assertIsNone(self.despues.execute(
             "SELECT 1 FROM category_rules WHERE pattern = 'FRUTERIA'").fetchone())
+
+    def test_lo_cargado_del_historico_no_cambia_las_reglas(self):
+        self._fruteria("homebank:2025:")
+        self.despues.commit()
+        self.assertEqual(hv.reglas_que_cambiarian(self.antes, self.despues), ([], []))
 
     def test_con_cambios_sin_confirmar_avisa_en_vez_de_quedarse_esperando(self):
         # SQLite no deja copiar una base a medio escribir desde su propia

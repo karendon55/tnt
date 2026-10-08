@@ -16,7 +16,8 @@ que comprueban sus tests:
   importe a secas, dos Bizum iguales el mismo día serían una pareja falsa.
 
 Las filas nuevas llevan en `hash` el prefijo «homebank:<año>:», que es lo que
-impide cargar dos veces y lo que permite copiarlas luego a la base real. No van
+impide cargar dos veces, lo que permite copiarlas luego a la base real y lo que
+las deja fuera del aprendizaje de reglas (categorizer.PREFIJO_HISTORICO). No van
 en un lote de importación: «Deshacer lote» borraría los movimientos pero no
 devolvería los saldos iniciales, y eso sí descuadraría lo de después.
 """
@@ -32,7 +33,7 @@ from pathlib import Path
 
 from app.importers.homebank_xhb import LibroHB, OperacionHB
 from app.services.analytics import balances_by_account
-from app.services.categorizer import best_rule
+from app.services.categorizer import PREFIJO_HISTORICO, best_rule
 
 SIN_CATEGORIA = "(sin categoría)"
 NOTA_DISCREPANCIA = "Discrepancia en la importación"
@@ -85,7 +86,7 @@ class Plan:
 
     @property
     def prefijo(self) -> str:
-        return f"homebank:{self.anio}:"
+        return f"{PREFIJO_HISTORICO}{self.anio}:"
 
 
 @dataclass

@@ -99,6 +99,12 @@ def uncategorized_category_id(cur: sqlite3.Cursor) -> int:
 
 MIN_CONFIDENCE = 0.70
 
+# Huella (hash) de lo cargado del histórico de HomeBank: «homebank:<año>:…».
+# No enseña reglas ni quita las que hay: sus categorías salen de una tabla de
+# equivalencias, no de cómo categoriza el usuario hoy, y con ellas TNT dejaría
+# de categorizar como antes de cargarlo. Decidido por el usuario.
+PREFIJO_HISTORICO = "homebank:"
+
 
 def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
     """
@@ -114,12 +120,13 @@ def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
     (p. ej. "REPSOL"→Luz y gas aprendido de los recibos domiciliados,
     aplicándose luego a "REPSOL WAYLET", que es combustible).
 
-    Las reglas 'manual' y 'builtin' nunca se tocan aquí.
+    Lo cargado del histórico (`PREFIJO_HISTORICO`) no cuenta, ni para crear
+    ni para revocar. Las reglas 'manual' y 'builtin' nunca se tocan aquí.
     Devuelve el número de reglas creadas.
     """
     rows = cur.execute(
         "SELECT description, category_id FROM transactions "
-        "WHERE category_id IS NOT NULL"
+        "WHERE category_id IS NOT NULL AND hash NOT LIKE ?", (PREFIJO_HISTORICO + "%",)
     ).fetchall()
 
     token_cat_counts: dict[str, Counter] = defaultdict(Counter)
