@@ -340,9 +340,10 @@ DEFAULT_CATEGORIES: list[tuple[str, str, list[str]]] = [
         "Impuestos", "Comisiones bancarias"
     ]),
     ("Regalos y donaciones", "expense", []),
-    # "Bizum enviado" vive bajo "Otros gastos" (ver _BUILTIN en categorizer),
-    # no se siembra aquí para no duplicar la misma subcategoría en dos sitios.
-    ("Transferencias", "expense", ["Traspaso entre cuentas"]),
+    # Ni «Bizum enviado» ni las transferencias se siembran aquí: viven en el
+    # árbol de ING («Otros gastos», «Movimientos excluidos») y las crean las
+    # reglas integradas (ver _BUILTIN en categorizer). Sembrarlas también las
+    # duplicaba en dos sitios.
     ("Sin categoría", "expense", []),
 
     ("Nómina y otras prestaciones", "income", [

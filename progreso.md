@@ -119,6 +119,13 @@ repetida, y `REPSOL` (aprendida de los recibos de luz) mandaba la gasolina de
 `REPSOL WAYLET` a "Luz y gas". Las aprendidas **se revocan** cuando su
 evidencia baja del 70 %.
 
+### El árbol de categorías es el de ING
+Las importaciones de ING traen sus propias categorías. Lo que TNT siembra o
+crean sus reglas integradas tiene que ser lo mismo, o acaba duplicado: pasó con
+«Bizum enviado» y con «Transferencias». Las transferencias a otras personas van
+a «Otros gastos › Transferencias» y los traspasos entre cuentas propias, a
+«Movimientos excluidos › Traspaso entre cuentas».
+
 ### Una petición que escribe es una transacción
 `cursor()` abre la transacción y la cierra al salir. Enlazar un traspaso son dos
 UPDATE; un movimiento espejo, un INSERT y dos UPDATE: sin transacción, un fallo
@@ -277,11 +284,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 ### Necesita una decisión del usuario
 
-- **Categorías solapadas.** Conviven `Transferencias`, que se ha quedado sin
-  movimientos (el único era la aportación al fondo de marzo, hoy traspaso), y
-  `Otros gastos › Transferencias` (5). Es el mismo caso que «Bizum enviado», que
-  se unificó en la segunda. Al unificar hay que mover también la regla integrada
-  de BIZUM, que apunta a la primera.
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
 - **Reglas que casan dentro de otras palabras.** La manual «IBI» casa con
@@ -306,7 +308,7 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   otro año de HomeBank lo acercaría a 0,7 s.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (397), `db.py` (369), `categorizer.py` (366),
+  `import_page.py` (397), `db.py` (369), `categorizer.py` (369),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (367). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 - **Una copia de más en la app instalada:** `~/.local/share/tnt/download.csv`,
@@ -349,6 +351,10 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 - **8/10** — Histórico de HomeBank de 2025 en la base real, pasando por una base
   de prueba: 2026 queda idéntico salvo las dos aportaciones al fondo, que pasan
   a ser traspasos. El panel, los movimientos y la Renta tienen ya 2025.
+- **8/10** — Fuera `HANDOFF.md`. «Transferencias» unificada con el árbol de ING:
+  97 traspasos a «Movimientos excluidos › Traspaso entre cuentas» y la paga
+  mensual (28) a «Otros gastos › Transferencias», con su regla manual; saldos,
+  ingresos y gastos idénticos. Copia previa junto a la base.
 
 ---
 
