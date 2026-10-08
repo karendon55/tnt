@@ -119,6 +119,15 @@ repetida, y `REPSOL` (aprendida de los recibos de luz) mandaba la gasolina de
 `REPSOL WAYLET` a "Luz y gas". Las aprendidas **se revocan** cuando su
 evidencia baja del 70 %.
 
+### Las reglas casan por palabra entera
+Por subcadena, una regla corta se metía dentro de cualquier palabra: la manual
+«IBI» casaba con «recIBIda» y, como las manuales ganan, una nómina recibida sin
+categoría del banco acababa en Impuestos. Una palabra es una racha de letras:
+números, espacios y signos la cortan, y tildes y Ñ no. Es como se aprenden las
+reglas. Lo decide `rule_matching.py` y nadie más: categorizar, crear una regla,
+la sugerencia de Movimientos y la carga del histórico. Lo que deja de casar
+(plurales, compuestos) se queda sin categoría, a la vista; nunca en otra.
+
 ### El árbol de categorías es el de ING
 Las importaciones de ING traen sus propias categorías. Lo que TNT siembra o
 crean sus reglas integradas tiene que ser lo mismo, o acaba duplicado: pasó con
@@ -294,11 +303,10 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
-- **Reglas que casan dentro de otras palabras.** La manual «IBI» casa con
-  «recIBIda» y, como las manuales ganan, una transferencia recibida que llegue
-  sin categoría del banco acabaría en Impuestos. En marcha en otra sesión
-  (rama `claude/fervent-wright-bdf174`), que propondrá palabra entera o inicio
-  de palabra.
+- **La regla manual «IBI» ya no casa con nada.** Por palabra entera no hay
+  ningún movimiento con «IBI» suelto: los recibos llegan como «Recibo
+  Ayuntamiento de Madrid». Por subcadena solo casaba dentro de «recibida».
+  ¿Se borra?
 - **Copias sueltas de la base.** Junto a `tnt.db` hay cinco (`tnt-antes-de-*`: dos
   de septiembre que ya no sirven y tres del 8/10), y otra en
   `data/importacion-homebank-2025/`. Son datos reales: cuando el usuario dé por
@@ -311,8 +319,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   lista.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (397), `db.py` (372), `categorizer.py` (369),
-  `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (367). Se
+  `import_page.py` (397), `db.py` (372), `categorizer.py` (359),
+  `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (379). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 - **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
   primera vez, podría duplicar «Inmueble alquilado»: las categorías principales no tienen
@@ -362,6 +370,9 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   categoría: no queda ninguno sin ella.
 - **8/10** — Un 0,0 % en los indicadores del panel sale «= 0,0 %» en neutro, no
   «▲» en verde. Fuera la copia de `download.csv` de la app instalada.
+- **8/10** — Las reglas de categoría casan por palabra entera, no por
+  subcadena, en los cuatro sitios que las usan. Un patrón en blanco avisa, al
+  crear y al editar; antes, al editar, se guardaba una regla que casaba con todo.
 
 ---
 
