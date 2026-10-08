@@ -299,6 +299,10 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   sin categoría del banco acabaría en Impuestos. En marcha en otra sesión
   (rama `claude/fervent-wright-bdf174`), que propondrá palabra entera o inicio
   de palabra.
+- **Copias sueltas de la base.** Junto a `tnt.db` hay cinco (`tnt-antes-de-*`: dos
+  de septiembre que ya no sirven y tres del 8/10), y otra en
+  `data/importacion-homebank-2025/`. Son datos reales: cuando el usuario dé por
+  buenos los cambios del 8/10, se tiran.
 
 ### Se puede hacer sin decisiones
 
