@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 360 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 370 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (118). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (121). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -214,6 +214,14 @@ no baja del ancho mínimo de su contenido, y una tabla así empujó el panel a
 598 px en una pantalla de 375. Se comprueba midiendo, no mirando:
 `scrollWidth` igual a `clientWidth`.
 
+### Un JOIN de `transactions` consigo misma necesita su índice
+SQLite usa un índice por tabla en cada paso del JOIN. La búsqueda de
+duplicados iba por el de cuenta y comparaba cada movimiento con todos los de
+su cuenta: crecía con el cuadrado de los datos (290 ms con 2.749). Acotar las
+fechas en el JOIN no ayudó (763 ms): seguía yendo por la cuenta. Lo arregló un
+índice que casa con sus igualdades, `(account_id, amount)`: 7 ms. Se comprueba
+con `EXPLAIN QUERY PLAN`, y un test lo vigila.
+
 ### SQLite en modo WAL y las copias
 Lo confirmado vive en `tnt.db-wal` hasta el checkpoint: copiar `tnt.db` a pelo
 pierde lo último. Los backups usan `db_snapshot()`. Al restaurar hay que borrar
@@ -301,14 +309,9 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
-- **Rendimiento del panel.** La consulta de duplicados de `detect_anomalies` es
-  un JOIN de `transactions` consigo misma sin cota de fechas y crece con el
-  cuadrado de los movimientos: con el histórico de 2025 pasó de 39 a 290 ms
-  (de 1.108 a 2.749 movimientos), el 90 % de los 0,32 s del panel. Ya se nota, y
-  otro año de HomeBank lo acercaría a 0,7 s.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (397), `db.py` (369), `categorizer.py` (369),
+  `import_page.py` (397), `db.py` (372), `categorizer.py` (369),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (367). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 - **Una copia de más en la app instalada:** `~/.local/share/tnt/download.csv`,
@@ -355,6 +358,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   97 traspasos a «Movimientos excluidos › Traspaso entre cuentas» y la paga
   mensual (28) a «Otros gastos › Transferencias», con su regla manual; saldos,
   ingresos y gastos idénticos. Copia previa junto a la base.
+- **8/10** — El panel busca los duplicados por índice: de 0,32 s a 0,03 s, con
+  los mismos avisos.
 
 ---
 
