@@ -278,7 +278,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 ### Necesita una decisión del usuario
 
-- **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
+- **Categorías solapadas.** Conviven `Transferencias`, que se ha quedado sin
+  movimientos (el único era la aportación al fondo de marzo, hoy traspaso), y
   `Otros gastos › Transferencias` (5). Es el mismo caso que «Bizum enviado», que
   se unificó en la segunda. Al unificar hay que mover también la regla integrada
   de BIZUM, que apunta a la primera.
@@ -291,6 +292,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
   sin categoría del banco acabaría en Impuestos. En marcha en otra sesión
   (rama `claude/fervent-wright-bdf174`), que propondrá palabra entera o inicio
   de palabra.
+- **Clasificar 13 movimientos de 2025 sin categoría**, que ya venían así de
+  HomeBank.
 
 ### Se puede hacer sin decisiones
 
@@ -299,9 +302,11 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
-- **Rendimiento del panel.** El 58 % de su tiempo es la consulta de duplicados
-  de `detect_anomalies`: un JOIN de `transactions` consigo misma sin cota de
-  fechas. Hoy no se nota; crece con cada mes de datos.
+- **Rendimiento del panel.** La consulta de duplicados de `detect_anomalies` es
+  un JOIN de `transactions` consigo misma sin cota de fechas y crece con el
+  cuadrado de los movimientos: con el histórico de 2025 pasó de 39 a 290 ms
+  (de 1.108 a 2.749 movimientos), el 90 % de los 0,32 s del panel. Ya se nota, y
+  otro año de HomeBank lo acercaría a 0,7 s.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
   `import_page.py` (397), `db.py` (369), `categorizer.py` (366),
