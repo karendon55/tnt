@@ -177,12 +177,10 @@ class _ConBase(unittest.TestCase):
         self._vaciar()
         self._n = 0
         with cursor() as cur:
-            cur.execute("INSERT INTO accounts(name, type) VALUES ('Cuenta de prueba', 'bank')")
-            self.cuenta = cur.lastrowid
-            self.cat = {}
-            for nombre in self.CATEGORIAS:
-                cur.execute("INSERT INTO categories(name, kind) VALUES (?, 'expense')", (nombre,))
-                self.cat[nombre] = cur.lastrowid
+            self.cuenta = cur.execute(
+                "INSERT INTO accounts(name, type) VALUES ('Cuenta de prueba', 'bank')").lastrowid
+            self.cat = {n: cur.execute("INSERT INTO categories(name, kind) VALUES (?, 'expense')",
+                                       (n,)).lastrowid for n in self.CATEGORIAS}
 
     def tearDown(self):
         self._vaciar()
@@ -206,18 +204,16 @@ class _ConBase(unittest.TestCase):
     def _mov(self, descripcion, categoria=None):
         self._n += 1
         with cursor() as cur:
-            cur.execute(
+            return cur.execute(
                 "INSERT INTO transactions(account_id, date, amount, description, hash, category_id) "
                 "VALUES (?, '2026-08-01', -10.0, ?, ?, ?)",
                 (self.cuenta, descripcion, f"palabra-{self._n}",
-                 self.cat[categoria] if categoria else None))
-            return cur.lastrowid
+                 self.cat[categoria] if categoria else None)).lastrowid
 
     @staticmethod
     def _categoria_de(tx_id):
         with cursor() as cur:
-            return cur.execute("SELECT category_id FROM transactions WHERE id = ?",
-                               (tx_id,)).fetchone()[0]
+            return cur.execute("SELECT category_id FROM transactions WHERE id = ?", (tx_id,)).fetchone()[0]
 
 
 class TestImportarYBestRule(_ConBase):
@@ -291,10 +287,12 @@ class TestReglaNueva(_ConBase):
         self.assertEqual([tuple(x) for x in regla], [("IBI", "manual", 2)])
 
     def test_con_el_patron_vacio_avisa_y_no_crea_nada(self):
-        r = client.post("/reglas/crear", data={
-            "pattern": "   ", "category_id": self.cat["Impuestos"]}, follow_redirects=False)
-        self.assertEqual(r.status_code, 303)
-        self.assertIn("patrón", parse_qs(urlsplit(r.headers["location"]).query)["err"][0])
+        for patron in ("", "   "):  # "" llegaba como campo que falta: un 422 en JSON
+            with self.subTest(patron=patron):
+                r = client.post("/reglas/crear", data={
+                    "pattern": patron, "category_id": self.cat["Impuestos"]}, follow_redirects=False)
+                self.assertEqual(r.status_code, 303)
+                self.assertIn("patrón", parse_qs(urlsplit(r.headers["location"]).query)["err"][0])
         with cursor() as cur:
             self.assertEqual(cur.execute("SELECT COUNT(*) FROM category_rules").fetchone()[0], 0)
 
@@ -302,14 +300,16 @@ class TestReglaNueva(_ConBase):
 class TestEditarRegla(_ConBase):
     def test_un_patron_vacio_no_se_guarda_y_se_avisa(self):
         regla = self._regla("IBI", "Impuestos")
-        r = client.post(f"/reglas/{regla}/editar", data={
-            "pattern": "   ", "category_id": self.cat["Impuestos"], "priority": 200},
-            follow_redirects=False)
-        self.assertEqual(r.status_code, 303)
-        destino = r.headers["location"]
-        error = parse_qs(urlsplit(destino).query)["err"][0]
-        self.assertIn("patrón", error)
-        self.assertIn(error, client.get(destino).text, "el aviso no se ve en la pantalla")
+        for patron in ("", "   "):  # "" llegaba como campo que falta: un 422 en JSON
+            with self.subTest(patron=patron):
+                r = client.post(f"/reglas/{regla}/editar", data={
+                    "pattern": patron, "category_id": self.cat["Impuestos"], "priority": 200},
+                    follow_redirects=False)
+                self.assertEqual(r.status_code, 303)
+                destino = r.headers["location"]
+                error = parse_qs(urlsplit(destino).query)["err"][0]
+                self.assertIn("patrón", error)
+                self.assertIn(error, client.get(destino).text, "el aviso no se ve en la pantalla")
         with cursor() as cur:
             self.assertEqual(cur.execute("SELECT pattern FROM category_rules WHERE id = ?",
                                          (regla,)).fetchone()[0], "IBI")

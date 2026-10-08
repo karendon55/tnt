@@ -82,7 +82,7 @@ def rules_list(request: Request, msg: str = "", err: str = ""):
 @router.post("/reglas/crear", response_class=HTMLResponse)
 def rule_create(
     request: Request,
-    pattern: str = Form(...),
+    pattern: str = Form(""),  # vacío: lo rechaza el aviso, no un 422
     category_id: int = Form(...),
     tx_id: int = Form(None),  # opcional: viene si la creas desde la sugerencia inline
 ):
@@ -142,7 +142,7 @@ def rule_delete(rule_id: int):
 @router.post("/reglas/{rule_id}/editar")
 def rule_update(
     rule_id: int,
-    pattern: str = Form(...),
+    pattern: str = Form(""),  # vacío: lo rechaza el aviso, no un 422
     category_id: int = Form(...),
     priority: int = Form(100),
 ):
