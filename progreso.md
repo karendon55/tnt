@@ -303,10 +303,6 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
-- **Copias sueltas de la base.** Junto a `tnt.db` hay seis (`tnt-antes-de-*`: dos
-  de septiembre que ya no sirven y cuatro del 8/10), y otra en
-  `data/importacion-homebank-2025/`. Son datos reales: cuando el usuario dé por
-  buenos los cambios del 8/10, se tiran.
 
 ### Se puede hacer sin decisiones
 
@@ -372,6 +368,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 - **8/10** — Borrada la regla manual «IBI»: por palabra entera no casaba con
   ningún movimiento (los recibos llegan como «Recibo Ayuntamiento de Madrid») y
   por subcadena solo casaba dentro de «recibida». Copia previa junto a la base.
+- **8/10** — Fuera las siete copias sueltas de la base (a la papelera, con la base
+  de prueba) y el worktree de la sesión de las reglas, ya mezclada en `main`.
 
 ---
 
