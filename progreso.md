@@ -303,12 +303,8 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
-- **La regla manual «IBI» ya no casa con nada.** Por palabra entera no hay
-  ningún movimiento con «IBI» suelto: los recibos llegan como «Recibo
-  Ayuntamiento de Madrid». Por subcadena solo casaba dentro de «recibida».
-  ¿Se borra?
-- **Copias sueltas de la base.** Junto a `tnt.db` hay cinco (`tnt-antes-de-*`: dos
-  de septiembre que ya no sirven y tres del 8/10), y otra en
+- **Copias sueltas de la base.** Junto a `tnt.db` hay seis (`tnt-antes-de-*`: dos
+  de septiembre que ya no sirven y cuatro del 8/10), y otra en
   `data/importacion-homebank-2025/`. Son datos reales: cuando el usuario dé por
   buenos los cambios del 8/10, se tiran.
 
@@ -373,6 +369,9 @@ Comprobado contra el código y los datos el 8 de octubre de 2026.
 - **8/10** — Las reglas de categoría casan por palabra entera, no por
   subcadena, en los cuatro sitios que las usan. Un patrón en blanco avisa, al
   crear y al editar; antes, al editar, se guardaba una regla que casaba con todo.
+- **8/10** — Borrada la regla manual «IBI»: por palabra entera no casaba con
+  ningún movimiento (los recibos llegan como «Recibo Ayuntamiento de Madrid») y
+  por subcadena solo casaba dentro de «recibida». Copia previa junto a la base.
 
 ---
 
