@@ -43,7 +43,7 @@
             <a href="/configuracion" class="nav-link {% if active in activos_config %}is-active{% endif %}">Configuración</a>
         </nav>
         {% if demo_mode %}
-        <span class="pill pill-warning" title="Esta sesión usa data/tnt-demo.db">Datos de demostración</span>
+        <span class="pill pill-warning" title="Esta sesión usa {{ db_nombre }}: los backups están desactivados">{{ demo_rotulo }}</span>
         {% endif %}
         <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema">
             <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>

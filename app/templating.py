@@ -4,7 +4,7 @@ para heredar los globals (app_name, app_tagline) en base.html.
 """
 from fastapi.templating import Jinja2Templates
 
-from app.config import APP_NAME, APP_TAGLINE, DEMO_MODE, STATIC_DIR, TEMPLATES_DIR
+from app.config import APP_NAME, APP_TAGLINE, DB_PATH, DEMO_MODE, DEMO_ROTULO, STATIC_DIR, TEMPLATES_DIR
 from app.navigation import ACTIVOS_CONFIG, SECCIONES_CONFIG
 from app.services.aliases import apply_alias
 from app.utils.formatters import eur, eur_signed, fecha, num_es, pct_signed
@@ -39,6 +39,8 @@ templates.env.globals["app_name"] = APP_NAME
 templates.env.globals["static_version"] = _version_estaticos
 templates.env.globals["app_tagline"] = APP_TAGLINE
 templates.env.globals["demo_mode"] = DEMO_MODE
+templates.env.globals["demo_rotulo"] = DEMO_ROTULO
+templates.env.globals["db_nombre"] = DB_PATH.name
 # La subnavegación de Configuración: así _settings_nav.html funciona en
 # cualquier sección sin que su handler tenga que pasarla.
 templates.env.globals["secciones_config"] = SECCIONES_CONFIG

@@ -38,6 +38,16 @@ class TestAvisoEnLaInterfaz(unittest.TestCase):
     def test_sin_demo_no_hay_aviso(self):
         self.assertNotIn("Datos de demostración", self.render_base(False))
 
+    def test_la_base_de_prueba_lleva_su_propio_rotulo(self):
+        # La copia de la base real donde se revisa un histórico va en modo
+        # demostración (bloquea los backups), pero sus datos no son inventados.
+        html = templates.get_template("base.html").render(
+            demo_mode=True, demo_rotulo="Base de prueba", db_nombre="tnt-prueba.db",
+            app_name="TNT", app_tagline="Tus Números Tranquilos")
+        self.assertIn("Base de prueba", html)
+        self.assertIn("tnt-prueba.db", html)
+        self.assertNotIn("Datos de demostración", html)
+
 
 if __name__ == "__main__":
     unittest.main()

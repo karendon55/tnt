@@ -18,6 +18,10 @@ DATA_DIR = DB_PATH.parent
 # adivinarlo por el nombre del fichero marcaría como "de mentira" cualquier
 # base que no fuera la de siempre.
 DEMO_MODE = os.environ.get("TNT_DEMO") == "1"
+# Lo que dice el aviso de la barra en ese modo. La copia de la base real donde
+# se revisa un histórico también va en él (bloquea los backups, que escribirían
+# la copia encima de los buenos), pero sus datos no son inventados.
+DEMO_ROTULO = os.environ.get("TNT_DEMO_ROTULO", "").strip() or "Datos de demostración"
 
 TEMPLATES_DIR = BASE_DIR / "app" / "templates"
 STATIC_DIR = BASE_DIR / "app" / "static"

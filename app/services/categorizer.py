@@ -209,6 +209,15 @@ def _rule_rank(rule) -> tuple[int, int, int]:
     )
 
 
+def best_rule(rules, description: str | None):
+    """La regla que ganaría para esa descripción, con el mismo desempate que
+    al categorizar (`_rule_rank`), o None si no casa ninguna. La usa también
+    la carga del histórico de HomeBank para no tener otro criterio distinto."""
+    up = (description or "").upper()
+    matching = [r for r in rules if r["pattern"] in up]
+    return max(matching, key=_rule_rank) if matching else None
+
+
 def apply_rules_to_uncategorized(
     cur: sqlite3.Cursor, batch_id: int | None = None
 ) -> tuple[int, int]:
