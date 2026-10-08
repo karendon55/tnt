@@ -50,22 +50,23 @@
     <div>
         <div class="lbl">Ingresos del mes</div>
         <div class="kpi-value tabular amount-pos">{{ cur_month.income | eur }}</div>
-        <div class="kpi-delta {% if delta_income is not none and delta_income >= 0 %}is-positive{% elif delta_income is not none %}is-negative{% endif %}">
-            {% if delta_income is not none %}
-                {{ '▲' if delta_income >= 0 else '▼' }} {{ delta_income|abs|num_es(1) }} % vs mes anterior ({{ prev_month.income | eur }})
-            {% else %}
+        {# Un 0,0 % va sin flecha ni color: en verde diría que algo fue bien. #}
+        <div class="kpi-delta {% if delta_income %}{{ 'is-positive' if delta_income > 0 else 'is-negative' }}{% endif %}">
+            {% if delta_income is none %}
                 sin referencia del mes anterior
+            {% else %}
+                {{ '=' if delta_income == 0 else ('▲' if delta_income > 0 else '▼') }} {{ delta_income|abs|num_es(1) }} % vs mes anterior ({{ prev_month.income | eur }})
             {% endif %}
         </div>
     </div>
     <div>
         <div class="lbl">Gastos del mes</div>
         <div class="kpi-value tabular amount-neg">{{ cur_month.expense|abs | eur }}</div>
-        <div class="kpi-delta {% if delta_expense is not none and delta_expense <= 0 %}is-positive{% elif delta_expense is not none %}is-negative{% endif %}">
-            {% if delta_expense is not none %}
-                {{ '▲' if delta_expense >= 0 else '▼' }} {{ delta_expense|abs|num_es(1) }} % vs mes anterior ({{ prev_month.expense|abs | eur }})
-            {% else %}
+        <div class="kpi-delta {% if delta_expense %}{{ 'is-negative' if delta_expense > 0 else 'is-positive' }}{% endif %}">
+            {% if delta_expense is none %}
                 sin referencia del mes anterior
+            {% else %}
+                {{ '=' if delta_expense == 0 else ('▲' if delta_expense > 0 else '▼') }} {{ delta_expense|abs|num_es(1) }} % vs mes anterior ({{ prev_month.expense|abs | eur }})
             {% endif %}
         </div>
     </div>

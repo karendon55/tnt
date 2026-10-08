@@ -5,7 +5,7 @@ Documento de contexto para retomar el trabajo sin releerlo todo. Recoge el
 mordido. El detalle de cada decisión está en `docs/QUESTIONS.md`; aquí solo lo
 que hace falta para orientarse.
 
-Última actualización: **7 de octubre de 2026**. Proyecto iniciado el 21 de abril.
+Última actualización: **8 de octubre de 2026**. Proyecto iniciado el 21 de abril.
 
 ---
 
@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 6.300 líneas de Python, 3.100 de plantillas, 610 de CSS, 298 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 373 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,12 +34,11 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (103). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (122). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
 | `CLAUDE.md` | convenciones del repo para el agente |
-| `HANDOFF.md` | ⚠️ **histórico, de abril**. Ver la trampa de la sección 5 |
 | `docs/Manual-TNT.*` | manual de usuario, **desfasado** (mayo) |
 
 ---
@@ -55,8 +54,17 @@ Cuentas, Categorías, Reglas, Importar, Alias y Renta. El mapa vive en
 con cuenta destino a elegir porque el fichero no trae IBAN). Preview, confirmar
 y deshacer un lote entero.
 
+**Histórico de HomeBank.** Un ejercicio entero desde `Casa.xhb`, sin tocar la
+base real hasta el final: `scripts/homebank_historico.py preparar` lo carga en
+una copia (con la tabla de equivalencias de categorías que revisa el usuario),
+`verificar` compara la real con la copia mes a mes y `migrar` pasa lo revisado
+con copia previa, comprobando que la real queda igual que la copia. La
+configuración y la copia viven en `data/importacion-homebank-<año>/`, fuera de
+git. 2025 está cargado.
+
 **Categorización.** Reglas integradas, aprendidas y manuales; aprende de las
-correcciones y sugiere reglas nuevas.
+correcciones y sugiere reglas nuevas. Lo cargado del histórico de HomeBank no
+enseña reglas: sus categorías salen de la tabla de equivalencias.
 
 **Panel.** Patrimonio en grande con lo que varió en el mes que se ve, selector
 de mes, banda de KPIs del mes con su variación, avisos, gasto por categoría,
@@ -111,6 +119,13 @@ repetida, y `REPSOL` (aprendida de los recibos de luz) mandaba la gasolina de
 `REPSOL WAYLET` a "Luz y gas". Las aprendidas **se revocan** cuando su
 evidencia baja del 70 %.
 
+### El árbol de categorías es el de ING
+Las importaciones de ING traen sus propias categorías. Lo que TNT siembra o
+crean sus reglas integradas tiene que ser lo mismo, o acaba duplicado: pasó con
+«Bizum enviado» y con «Transferencias». Las transferencias a otras personas van
+a «Otros gastos › Transferencias» y los traspasos entre cuentas propias, a
+«Movimientos excluidos › Traspaso entre cuentas».
+
 ### Una petición que escribe es una transacción
 `cursor()` abre la transacción y la cierra al salir. Enlazar un traspaso son dos
 UPDATE; un movimiento espejo, un INSERT y dos UPDATE: sin transacción, un fallo
@@ -139,18 +154,20 @@ solo se restaura tecleando la contraseña a mano.
 El código vive en `/home/trooper/IA` y la app corre desde
 `~/.local/share/tnt`, que es **otra copia**: editar el repo no cambia lo que se
 ve hasta `./packaging/install.sh --no-venv` y reiniciar. Si se reinstala con TNT
-abierto, el proceso sigue con el código viejo en memoria.
+abierto, el proceso sigue con el código viejo en memoria. El instalador copia
+el repo menos lo que ignora git (datos, extractos, capturas con datos reales) y
+`.claude/`; la carpeta `data/` de la instalación no la toca nunca.
 
 En cambio la **base de datos es una sola**: `.env.local` (fuera de git) apunta
 `TNT_DB` a la real. Así que `./run.sh` desde el repo trabaja **sobre dinero de
 verdad**: cualquier prueba de importar, restaurar o borrar lo toca. Para
 experimentar, `./run.sh --demo`.
 
-### `HANDOFF.md` aconseja algo que ahora rompe
-Dice que la conexión va en autocommit y que se envuelva cada escritura en
-`BEGIN`/`COMMIT`. Ya no: `cursor()` abre su propia transacción, y un `BEGIN`
-manual dentro provoca *cannot start a transaction within a transaction*. El
-resto de sus trampas (abajo) siguen vigentes.
+### Un `BEGIN` a mano dentro de `cursor()` rompe
+La conexión va en autocommit, pero `cursor()` abre su propia transacción: un
+`BEGIN` manual dentro provoca *cannot start a transaction within a
+transaction*. Para lotes donde un elemento malo no debe tirar los buenos,
+`savepoint()`.
 
 ### Los gastos se guardan en negativo
 `month_income_expense` devuelve `expense` como suma de importes negativos. Al
@@ -197,6 +214,14 @@ no baja del ancho mínimo de su contenido, y una tabla así empujó el panel a
 598 px en una pantalla de 375. Se comprueba midiendo, no mirando:
 `scrollWidth` igual a `clientWidth`.
 
+### Un JOIN de `transactions` consigo misma necesita su índice
+SQLite usa un índice por tabla en cada paso del JOIN. La búsqueda de
+duplicados iba por el de cuenta y comparaba cada movimiento con todos los de
+su cuenta: crecía con el cuadrado de los datos (290 ms con 2.749). Acotar las
+fechas en el JOIN no ayudó (763 ms): seguía yendo por la cuenta. Lo arregló un
+índice que casa con sus igualdades, `(account_id, amount)`: 7 ms. Se comprueba
+con `EXPLAIN QUERY PLAN`, y un test lo vigila.
+
 ### SQLite en modo WAL y las copias
 Lo confirmado vive en `tnt.db-wal` hasta el checkpoint: copiar `tnt.db` a pelo
 pierde lo último. Los backups usan `db_snapshot()`. Al restaurar hay que borrar
@@ -207,7 +232,7 @@ IBAN completo (`ES99…`, 24 caracteres) o BBAN (20 dígitos). Comparar en crudo
 duplicaba cuentas al importar; `ensure_account` normaliza y, si no encaja,
 compara por los últimos 20.
 
-### Heredadas de `HANDOFF.md`, siguen vigentes
+### Las de los primeros meses, siguen vigentes
 - `TemplateResponse(request, "x.html", {...})`: la firma antigua, con `request`
   dentro del diccionario, da `TypeError`.
 - Los `.xls` de los bancos son BIFF antiguo, que `openpyxl` no lee: se
@@ -239,12 +264,14 @@ procesa la primera fila.
 
 ## 6. Datos del usuario (contexto)
 
-1.108 movimientos de enero a septiembre de 2026, en 9 cuentas activas.
+2.749 movimientos de enero de 2025 a septiembre de 2026, en 9 cuentas activas.
+Los 1.641 de 2025 vienen del histórico de HomeBank, migrado el 8/10/2026; copia
+de la base de justo antes en `data/importacion-homebank-2025/`.
 
-- **Indexa Capital**, de tipo inversión: 60.440 € aportados y 63.759,24 € de
-  valor en septiembre, con 9 valoraciones. Las aportaciones son anteriores al
-  histórico de TNT, por eso son saldo inicial y no movimientos: no hay
-  contrapartida bancaria con la que emparejarlas.
+- **Indexa Capital**, de tipo inversión: 60.740 € aportados, lo mismo que dice
+  Indexa, y 63.759,24 € de valor en septiembre. Lo aportado antes de 2025 es
+  saldo inicial; lo de después son traspasos emparejados desde CaixaBank. Tiene
+  la valoración de cada cierre de mes desde diciembre de 2024.
 - **Plan pensiones Olga** sigue de tipo banco por decisión del usuario, con sus
   14.650 € aportados; su valor real será otro. **No tocar.**
 - **Dos depósitos de EuroCaja Rural** (anual al 2,30 %, vence 20/08/2027; nueve
@@ -261,32 +288,31 @@ procesa la primera fila.
 
 ## 7. Pendiente
 
-Comprobado contra el código y los datos el 7 de octubre de 2026.
+Comprobado contra el código y los datos el 8 de octubre de 2026.
 
 ### Necesita una decisión del usuario
 
-- **Categorías solapadas.** Conviven `Transferencias` (1 movimiento) y
-  `Otros gastos › Transferencias` (5). Es el mismo caso que «Bizum enviado», que
-  se unificó en la segunda. Al unificar hay que mover también la regla integrada
-  de BIZUM, que apunta a la primera.
-- **`HANDOFF.md`: archivarlo o borrarlo.** Su consejo de envolver cada escritura
-  en `BEGIN`/`COMMIT` rompe el código actual (ver «Trampas»).
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
+- **Reglas que casan dentro de otras palabras.** La manual «IBI» casa con
+  «recIBIda» y, como las manuales ganan, una transferencia recibida que llegue
+  sin categoría del banco acabaría en Impuestos. En marcha en otra sesión
+  (rama `claude/fervent-wright-bdf174`), que propondrá palabra entera o inicio
+  de palabra.
+- **Copias sueltas de la base.** Junto a `tnt.db` hay cinco (`tnt-antes-de-*`: dos
+  de septiembre que ya no sirven y tres del 8/10), y otra en
+  `data/importacion-homebank-2025/`. Son datos reales: cuando el usuario dé por
+  buenos los cambios del 8/10, se tiran.
 
 ### Se puede hacer sin decisiones
 
-- **«▲ 0,0 %» en verde en los KPIs.** Un mes sin cambios debería ir en neutro,
-  como ya hace la línea del patrimonio. Pequeño.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
-- **Rendimiento del panel.** El 58 % de su tiempo es la consulta de duplicados
-  de `detect_anomalies`: un JOIN de `transactions` consigo misma sin cota de
-  fechas. Hoy no se nota; crece con cada mes de datos.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (397), `db.py` (369) y `tests/test_analytics.py` (398). Se
+  `import_page.py` (397), `db.py` (372), `categorizer.py` (369),
+  `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (367). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 - **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
   primera vez, podría duplicar «Inmueble alquilado»: las categorías principales no tienen
@@ -309,8 +335,8 @@ Comprobado contra el código y los datos el 7 de octubre de 2026.
 
 - Comparar la rentabilidad del fondo con su benchmark, que Indexa envía en el
   mismo correo.
-- Traer el histórico de HomeBank (Importar ya lo admite) para que el panel y la
-  Renta tengan años anteriores a 2026.
+- Años de HomeBank anteriores a 2025: el mismo programa, con otra
+  configuración y su tabla de equivalencias.
 
 ### Resuelto en octubre
 
@@ -323,6 +349,19 @@ Comprobado contra el código y los datos el 7 de octubre de 2026.
   `.table-scroll` y la barra del móvil en dos filas, sin fijar.
 - **7/10** — Sección Renta en Configuración, con los 9 movimientos de 2026 del
   piso alquilado ya clasificados.
+- **8/10** — Histórico de HomeBank de 2025 en la base real, pasando por una base
+  de prueba: 2026 queda idéntico salvo las dos aportaciones al fondo, que pasan
+  a ser traspasos. El panel, los movimientos y la Renta tienen ya 2025.
+- **8/10** — Fuera `HANDOFF.md`. «Transferencias» unificada con el árbol de ING:
+  97 traspasos a «Movimientos excluidos › Traspaso entre cuentas» y la paga
+  mensual (28) a «Otros gastos › Transferencias», con su regla manual; saldos,
+  ingresos y gastos idénticos. Copia previa junto a la base.
+- **8/10** — El panel busca los duplicados por índice: de 0,32 s a 0,03 s, con
+  los mismos avisos.
+- **8/10** — Clasificados los 13 movimientos de 2025 que llegaron de HomeBank sin
+  categoría: no queda ninguno sin ella.
+- **8/10** — Un 0,0 % en los indicadores del panel sale «= 0,0 %» en neutro, no
+  «▲» en verde. Fuera la copia de `download.csv` de la app instalada.
 
 ---
 

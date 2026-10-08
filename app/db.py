@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_tx_date     ON transactions(date);
 CREATE INDEX IF NOT EXISTS idx_tx_account  ON transactions(account_id);
 CREATE INDEX IF NOT EXISTS idx_tx_category ON transactions(category_id);
+-- Los duplicados del panel se buscan por cuenta e importe (ver SQL_DUPLICADOS).
+CREATE INDEX IF NOT EXISTS idx_tx_account_amount ON transactions(account_id, amount);
 
 CREATE TABLE IF NOT EXISTS budgets (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -340,9 +342,10 @@ DEFAULT_CATEGORIES: list[tuple[str, str, list[str]]] = [
         "Impuestos", "Comisiones bancarias"
     ]),
     ("Regalos y donaciones", "expense", []),
-    # "Bizum enviado" vive bajo "Otros gastos" (ver _BUILTIN en categorizer),
-    # no se siembra aquí para no duplicar la misma subcategoría en dos sitios.
-    ("Transferencias", "expense", ["Traspaso entre cuentas"]),
+    # Ni «Bizum enviado» ni las transferencias se siembran aquí: viven en el
+    # árbol de ING («Otros gastos», «Movimientos excluidos») y las crean las
+    # reglas integradas (ver _BUILTIN en categorizer). Sembrarlas también las
+    # duplicaba en dos sitios.
     ("Sin categoría", "expense", []),
 
     ("Nómina y otras prestaciones", "income", [

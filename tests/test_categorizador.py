@@ -19,7 +19,7 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "cat.db")
 
 from app.db import cursor, init_db  # noqa: E402
 from app.services.categorizer import (  # noqa: E402
-    apply_rules_to_uncategorized, retrain_and_apply,
+    apply_rules_to_uncategorized, learn_rules_from_known, retrain_and_apply,
 )
 
 init_db()
@@ -128,6 +128,53 @@ class TestRetrainAndApply(unittest.TestCase):
         self.assertIsInstance(del_lote, int)
         self.assertLessEqual(del_lote, total,
                              "lo del lote no puede ser más que el total")
+
+
+class TestElHistoricoNoEnsenaReglas(unittest.TestCase):
+    """Lo cargado del histórico de HomeBank (huella «homebank:…») ni enseña
+    reglas ni quita las que hay: sus categorías salen de una tabla de
+    equivalencias, no de cómo categoriza el usuario hoy. Con él, TNT tiene
+    que seguir categorizando igual que antes de cargarlo."""
+
+    def setUp(self):
+        with cursor() as cur:
+            self.cuenta = _cuenta(cur, "historico")
+            self.fruta = _categoria(cur, "Fruta del histórico")
+            self.bar = _categoria(cur, "Bar del histórico")
+            for i in range(3):
+                _movimiento(cur, self.cuenta, "FRUTERIA PEPA", f"hist-hoy-{i}", cat=self.fruta)
+
+    def tearDown(self):
+        with cursor() as cur:  # los movimientos y las reglas se van en cascada
+            cur.execute("DELETE FROM accounts WHERE id = ?", (self.cuenta,))
+            cur.execute("DELETE FROM categories WHERE id IN (?, ?)", (self.fruta, self.bar))
+
+    def _aprender(self, filas=()):
+        with cursor() as cur:
+            for desc, huella, cat in filas:
+                _movimiento(cur, self.cuenta, desc, huella, cat=cat)
+            learn_rules_from_known(cur)
+
+    @staticmethod
+    def _reglas(patron):
+        with cursor() as cur:
+            return [r[0] for r in cur.execute(
+                "SELECT category_id FROM category_rules WHERE pattern = ? AND source = 'learned'", (patron,))]
+
+    def test_lo_de_hoy_si_ensena(self):
+        self._aprender([("VERMUTERIA LOLA", f"hist-v-{i}", self.bar) for i in range(3)])
+        self.assertEqual(self._reglas("VERMUTERIA"), [self.bar])
+
+    def test_el_historico_no_crea_reglas(self):
+        self._aprender([("VERMUTERIA LOLA", f"homebank:2025:v-{i}", self.bar) for i in range(3)])
+        self.assertEqual(self._reglas("VERMUTERIA"), [])
+
+    def test_el_historico_no_quita_las_que_hay(self):
+        self._aprender()
+        self.assertEqual(self._reglas("FRUTERIA"), [self.fruta])
+        # En 2025 la misma frutería iba a otra categoría: manda cómo se categoriza hoy.
+        self._aprender([("FRUTERIA PEPA", f"homebank:2025:f-{i}", self.bar) for i in range(5)])
+        self.assertEqual(self._reglas("FRUTERIA"), [self.fruta])
 
 
 if __name__ == "__main__":

@@ -102,6 +102,12 @@ def uncategorized_category_id(cur: sqlite3.Cursor) -> int:
 
 MIN_CONFIDENCE = 0.70
 
+# Huella (hash) de lo cargado del histórico de HomeBank: «homebank:<año>:…».
+# No enseña reglas ni quita las que hay: sus categorías salen de una tabla de
+# equivalencias, no de cómo categoriza el usuario hoy, y con ellas TNT dejaría
+# de categorizar como antes de cargarlo. Decidido por el usuario.
+PREFIJO_HISTORICO = "homebank:"
+
 
 def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
     """
@@ -117,12 +123,13 @@ def learn_rules_from_known(cur: sqlite3.Cursor) -> int:
     (p. ej. "REPSOL"→Luz y gas aprendido de los recibos domiciliados,
     aplicándose luego a "REPSOL WAYLET", que es combustible).
 
-    Las reglas 'manual' y 'builtin' nunca se tocan aquí.
+    Lo cargado del histórico (`PREFIJO_HISTORICO`) no cuenta, ni para crear
+    ni para revocar. Las reglas 'manual' y 'builtin' nunca se tocan aquí.
     Devuelve el número de reglas creadas.
     """
     rows = cur.execute(
         "SELECT description, category_id FROM transactions "
-        "WHERE category_id IS NOT NULL"
+        "WHERE category_id IS NOT NULL AND hash NOT LIKE ?", (PREFIJO_HISTORICO + "%",)
     ).fetchall()
 
     token_cat_counts: dict[str, Counter] = defaultdict(Counter)
@@ -285,12 +292,15 @@ def retrain_and_apply(
 
 _BUILTIN: list[tuple[str, str, int]] = [
     # (patrón, categoría hint, prioridad)
-    # Bizum: el patrón genérico apunta a Transferencias, que es categoría
-    # de GASTO. Un "BIZUM RECIBIDO" es dinero que entra, así que necesita
-    # su propia regla o acaba restando en vez de sumar.
+    # Bizum: el patrón genérico apunta a «Otros gastos › Transferencias», que
+    # es categoría de GASTO. Un "BIZUM RECIBIDO" es dinero que entra, así que
+    # necesita su propia regla o acaba restando en vez de sumar.
+    # Transferencias y traspasos van al árbol de ING, el que traen sus
+    # importaciones: la «Transferencias» propia de TNT se unificó con él (ver
+    # unificar_transferencias.py). Apuntar aquí a otra la volvería a crear.
     ("BIZUM ENVIADO",  "Otros gastos|Bizum enviado",         160),
     ("BIZUM RECIBIDO", "Ingresos varios|Bizum recibido",     160),
-    ("BIZUM",          "Transferencias",                     150),
+    ("BIZUM",          "Otros gastos|Transferencias",        150),
     ("NOMINA",         "Nómina y otras prestaciones|Nómina o Pensión", 200),
     ("PREST. DESEMPLEO", "Nómina y otras prestaciones|Desempleo",      200),
     ("DESEMPLEO",      "Nómina y otras prestaciones|Desempleo",       180),
@@ -298,8 +308,8 @@ _BUILTIN: list[tuple[str, str, int]] = [
     ("REINTEGRO",      "Sin categoría",                      140),
     ("COMISIONES",     "Impuestos y comisiones|Comisiones bancarias", 180),
     ("COMISION",       "Impuestos y comisiones|Comisiones bancarias", 170),
-    ("TRASPASO",       "Transferencias|Traspaso entre cuentas",        150),
-    ("TRASPASOS",      "Transferencias|Traspaso entre cuentas",        150),
+    ("TRASPASO",       "Movimientos excluidos|Traspaso entre cuentas", 150),
+    ("TRASPASOS",      "Movimientos excluidos|Traspaso entre cuentas", 150),
     ("MERCADONA",      "Alimentación|Supermercados y alimentación",   150),
     ("LIDL",           "Alimentación|Supermercados y alimentación",   150),
     ("ALCAMPO",        "Alimentación|Supermercados y alimentación",   150),

@@ -7,9 +7,10 @@ patrimonio y los ingresos y gastos del mes, y devuelve exactamente qué cambió.
 Avisa también de categorías nuevas o perdidas.
 
 Y de algo menos visible: las reglas aprendidas. Cada importación vuelve a
-aprenderlas de todo lo categorizado, así que un año de historia cambia lo que
-TNT hará con lo próximo que entre. `reglas_que_cambiarian` lo calcula sobre
-copias en memoria, sin escribir nada.
+aprenderlas de lo categorizado. Lo cargado del histórico no cuenta
+(categorizer.PREFIJO_HISTORICO), pero lo que la carga recategoriza de lo que ya
+había sí. `reglas_que_cambiarian` lo calcula sobre copias en memoria, sin
+escribir nada.
 """
 from __future__ import annotations
 

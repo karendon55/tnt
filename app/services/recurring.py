@@ -117,6 +117,20 @@ class Anomaly:
     amount: float | None = None
 
 
+# Duplicados: mismo importe, cuenta y descripción a tres días o menos. Va por
+# el índice idx_tx_account_amount; sin él compara cada movimiento con todos
+# los de su cuenta, y con el histórico de 2025 eran 290 ms de los 320 del panel.
+SQL_DUPLICADOS = """SELECT t1.id AS a_id, t2.id AS b_id, t1.amount, t1.description, t1.date,
+          t1.balance AS bal1, t2.balance AS bal2
+   FROM transactions t1 JOIN transactions t2 ON
+       t1.account_id = t2.account_id
+       AND t1.amount = t2.amount
+       AND t1.description = t2.description
+       AND t1.id < t2.id
+       AND ABS(julianday(t1.date) - julianday(t2.date)) <= 3
+       AND t1.transfer_id IS NULL"""
+
+
 def detect_anomalies(cur: sqlite3.Cursor,
                      recurrings: list[RecurringGroup] | None = None) -> list[Anomaly]:
     """Duplicados y subidas de precio.
@@ -131,17 +145,7 @@ def detect_anomalies(cur: sqlite3.Cursor,
     # 1. Duplicados en ventana de 3 días: mismo importe, cuenta y descripción.
     # Si ambas traen saldo y son diferentes, son movs reales y legítimos (p.ej.
     # dos recargas de 30€ el mismo día). Filtramos esos falsos positivos.
-    dup_rows = cur.execute(
-        """SELECT t1.id AS a_id, t2.id AS b_id, t1.amount, t1.description, t1.date,
-                  t1.balance AS bal1, t2.balance AS bal2
-           FROM transactions t1 JOIN transactions t2 ON
-               t1.account_id = t2.account_id
-               AND t1.amount = t2.amount
-               AND t1.description = t2.description
-               AND t1.id < t2.id
-               AND ABS(julianday(t1.date) - julianday(t2.date)) <= 3
-               AND t1.transfer_id IS NULL"""
-    ).fetchall()
+    dup_rows = cur.execute(SQL_DUPLICADOS).fetchall()
     for d in dup_rows:
         if (d["bal1"] is not None and d["bal2"] is not None
                 and abs(d["bal1"] - d["bal2"]) > 0.01):
