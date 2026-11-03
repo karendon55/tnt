@@ -310,7 +310,9 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 
 ### Necesita una decisión del usuario
 
-Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
+- **Copias sueltas de la base, del 3/11.** Junto a `tnt.db` hay tres (`tnt-antes-de-*`: reglas
+  manuales, regla de la comunidad y categorías repetidas). Son datos reales: cuando el
+  usuario dé por buenos esos cambios, se tiran.
 
 ### Se puede hacer sin decisiones
 
@@ -319,7 +321,7 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   lista.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (397), `db.py` (372), `categorizer.py` (359),
+  `import_page.py` (400), `db.py` (374), `categorizer.py` (369),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (379). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 - **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
