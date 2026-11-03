@@ -41,6 +41,15 @@ def extract_tokens(description: str) -> list[str]:
 
 # ====== Resolución de categoría destino en la BD ======
 
+# Categorías del banco que el usuario quiere en otro sitio. ING manda a veces
+# «Vehículo y transporte › Transporte público», y el usuario tiene todo el
+# transporte público en «Transporte»: sin traducirla, cada importación que la
+# trajera volvería a crear la repetida. Decidido por el usuario.
+_PISTAS_DEL_BANCO = {
+    "Vehículo y transporte|Transporte público": "Transporte|Transporte público",
+}
+
+
 def resolve_category(cur: sqlite3.Cursor, hint: str | None,
                      default_kind: str = "expense") -> int | None:
     """
@@ -50,6 +59,7 @@ def resolve_category(cur: sqlite3.Cursor, hint: str | None,
     """
     if not hint:
         return None
+    hint = _PISTAS_DEL_BANCO.get(hint.strip(), hint)
     parts = [p.strip() for p in hint.split("|") if p.strip()]
     if not parts:
         return None

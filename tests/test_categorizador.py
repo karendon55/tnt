@@ -17,9 +17,9 @@ import unittest
 _TMP = tempfile.mkdtemp(prefix="tnt-cat-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "cat.db")
 
-from app.db import cursor, init_db  # noqa: E402
+from app.db import DEFAULT_CATEGORIES, cursor, init_db  # noqa: E402
 from app.services.categorizer import (  # noqa: E402
-    apply_rules_to_uncategorized, learn_rules_from_known, retrain_and_apply,
+    apply_rules_to_uncategorized, learn_rules_from_known, resolve_category, retrain_and_apply,
 )
 
 init_db()
@@ -175,6 +175,37 @@ class TestElHistoricoNoEnsenaReglas(unittest.TestCase):
         # En 2025 la misma frutería iba a otra categoría: manda cómo se categoriza hoy.
         self._aprender([("FRUTERIA PEPA", f"homebank:2025:f-{i}", self.bar) for i in range(5)])
         self.assertEqual(self._reglas("FRUTERIA"), [self.fruta])
+
+
+
+class TestCategoriasRepetidas(unittest.TestCase):
+    """«Transporte público» y «Deporte y gimnasio» estaban repetidas: la que
+    siembra TNT y la del árbol de ING. Decidido por el usuario: el transporte
+    público va a «Transporte» y el gimnasio a «Educación y salud»."""
+
+    def setUp(self):
+        with cursor() as cur:
+            self._previas = {r[0] for r in cur.execute("SELECT id FROM categories")}
+
+    def tearDown(self):
+        with cursor() as cur:
+            previas = ",".join(str(i) for i in self._previas) or "0"
+            cur.execute(f"DELETE FROM categories WHERE parent_id IS NOT NULL AND id NOT IN ({previas})")
+            cur.execute(f"DELETE FROM categories WHERE id NOT IN ({previas})")
+
+    def test_el_transporte_publico_de_ing_va_al_de_transporte(self):
+        # ING lo manda a veces bajo «Vehículo y transporte»; sin traducirlo, cada
+        # importación volvería a crear la repetida.
+        with cursor() as cur:
+            destino = resolve_category(cur, "Transporte|Transporte público")
+            self.assertEqual(resolve_category(cur, "Vehículo y transporte|Transporte público"), destino)
+            self.assertIsNone(cur.execute(
+                "SELECT 1 FROM categories c JOIN categories p ON p.id = c.parent_id "
+                "WHERE p.name = 'Vehículo y transporte' AND c.name = 'Transporte público'").fetchone())
+
+    def test_la_siembra_no_trae_el_gimnasio_en_ocio(self):
+        hijas = {nombre: subs for nombre, _, subs in DEFAULT_CATEGORIES}
+        self.assertNotIn("Deporte y gimnasio", hijas["Ocio y viajes"])
 
 
 if __name__ == "__main__":

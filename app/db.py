@@ -321,7 +321,9 @@ DEFAULT_CATEGORIES: list[tuple[str, str, list[str]]] = [
     ]),
     ("Ocio y viajes", "expense", [
         "Cafeterías y restaurantes", "Cine, teatro y espectáculos",
-        "Viajes y hoteles", "Deporte y gimnasio"
+        "Viajes y hoteles"
+        # «Deporte y gimnasio» vive en «Educación y salud», la de ING: sembrarla
+        # aquí también la repetía. Decidido por el usuario.
     ]),
     ("Hogar", "expense", [
         "Luz y gas", "Agua", "Internet y teléfono", "Comunidad",
