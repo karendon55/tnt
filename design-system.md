@@ -73,6 +73,12 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
   `h3` 1.05rem · `h2` 1.25rem · `h1` 1.7rem. Solo estas.
 - Titulares: `line-height` 1.25, `letter-spacing` -.02em.
 - Cifras: siempre `.tabular` / `.num` (`tabular-nums`) en tablas y KPIs.
+- **Cifras grandes: los céntimos, en voladita** (referencia 3, Mercury). En la cifra del
+  patrimonio, los valores de KPI y la previsión, la coma, los céntimos y el «€» van juntos
+  en pequeño (45 % de la cifra) y subidos hasta la altura de los dígitos: `501.777,⁷² €`.
+  Se pinta con el filtro `eur_cifra` (o `eur_cifra(true)` con signo), que envuelve esa
+  parte en `.cifra-cts`; el texto sigue siendo «501.777,72 €» al leerlo o copiarlo. Nunca
+  en cifras de tabla ni de fila: ahí los céntimos van a tamaño completo para compararse.
 - **Cero fuentes web.** Hoy no se carga ninguna; no se añade ninguna sin actualizar este fichero.
 
 ## Espaciado y radios

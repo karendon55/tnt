@@ -143,6 +143,10 @@ form.htmx-request .cell-edit{opacity:.45}
 
 /* ── KPIs ──────────────────────────────────────────────────────────────── */
 .kpi-value{font-size:1.65rem;font-weight:700;letter-spacing:-.02em;margin-top:.35rem}
+/* Cifras grandes: la coma, los céntimos y el «€», en pequeño y subidos hasta la
+   altura de los dígitos (design-system.md, referencia 3). Sin altura de línea
+   propia, para que subirlos no empuje la línea. */
+.cifra-cts{font-size:.45em;vertical-align:.8em;line-height:0;letter-spacing:0}
 .kpi-delta{font-size:.8rem;color:var(--text-muted);margin-top:.25rem}
 .kpi-delta.is-positive{color:var(--success)}
 .kpi-delta.is-negative{color:var(--danger)}

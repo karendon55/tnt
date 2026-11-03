@@ -53,7 +53,9 @@ _VALORACIONES = [("2024-07-31", 10100.0), ("2024-08-31", 10200.0), ("2024-09-30"
 def _linea_del_patrimonio(html: str) -> tuple[str, str]:
     """(clase, texto) de la línea bajo la cifra del patrimonio."""
     hero = re.search(r'<section class="hero">(.*?)</section>', html, re.S).group(1)
-    m = re.search(r'<span class="([^"]*)">\s*(.*?)\s*</span>', hero, re.S)
+    # La línea va tras la cifra, que tiene sus propios <span> (los céntimos).
+    linea = hero.split('class="hero-value', 1)[1].split("</div>", 1)[1]
+    m = re.search(r'<span class="([^"]*)">\s*(.*?)\s*</span>', linea, re.S)
     return m.group(1), " ".join(m.group(2).split())
 
 
@@ -63,7 +65,7 @@ def _importe(texto: str) -> float:
     return float(cifra.replace(".", "").replace(",", "."))
 
 
-class TestLineaDelPatrimonio(unittest.TestCase):
+class _ConDatos(unittest.TestCase):
     def setUp(self):
         self._vaciar()
         with cursor() as cur:
@@ -91,6 +93,8 @@ class TestLineaDelPatrimonio(unittest.TestCase):
             cur.execute("DELETE FROM transactions")
             cur.execute("DELETE FROM accounts")
 
+
+class TestLineaDelPatrimonio(_ConDatos):
     def test_cuenta_lo_que_gana_el_fondo(self):
         clase, texto = _linea_del_patrimonio(client.get("/?month=2024-09").text)
         self.assertIn("▲", texto)
@@ -102,7 +106,8 @@ class TestLineaDelPatrimonio(unittest.TestCase):
     def test_el_neto_sigue_en_su_tarjeta(self):
         html = client.get("/?month=2024-09").text
         tarjeta = html.split("Neto del mes", 1)[1][:300]
-        self.assertIn("+1.500,00 €", tarjeta)
+        # Sin etiquetas: los céntimos van en su propio <span> (cifras grandes).
+        self.assertIn("+1.500,00 €", re.sub(r"<[^>]+>", "", tarjeta))
 
     def test_una_bajada_sale_a_la_baja_y_en_rojo(self):
         # Agosto: se gastó 500 más de lo que entró y el fondo ganó 100.
@@ -141,6 +146,24 @@ class TestLineaDelPatrimonio(unittest.TestCase):
         self.assertIn("Sin cambios en octubre 2024", texto)
         self.assertNotIn("amount-pos", clase)
         self.assertNotIn("amount-neg", clase)
+
+
+
+class TestCifrasGrandes(_ConDatos):
+    """La cifra del patrimonio y los indicadores del mes llevan los céntimos en
+    voladita (design-system.md, referencia 3); el texto que se lee no cambia."""
+
+    def test_el_patrimonio_lleva_los_centimos_aparte(self):
+        hero = re.search(r'<div class="hero-value[^"]*">(.*?)</div>', client.get("/?month=2024-09").text, re.S).group(1)
+        self.assertIn('<span class="cifra-cts">,00 €</span>', hero)
+        self.assertEqual(re.sub(r"<[^>]+>", "", hero).strip(), "13.700,00 €")
+
+    def test_los_tres_indicadores_tambien(self):
+        html = client.get("/?month=2024-09").text
+        valores = re.findall(r'<div class="kpi-value[^"]*">(.*?)</div>', html, re.S)
+        self.assertGreaterEqual(len(valores), 3)
+        for v in valores[:3]:
+            self.assertIn('class="cifra-cts"', v)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ atención. Todo lo demás es detalle.
 |---|---|---|
 | Boceto interno "papel en oscuro" | `explorations/panel-papel-oscuro/index.html` | la cifra hero en serif a 64px, la banda de tres KPI separada por filetes verticales, las filas de categoría con punteado, el gráfico de línea a 1,6px sin relleno |
 | shadcn charts + Tremor | — | ejes tenues, una sola serie acentuada, sin sombras duras |
+| Mercury (referencia 3) | `explorations/sistema-refs/mercury-1.jpg` | los céntimos en voladita en las cifras grandes |
 
 Capturas en `explorations/panel-refs/`. El proceso de decisión, en
 `explorations/panel-direcciones/NOTES.md`.
@@ -30,7 +31,8 @@ y punto de aviso; `--success` / `--danger` en importes.
 
 | Componente | Clase | Personalización |
 |---|---|---|
-| Hero del patrimonio | `.hero` + `.lbl` + `.hero-value` | sin tarjeta, sin degradado; `<h1>` es la etiqueta |
+| Hero del patrimonio | `.hero` + `.lbl` + `.hero-value` | sin tarjeta, sin degradado; `<h1>` es la etiqueta; cifra con `eur_cifra` |
+| Céntimos de las cifras grandes | `.cifra-cts`, que pone el filtro `eur_cifra` | coma, céntimos y «€» al 45 % y subidos; en el patrimonio, los tres KPI y la previsión |
 | Barra de mes | `.monthbar` + `.monthbar-actions` | filete de cierre; secundario en `.lnk`, principal en `.btn-primary` |
 | Banda de KPIs | `.kpiband` | tres columnas con filete vertical; a 860px se apilan |
 | Aviso | `.warnline` + `.warndot` | punto en vez de emoji, sin caja de color |
@@ -43,10 +45,22 @@ y punto de aviso; `--success` / `--danger` en importes.
 
 ## Qué NO hacer en esta superficie
 
+- Nada de céntimos en voladita fuera de las cinco cifras grandes: en categorías, cuentas y
+  tablas van a tamaño completo, que es como se comparan.
 - Nada de `.card`: el panel es hoja y filete. Si algo necesita caja, es que va en otra pantalla.
 - Nada de serif en las cifras de tabla ni de categoría. Serif es hero, titulares y KPIs.
 - Nada de rojo que no sea la marca, "Importar", el punto de aviso o un importe negativo.
 - Ni emoji, ni barras de colores por categoría, ni relleno bajo la línea del gráfico.
+
+## Validación de los céntimos en voladita (2026-11-03)
+
+- [x] Frente a la referencia: `explorations/sistema-refs/mercury-1.jpg` y la demo en
+      `explorations/panel-refs/demo-cifras-2026-11-03.jpg` (datos inventados)
+- [x] 1440 y 375 en navegador real, sin scroll horizontal; cifra a 64 px con céntimos a 28,8,
+      y a 40 con 18 en el móvil
+- [x] Tema oscuro y tema claro: los céntimos toman el color de su cifra
+- [x] El texto que se lee y se copia no cambia: «5.596,99 €»
+- [x] 408 tests en verde
 
 ## Validación (2026-09-08)
 

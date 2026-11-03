@@ -81,8 +81,10 @@ class TestHojasDeEstilo(unittest.TestCase):
         objetivo = STATIC_DIR / "css" / "pantallas.css"
         mtime = objetivo.stat().st_mtime
         # bien por delante: el sello es el MÁXIMO de todas las fechas, así que
-        # sumar unos segundos a un fichero que no es el más nuevo no cambia nada
-        futuro = mtime + 100_000
+        # hay que pasar a la hoja más nueva, no solo a la propia: editar otra
+        # hoja dejaba esta por detrás y el test fallaba sin motivo
+        mas_nueva = max(h.stat().st_mtime for h in (STATIC_DIR / "css").glob("*.css"))
+        futuro = mas_nueva + 100_000
         try:
             os.utime(objetivo, (futuro, futuro))
             despues = set(re.findall(r"/static/css/[^\"]+", client.get("/").text))

@@ -6,7 +6,7 @@
 {# ── Hero: la cifra que manda, y lo primero de la página ──────────────── #}
 <section class="hero">
     <h1 class="card-title">Patrimonio total</h1>
-    <div class="hero-value tabular">{{ balance | eur }}</div>
+    <div class="hero-value tabular">{{ balance | eur_cifra }}</div>
     <div class="row wrap gap-lg mt-md small">
         {# Nombra el mes: el panel puede estar enseñando uno que no es el de hoy. #}
         {% if delta_patrimonio > 0 %}
@@ -49,7 +49,7 @@
 <div class="kpiband">
     <div>
         <div class="lbl">Ingresos del mes</div>
-        <div class="kpi-value tabular amount-pos">{{ cur_month.income | eur }}</div>
+        <div class="kpi-value tabular amount-pos">{{ cur_month.income | eur_cifra }}</div>
         {# Un 0,0 % va sin flecha ni color: en verde diría que algo fue bien. #}
         <div class="kpi-delta {% if delta_income %}{{ 'is-positive' if delta_income > 0 else 'is-negative' }}{% endif %}">
             {% if delta_income is none %}
@@ -61,7 +61,7 @@
     </div>
     <div>
         <div class="lbl">Gastos del mes</div>
-        <div class="kpi-value tabular amount-neg">{{ cur_month.expense|abs | eur }}</div>
+        <div class="kpi-value tabular amount-neg">{{ cur_month.expense|abs | eur_cifra }}</div>
         <div class="kpi-delta {% if delta_expense %}{{ 'is-negative' if delta_expense > 0 else 'is-positive' }}{% endif %}">
             {% if delta_expense is none %}
                 sin referencia del mes anterior
@@ -73,7 +73,7 @@
     <div>
         <div class="lbl">Neto del mes</div>
         <div class="kpi-value tabular {% if cur_month.net >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
-            {{ cur_month.net | eur_signed }}
+            {{ cur_month.net | eur_cifra(true) }}
         </div>
         <div class="kpi-delta">ingresos menos gastos</div>
     </div>
@@ -180,7 +180,7 @@
             <h2 class="sheet-title">Previsión para el mes siguiente</h2>
         </div>
         <div class="kpi-value tabular {% if forecast.projected_balance >= balance %}amount-pos{% else %}amount-neg{% endif %}">
-            {{ forecast.projected_balance | eur }}
+            {{ forecast.projected_balance | eur_cifra }}
         </div>
         <div class="kpi-delta mb-md">saldo estimado a fin de mes</div>
         <div class="fcrow"><span class="muted">Saldo actual</span>

@@ -3,7 +3,7 @@ Tests del formato es-ES (miles con '.', decimales con ',').
 """
 import unittest
 
-from app.utils.formatters import eur, eur_signed, num_es, pct_signed
+from app.utils.formatters import eur, eur_cifra, eur_signed, num_es, pct_signed
 
 
 class TestNumEs(unittest.TestCase):
@@ -64,6 +64,27 @@ class TestPctSigned(unittest.TestCase):
 
     def test_decimals_param(self):
         self.assertEqual(pct_signed(1.234, decimals=2), "+1,23%")
+
+
+
+class TestEurCifra(unittest.TestCase):
+    """Las cifras grandes llevan los céntimos y el «€» en pequeño y en voladita
+    (design-system.md, referencia 3). El texto no cambia: se lee y se copia igual."""
+
+    def test_separa_los_centimos(self):
+        self.assertEqual(str(eur_cifra(501777.72)), '501.777<span class="cifra-cts">,72 €</span>')
+
+    def test_con_signo(self):
+        self.assertEqual(str(eur_cifra(3426.06, True)), '+3.426<span class="cifra-cts">,06 €</span>')
+        self.assertEqual(str(eur_cifra(-1234.5)), '-1.234<span class="cifra-cts">,50 €</span>')
+
+    def test_el_texto_es_el_mismo_que_eur(self):
+        import re
+        for valor in (0, 7.3, -562.94, 1234567.891):
+            self.assertEqual(re.sub(r"<[^>]+>", "", str(eur_cifra(valor))), eur(valor))
+
+    def test_sin_valor_no_pinta_nada(self):
+        self.assertEqual(str(eur_cifra(None)), "")
 
 
 if __name__ == "__main__":

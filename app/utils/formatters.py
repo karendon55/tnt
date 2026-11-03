@@ -17,6 +17,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
+from markupsafe import Markup, escape
+
 
 def _to_float(value: Any) -> float | None:
     if value is None:
@@ -60,6 +62,18 @@ def eur_signed(value: Any, decimals: int = 2) -> str:
         return ""
     sign = "+" if v >= 0 else "-"
     return f"{sign}{_fmt_abs(v, decimals)} €"
+
+
+def eur_cifra(value: Any, signed: bool = False) -> Markup:
+    """Importe de una cifra grande: la coma, los céntimos y el «€», aparte, para
+    pintarlos en pequeño y en voladita (design-system.md, referencia 3).
+    501777.72 → '501.777<span class="cifra-cts">,72 €</span>'. El texto es el de
+    `eur` (o `eur_signed`): se lee y se copia igual."""
+    texto = eur_signed(value) if signed else eur(value)
+    entero, coma, resto = texto.rpartition(",")
+    if not coma:
+        return Markup(escape(texto))
+    return Markup(f'{escape(entero)}<span class="cifra-cts">{escape(coma + resto)}</span>')
 
 
 def pct_signed(value: Any, decimals: int = 1) -> str:
