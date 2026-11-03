@@ -310,9 +310,7 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 
 ### Necesita una decisión del usuario
 
-- **Copias sueltas de la base, del 3/11.** Junto a `tnt.db` hay tres (`tnt-antes-de-*`: reglas
-  manuales, regla de la comunidad y categorías repetidas). Son datos reales: cuando el
-  usuario dé por buenos esos cambios, se tiran.
+Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 
 ### Se puede hacer sin decisiones
 
@@ -365,6 +363,7 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 - **3/11** — Cuentas, en filas de dos líneas: nombre y subtítulo, con el saldo a la derecha;
   en el móvil, cuenta y saldo actual a la vista. La tercera referencia ya está en las tres
   pantallas previstas.
+- **3/11** — Fuera las tres copias sueltas de la base de ese día (a la papelera).
 
 ### Resuelto en octubre
 
