@@ -24,7 +24,14 @@ dice qué está bloqueado y qué no se puede inventar en el punto de uso.
      robamos: la cifra hero en serif a 64px, la banda de tres KPI separada por filetes
      verticales en vez de tarjetas, las filas de categoría con filete punteado, y el
      gráfico de línea a 1,4px sin relleno.
-  3. PENDIENTE.
+  3. **Mercury** (demo pública de su banca, en oscuro; capturas en
+     `explorations/sistema-refs/mercury-*.jpg`, bloqueada el 2026-11-03) — qué robamos:
+     la cifra grande con los céntimos más pequeños y en voladita; las filas de dos líneas,
+     nombre arriba y subtítulo apagado debajo, con el importe alineado a la derecha; los
+     pares etiqueta / valor en pequeño bajo una cifra; la lista de movimientos con fecha
+     corta, contraparte e importe, separada por filete. Cubre lo que las otras dos no:
+     las tablas y listas de dinero del día a día. **No** robamos sus paneles con borde y
+     fondo (son tarjetas) ni el azul de su marca.
 
 ## Color: variables CSS, nunca literales en plantillas
 

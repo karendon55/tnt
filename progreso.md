@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (131). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (132). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -310,12 +310,14 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 
 ### Necesita una decisión del usuario
 
-- **Diseño: la tercera referencia visual.** La intención estética («papel en
-  oscuro») y las dos primeras ya están en `design-system.md`.
 
 
 ### Se puede hacer sin decisiones
 
+- **Llevar la tercera referencia (Mercury) a las pantallas.** Céntimos en voladita en
+  las cifras grandes (panel, Inversiones) y filas de dos líneas con el importe a la
+  derecha (Cuentas, Inversiones). Pantalla a pantalla, con su brief y su captura frente
+  a `explorations/sistema-refs/`.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
@@ -359,6 +361,8 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
   próximas vayan solas. La Renta de 2026 no tiene nada por revisar.
 - **3/11** — Sin categorías repetidas: el transporte público, todo en «Transporte»
   (31), y el gimnasio, todo en «Educación y salud» (22), con tus reglas apuntando ahí.
+- **3/11** — Tercera referencia visual bloqueada en `design-system.md`: Mercury, para
+  las tablas y listas de dinero (capturas y notas en `explorations/sistema-refs/`).
 
 ### Resuelto en octubre
 
