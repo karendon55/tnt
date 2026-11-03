@@ -30,11 +30,9 @@
     <table class="table">
         <thead>
             <tr>
-                <th>Nombre</th>
-                <th>Banco / Tipo</th>
-                <th>IBAN</th>
-                <th class="num">Saldo inicial</th>
-                <th class="num">Movs.</th>
+                <th>Cuenta</th>
+                <th class="num col-secundaria">Saldo inicial</th>
+                <th class="num col-secundaria">Movs.</th>
                 <th class="num">Saldo actual</th>
                 <th>Conciliación</th>
                 <th></th>
@@ -43,11 +41,10 @@
         <tbody>
             {% for a in active_accs %}
             <tr>
-                <td>{{ a.name }}</td>
-                <td class="muted small">{{ a.bank or a.type }}</td>
-                <td class="muted small tabular">{{ a.iban or '—' }}</td>
-                <td class="num tabular">{{ a.initial_balance | eur }}</td>
-                <td class="num">{{ a.tx_count }}</td>
+                {# Fila de dos líneas (design-system.md): el IBAN completo, al editar. #}
+                <td><div>{{ a.name }}</div><div class="muted small">{{ a.subtitulo }}</div></td>
+                <td class="num tabular col-secundaria">{{ a.initial_balance | eur }}</td>
+                <td class="num col-secundaria">{{ a.tx_count }}</td>
                 <td class="num tabular {% if a.balance is not none and a.balance < 0 %}amount-neg{% elif a.balance is not none and a.balance > 0 %}amount-pos{% endif %}">
                     {% if a.balance is not none %}{{ a.balance | eur }}{% else %}—{% endif %}
                 </td>
@@ -142,8 +139,7 @@
         <tbody>
             {% for a in archived_accs %}
             <tr>
-                <td class="muted">{{ a.name }}</td>
-                <td class="muted small">{{ a.bank }}</td>
+                <td class="muted"><div>{{ a.name }}</div><div class="small">{{ a.subtitulo }}</div></td>
                 <td class="num">{{ a.tx_count }} movs.</td>
                 <td class="num">
                     <form method="post" action="/cuentas/{{ a.id }}/restaurar" class="inline-form">

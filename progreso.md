@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 410 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 418 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -314,10 +314,6 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 
 ### Se puede hacer sin decisiones
 
-- **Llevar la tercera referencia (Mercury) a Cuentas.** El panel e Inversiones ya la
-  tienen (céntimos en voladita, 3/11). Queda Cuentas: filas de dos líneas, nombre y
-  subtítulo apagado, con el saldo a la derecha. Con su brief y su captura frente a
-  `explorations/sistema-refs/`.
 - **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
   inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
   lista.
@@ -364,6 +360,9 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 - **3/11** — Tercera referencia visual bloqueada en `design-system.md`: Mercury, para
   las tablas y listas de dinero (capturas y notas en `explorations/sistema-refs/`).
 - **3/11** — El panel e Inversiones llevan los céntimos en voladita en sus cifras grandes.
+- **3/11** — Cuentas, en filas de dos líneas: nombre y subtítulo, con el saldo a la derecha;
+  en el móvil, cuenta y saldo actual a la vista. La tercera referencia ya está en las tres
+  pantallas previstas.
 
 ### Resuelto en octubre
 

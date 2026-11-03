@@ -8,6 +8,7 @@ de 495 líneas.
 """
 from __future__ import annotations
 
+import re
 from datetime import date
 
 from fastapi import APIRouter, Form, Request
@@ -19,6 +20,28 @@ from app.services.analytics import balances_by_account
 from app.templating import templates
 
 router = APIRouter()
+
+_TIPOS = {"bank": "Cuenta bancaria", "investment": "Inversión", "cash": "Efectivo",
+          "credit": "Tarjeta de crédito"}
+
+
+def subtitulo_cuenta(nombre: str, banco: str | None, iban: str | None, tipo: str) -> str:
+    """La segunda línea de la fila de una cuenta (design-system.md, referencia 3):
+    banco, tipo y los cuatro últimos dígitos del IBAN, cada uno solo si el nombre no
+    lo dice ya, por palabra entera («ING» no está en «Parking»). El tipo va cuando no
+    es una cuenta de banco, o cuando no queda nada más que decir."""
+    def en_el_nombre(trozo: str) -> bool:
+        return re.search(rf"(?<!\w){re.escape(trozo)}(?!\w)", nombre, re.IGNORECASE) is not None
+
+    partes = []
+    if banco and not en_el_nombre(banco.strip()):
+        partes.append(banco.strip())
+    if tipo != "bank":
+        partes.append(_TIPOS.get(tipo, tipo))
+    digitos = re.sub(r"\s+", "", iban or "")[-4:]
+    if digitos and not en_el_nombre(digitos):
+        partes.append(f"····{digitos}")
+    return " · ".join(partes) or _TIPOS.get(tipo, tipo)
 
 
 @router.get("/cuentas", response_class=HTMLResponse)
@@ -61,6 +84,7 @@ def accounts_list(request: Request):
             accounts.append({
                 "id": r["id"], "name": r["name"], "bank": r["bank"],
                 "iban": r["iban"], "type": r["type"],
+                "subtitulo": subtitulo_cuenta(r["name"], r["bank"], r["iban"], r["type"]),
                 "initial_balance": r["initial_balance"],
                 "currency": r["currency"] or "EUR",
                 "archived": bool(r["archived"]),

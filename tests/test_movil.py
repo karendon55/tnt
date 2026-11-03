@@ -147,9 +147,12 @@ class TestPanelEnElMovil(unittest.TestCase):
             self.assertTrue(marca & set(tercera.split()),
                             "una celda de la categoría no lleva la marca de su cabecera")
         # ...y a ancho de móvil hay una regla que las quita a todas.
+        # Vale una regla de esta tabla o una general (que no nombre tabla ninguna,
+        # como `.col-secundaria` desde que se oculta en cualquier tabla); no una
+        # limitada a otra tabla.
         ocultas = [sel for sel, decl in _reglas_bajo(_css(), ANCHO_MOVIL)
                    if re.search(r"display\s*:\s*none", decl)
-                   and any(f".{c}" in sel for c in clases_tabla)
+                   and (".table" not in sel or any(f".{c}" in sel for c in clases_tabla))
                    and any(f".{c}" in sel for c in marca)]
         self.assertTrue(ocultas, f"a {ANCHO_MOVIL} px nada oculta la columna de la categoría")
 

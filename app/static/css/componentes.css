@@ -112,7 +112,8 @@ select.select,.select{cursor:pointer}
 .table-detalle .col-fecha{width:90px}
 .table-detalle .col-secundaria{width:30%}
 .table-detalle .col-importe{width:104px}
-@media(max-width:640px){.table-detalle .col-secundaria{display:none}}
+/* En el móvil, la columna menos necesaria se va antes que el importe: en cualquier tabla. */
+@media(max-width:640px){.col-secundaria{display:none}}
 
 /* ── Avisos ────────────────────────────────────────────────────────────── */
 .notice{border:1px solid var(--border);border-left:3px solid var(--text-muted);

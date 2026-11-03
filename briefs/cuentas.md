@@ -20,6 +20,8 @@ en Inversiones (decisión del 2026-09-08).
 | 2026-09-09 | El formulario flotante de edición comparte clase con el de Reglas (`.inline-edit`) | es el mismo patrón; alcanzar el primitivo antes que inventar otro |
 | 2026-09-09 | La tabla va dentro de `.table-scroll` | ocho columnas no caben a 375px; que scrolle la tabla, no la página |
 | 2026-10-02 | Archivadas y el historial de conciliaciones también van en `.table-scroll` | a 375px, Archivadas medía 480px; el historial, 459px, y lo que se deslizaba era el diálogo entero, formulario incluido |
+| 2026-11-03 | Nombre, banco e IBAN se juntan en una fila de dos líneas: el nombre y, debajo, un subtítulo que no repite lo que ya dice el nombre (`subtitulo_cuenta`) | tercera referencia del sistema (Mercury); de ocho columnas a seis, y el IBAN completo sigue al editar |
+| 2026-11-03 | En el móvil se ocultan el saldo inicial y los movimientos (`.col-secundaria`) | el saldo actual queda junto al nombre, antes que lo que se mira al editar o conciliar |
 
 ## Qué NO hacer aquí
 
@@ -27,6 +29,15 @@ en Inversiones (decisión del 2026-09-08).
 - Ni un segundo botón rojo: «Nueva cuenta» es el único (los de dentro de un diálogo
   no cuentan, cada modal tiene su acción principal).
 - Ni símbolos que el sistema convierta en emoji para marcar estado.
+
+## Validación de las filas de dos líneas (2026-11-03)
+
+- [x] Frente a `explorations/sistema-refs/mercury-2.jpg`: capturas de la demo en
+      `explorations/cuentas-refs/demo-filas-*.jpg` (datos inventados)
+- [x] 1440 y 375 en navegador real; en el móvil se ven cuenta y saldo actual, la página
+      no se desplaza y la tabla se desliza en su caja
+- [x] Tema claro y oscuro, también al cambiarlo en caliente
+- [x] 418 tests en verde
 
 ## Validación (2026-09-09)
 

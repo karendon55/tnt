@@ -79,6 +79,11 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
   Se pinta con el filtro `eur_cifra` (o `eur_cifra(true)` con signo), que envuelve esa
   parte en `.cifra-cts`; el texto sigue siendo «501.777,72 €» al leerlo o copiarlo. Nunca
   en cifras de tabla ni de fila: ahí los céntimos van a tamaño completo para compararse.
+- **Fila de dos líneas** (referencia 3, Mercury), para listas de cuentas: el nombre arriba
+  y, debajo, `.muted.small` con un subtítulo; el saldo, en su columna `.num` a la derecha.
+  El subtítulo no repite lo que ya dice el nombre: banco, tipo (si no es una cuenta de banco)
+  y los cuatro últimos dígitos del IBAN («····4305»), cada uno solo si el nombre no lo lleva
+  (por palabra entera). El IBAN completo se ve al editar, no en la lista.
 - **Cero fuentes web.** Hoy no se carga ninguna; no se añade ninguna sin actualizar este fichero.
 
 ## Espaciado y radios
@@ -107,6 +112,9 @@ deprisa**. Si una cifra de tabla se pone en serif, la dirección se rompe.
   Fecha (`.col-fecha`) e importe (`.col-importe`) con ancho fijo, una columna secundaria
   (`.col-secundaria`: categoría, cuenta) al 30 % y la descripción con el resto. Bajo 640px
   la secundaria se oculta. Una tabla así nueva reutiliza estas clases; no se inventan anchos.
+- **`.col-secundaria` se oculta bajo 640px en cualquier tabla**, no solo en `.table-detalle`:
+  es como se cumple «antes la columna que el importe». En Cuentas, el saldo inicial y los
+  movimientos, para que el saldo actual quede junto al nombre.
 - La barra de arriba: en el escritorio, fija y en una línea. Bajo 640px, los enlaces van
   en su propia fila, debajo de la marca y el botón de tema, y la barra deja de ser fija.
 
