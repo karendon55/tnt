@@ -168,6 +168,7 @@ def import_confirm(request: Request, token: str = Form(...)):
                         "inserted": r.inserted,
                         "duplicates": r.duplicates,
                         "from_hint": r.categorized_from_hint,
+                        "from_rule": r.categorized_from_rule,
                     "transfers": r.transfers_linked,
                 })
                 files_summary.append({
@@ -199,6 +200,8 @@ def import_confirm(request: Request, token: str = Form(...)):
             rules_created, aplicadas, auto_applied = retrain_and_apply(
                 cur, batch_id=batch_id)
             auto_applied_otros = aplicadas - auto_applied
+    # Lo que una regla manual categorizó al entrar también es «por reglas».
+    auto_applied += sum(r["from_rule"] for r in results)
 
     total_inserted = sum(r["inserted"] for r in results)
     total_dup = sum(r["duplicates"] for r in results)

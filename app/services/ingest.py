@@ -12,6 +12,7 @@ from typing import Optional
 from app.importers.common import ParsedExtract, tx_hash
 from app.services.categorizer import resolve_category
 from app.services.external_transfers import apply_rules as apply_external_rules
+from app.services.rule_matching import best_rule
 
 
 @dataclass
@@ -23,6 +24,7 @@ class ImportResult:
     duplicates: int
     categorized_from_hint: int
     transfers_linked: int
+    categorized_from_rule: int = 0  # por una regla manual, al entrar
 
 
 @dataclass
@@ -155,6 +157,14 @@ def ingest(
     inserted = 0
     dupes = 0
     cat_from_hint = 0
+    cat_from_rule = 0
+    # Las reglas manuales mandan sobre la categoría que trae el banco: ING manda
+    # el alquiler como «Otros ingresos (otros)» y había que cambiarlo a mano cada
+    # mes, y reglas creadas a propósito no se aplicaban nunca a lo de ING. Las
+    # aprendidas no: sobre ellas sigue mandando el banco. Decidido por el usuario.
+    manuales = cur.execute(
+        "SELECT pattern, category_id, priority, hits, source FROM category_rules WHERE source = 'manual'"
+    ).fetchall()
 
     for tx in extract.transactions:
         date_iso = tx.date.isoformat()
@@ -172,9 +182,15 @@ def ingest(
             dupes += 1
             continue
 
-        category_id = resolve_category(cur, tx.source_hint)
-        if category_id:
-            cat_from_hint += 1
+        regla = best_rule(manuales, tx.description)
+        if regla is not None:
+            category_id = regla["category_id"]
+            cat_from_rule += 1
+        else:
+            category_id = resolve_category(cur, tx.source_hint)
+            if category_id:
+                cat_from_hint += 1
+        automatica = bool(category_id and (regla is not None or tx.source_hint))
 
         cur.execute(
             """INSERT INTO transactions(
@@ -187,8 +203,8 @@ def ingest(
                 tx.value_date.isoformat() if tx.value_date else None,
                 tx.amount, tx.description, tx.memo,
                 category_id,
-                1 if category_id and tx.source_hint else 0,
-                1.0 if category_id and tx.source_hint else None,
+                1 if automatica else 0,
+                1.0 if automatica else None,
                 None,
                 tx.balance,
                 tx.source_hint,
@@ -210,6 +226,7 @@ def ingest(
         inserted=inserted,
         duplicates=dupes,
         categorized_from_hint=cat_from_hint,
+        categorized_from_rule=cat_from_rule,
         transfers_linked=transfers,
     )
 
