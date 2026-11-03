@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 400 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 402 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (130). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (131). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -133,7 +133,10 @@ Las importaciones de ING traen sus propias categorías. Lo que TNT siembra o
 crean sus reglas integradas tiene que ser lo mismo, o acaba duplicado: pasó con
 «Bizum enviado» y con «Transferencias». Las transferencias a otras personas van
 a «Otros gastos › Transferencias» y los traspasos entre cuentas propias, a
-«Movimientos excluidos › Traspaso entre cuentas».
+«Movimientos excluidos › Traspaso entre cuentas». El gimnasio, a «Educación y
+salud › Deporte y gimnasio». La excepción, elegida por el usuario: el transporte
+público va a «Transporte › Transporte público», y lo que ING mande como «Vehículo y
+transporte › Transporte público» se traduce al entrar (`_PISTAS_DEL_BANCO`).
 
 ### Tus reglas manuales mandan sobre la categoría del banco
 ING trae su propia categoría en el extracto. Al importar, si una regla **manual**
@@ -310,10 +313,6 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 - **Diseño: la tercera referencia visual.** La intención estética («papel en
   oscuro») y las dos primeras ya están en `design-system.md`.
 
-- **Categorías repetidas, como pasaba con «Transferencias».** «Transporte
-  público» está en «Transporte» (29 movimientos) y en «Vehículo y transporte» (2), y
-  «Deporte y gimnasio» en «Ocio y viajes» (21) y en «Educación y salud» (1). Hay
-  dos reglas manuales para el mismo gimnasio, cada una a una.
 
 ### Se puede hacer sin decisiones
 
@@ -358,6 +357,8 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 - **3/11** — La comunidad del piso alquilado del 4.º trimestre, a «Inmueble alquilado ›
   Comunidad», con dos reglas manuales (una por cada formato del recibo) para que las
   próximas vayan solas. La Renta de 2026 no tiene nada por revisar.
+- **3/11** — Sin categorías repetidas: el transporte público, todo en «Transporte»
+  (31), y el gimnasio, todo en «Educación y salud» (22), con tus reglas apuntando ahí.
 
 ### Resuelto en octubre
 
