@@ -314,9 +314,6 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
   público» está en «Transporte» (29 movimientos) y en «Vehículo y transporte» (2), y
   «Deporte y gimnasio» en «Ocio y viajes» (21) y en «Educación y salud» (1). Hay
   dos reglas manuales para el mismo gimnasio, cada una a una.
-- **La comunidad del piso alquilado del 4.º trimestre** (01/10) llegó como «Hogar ›
-  Comunidad» y sale en «por revisar» de la Renta. Con una regla manual, las
-  próximas irían solas a «Inmueble alquilado › Comunidad».
 
 ### Se puede hacer sin decisiones
 
@@ -358,6 +355,9 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
   El alquiler de octubre, a «Alquiler», con su regla para los próximos, y 22
   movimientos de ING que no seguían tus reglas, corregidos. Copia previa junto a la
   base.
+- **3/11** — La comunidad del piso alquilado del 4.º trimestre, a «Inmueble alquilado ›
+  Comunidad», con dos reglas manuales (una por cada formato del recibo) para que las
+  próximas vayan solas. La Renta de 2026 no tiene nada por revisar.
 
 ### Resuelto en octubre
 
