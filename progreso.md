@@ -310,7 +310,7 @@ Comprobado contra el código y los datos el 3 de noviembre de 2026.
 
 ### Necesita una decisión del usuario
 
-
+Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 
 ### Se puede hacer sin decisiones
 
