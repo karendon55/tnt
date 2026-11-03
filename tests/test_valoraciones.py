@@ -45,7 +45,7 @@ class _Base(unittest.TestCase):
         self._vaciar()
         with cursor() as cur:
             cur.execute("INSERT INTO accounts(name, type, initial_balance) "
-                        "VALUES ('Indexa Capital', 'investment', 60440)")
+                        "VALUES ('Fondo de prueba', 'investment', 50000)")
             self.fondo = cur.lastrowid
 
     def tearDown(self):
@@ -149,6 +149,27 @@ class TestGuardar(_Base):
         self.assertEqual(r.status_code, 303)
         self.assertEqual(urlsplit(r.headers["location"]).path, "/inversiones")
         self.assertEqual(self._valoraciones(), [])
+
+
+
+class TestCifrasDelFondo(_Base):
+    """Las tres cifras de cada fondo llevan los céntimos en voladita, como las del
+    panel (design-system.md, referencia 3). El texto que se lee no cambia."""
+
+    def test_las_tres_cifras_llevan_los_centimos_aparte(self):
+        with cursor() as cur:
+            cur.execute("INSERT INTO account_valuations(account_id, date, value) "
+                        "VALUES (?, '2026-01-31', 51234.56)", (self.fondo,))
+        valores = re.findall(r'<div class="kpi-value[^"]*">(.*?)</div>', client.get("/inversiones").text, re.S)
+        self.assertEqual(len(valores), 3)
+        for v in valores:
+            self.assertIn('class="cifra-cts"', v)
+        textos = [" ".join(re.sub(r"<[^>]+>", "", v).split()) for v in valores]
+        self.assertEqual(textos, ["50.000,00 €", "51.234,56 €", "+1.234,56 €"])
+
+    def test_sin_valoracion_el_valor_es_una_raya(self):
+        valores = re.findall(r'<div class="kpi-value[^"]*">(.*?)</div>', client.get("/inversiones").text, re.S)
+        self.assertEqual(" ".join(valores[1].split()), "—")
 
 
 if __name__ == "__main__":

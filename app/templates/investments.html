@@ -44,13 +44,13 @@
     <div class="kpiband">
         <div>
             <div class="lbl">Aportado neto</div>
-            <div class="kpi-value tabular">{{ inv.contributed | eur }}</div>
+            <div class="kpi-value tabular">{{ inv.contributed | eur_cifra }}</div>
             <div class="kpi-delta">lo que has puesto menos lo reembolsado</div>
         </div>
         <div>
             <div class="lbl">Valor actual</div>
             <div class="kpi-value tabular">
-                {% if inv.value is not none %}{{ inv.value | eur }}{% else %}—{% endif %}
+                {% if inv.value is not none %}{{ inv.value | eur_cifra }}{% else %}—{% endif %}
             </div>
             <div class="kpi-delta">
                 {% if inv.valuations %}declarado el {{ inv.valuations[0].date | fecha }}
@@ -61,7 +61,7 @@
             <div class="lbl">Rentabilidad</div>
             {% if inv.gain is not none %}
             <div class="kpi-value tabular {% if inv.gain >= 0 %}amount-pos{% else %}amount-neg{% endif %}">
-                {{ inv.gain | eur_signed }}
+                {{ inv.gain | eur_cifra(true) }}
             </div>
             <div class="kpi-delta {% if inv.gain >= 0 %}is-positive{% else %}is-negative{% endif %}">
                 {% if inv.gain_pct is not none %}{{ inv.gain_pct | pct_signed }} sobre lo aportado{% endif %}

@@ -19,12 +19,21 @@ el 2026-09-08.
 | 2026-09-09 | **Guardar valoración** se queda en rojo aunque se repita por fondo | es la misma acción repetida, no dos compitiendo: la regla veta acciones rivales en rojo, no un listado |
 | 2026-09-09 | La línea de valor pasa a tinta y pierde el relleno; el rojo marca solo el último punto | igual que la curva del panel |
 | 2026-10-02 | El histórico de valoraciones va en `.table-scroll` | a 375px medía 425px dentro del desplegable, que lo cortaba en el borde: la nota se truncaba y el botón de borrar quedaba fuera, sin forma de llegar a él |
+| 2026-11-03 | Las tres cifras del fondo llevan los céntimos en voladita (`eur_cifra`) | tercera referencia del sistema (Mercury), igual que en el panel |
+| 2026-11-03 | Aquí no van las filas de dos líneas de esa referencia | hay un solo fondo: una lista de una fila no ordena nada; van en Cuentas |
 
 ## Qué NO hacer aquí
 
 - Ni tarjetas anidadas: cada fondo es una hoja separada por filete.
 - Ni relleno bajo las líneas: el hueco entre valor y aportado es la historia.
 - Ni fondos de color escritos a mano.
+
+## Validación de los céntimos en voladita (2026-11-03)
+
+- [x] Captura con un fondo inventado: `explorations/inversiones-refs/demo-cifras-2026-11-03.jpg`
+- [x] 1440 y 375 en navegador real, sin scroll horizontal
+- [x] El texto que se lee no cambia («21.378,91 €»); sin valoración sigue la raya
+- [x] 410 tests en verde
 
 ## Validación (2026-09-09)
 
