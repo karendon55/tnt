@@ -37,8 +37,11 @@ EXCLUDES=(
     "--exclude=.venv"
     "--exclude=__pycache__"
     "--exclude=*.pyc"
-    "--exclude=data/*.db"
-    "--exclude=data/*.db-*"
+    "--exclude=./data"
+    "--exclude=./.claude"
+    "--exclude=.env.local"
+    "--exclude=our-build-*.png"
+    "--exclude=diff-*.png"
     "--exclude=logs"
     "--exclude=.pytest_cache"
     "--exclude=packaging/dist"
@@ -48,8 +51,15 @@ EXCLUDES=(
     "--exclude=movements-*.xls"
 )
 
-# Creamos el árbol del paquete vía tar (reutiliza las exclusiones)
-tar "${EXCLUDES[@]}" -cf - . | (cd "$STAGE_DIR" && tar -xf -)
+# El paquete lleva lo que sigue git: ni datos, ni extractos, ni capturas con
+# datos reales, ni ajustes locales. Antes solo se excluía data/*.db, y una
+# subcarpeta de data/ o una captura de explorations/ habrían viajado dentro.
+# Fuera de un repositorio (un paquete ya desempaquetado), la lista de arriba.
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git ls-files -z | tar --null --ignore-failed-read -T - -cf - | (cd "$STAGE_DIR" && tar -xf -)
+else
+    tar "${EXCLUDES[@]}" -cf - . | (cd "$STAGE_DIR" && tar -xf -)
+fi
 
 # README de instalación específico para distribución
 cat > "$STAGE_DIR/INSTALAR.txt" <<EOF
