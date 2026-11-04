@@ -177,7 +177,7 @@ def connect() -> sqlite3.Connection:
 
 
 @contextmanager
-def cursor() -> Iterator[sqlite3.Cursor]:
+def cursor(inmediata: bool = False) -> Iterator[sqlite3.Cursor]:
     """Un cursor y, con él, UNA transacción.
 
     La conexión va en autocommit, así que cada sentencia se confirmaría sola.
@@ -191,11 +191,17 @@ def cursor() -> Iterator[sqlite3.Cursor]:
     diferida, que en SQLite no bloquea nada hasta la primera lectura.
 
     Para lotes donde un elemento malo no debe tirar los buenos, ver savepoint().
+
+    Con `inmediata`, la transacción pide la escritura desde el principio
+    (`BEGIN IMMEDIATE`). Hace falta cuando se lee para decidir si escribir:
+    en modo WAL, otra petición que haya escrito entre medias deja la lectura
+    vieja, y la escritura falla con «database is locked». Así, la segunda
+    espera y lee ya lo que escribió la primera.
     """
     conn = connect()
     try:
         cur = conn.cursor()
-        cur.execute("BEGIN")
+        cur.execute("BEGIN IMMEDIATE" if inmediata else "BEGIN")
         try:
             yield cur
         except BaseException:
@@ -275,6 +281,25 @@ def init_db() -> None:
         _add_columns_if_missing(cur)
         _normalize_account_ibans(cur)
         _seed_categories(cur)
+        _indice_principales(cur)
+
+
+def _indice_principales(cur: sqlite3.Cursor) -> None:
+    """Dos categorías principales no pueden llamarse igual. `UNIQUE(name,
+    parent_id)` no lo impide: en las principales `parent_id` es nulo, y en SQLite
+    dos nulos nunca chocan. Sin mayúsculas, como las busca `resolve_category`.
+
+    Si una base ya las tuviera repetidas, crear el índice fallaría y la app no
+    arrancaría: entonces no se crea."""
+    repetidas = cur.execute(
+        "SELECT 1 FROM categories WHERE parent_id IS NULL "
+        "GROUP BY name COLLATE NOCASE HAVING COUNT(*) > 1 LIMIT 1"
+    ).fetchone()
+    if repetidas is None:
+        cur.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_categorias_principales "
+            "ON categories(name COLLATE NOCASE) WHERE parent_id IS NULL"
+        )
 
 
 def _normalize_account_ibans(cur: sqlite3.Cursor) -> None:

@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 418 tests |
+| Tamaño | 7.200 líneas de Python, 3.100 de plantillas, 610 de CSS, 423 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (132). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (133). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -322,10 +322,6 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   `import_page.py` (400), `db.py` (374), `categorizer.py` (369),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (379). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
-- **Renta, un caso raro al estrenarla.** Si se abriera dos veces a la vez la
-  primera vez, podría duplicar «Inmueble alquilado»: las categorías principales no tienen
-  índice único. En la base real ya están creadas, así que solo afectaría a una
-  base nueva.
 
 ### Recurrente (no es código)
 
@@ -364,6 +360,10 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   en el móvil, cuenta y saldo actual a la vista. La tercera referencia ya está en las tres
   pantallas previstas.
 - **3/11** — Fuera las tres copias sueltas de la base de ese día (a la papelera).
+- **4/11** — La Renta abierta dos veces a la vez la primera vez ya no falla: en modo WAL no
+  duplicaba, pero la segunda daba «database is locked». La creación pide la escritura
+  desde el principio (`cursor(inmediata=True)`), y un índice único impide dos categorías
+  principales con el mismo nombre.
 
 ### Resuelto en octubre
 

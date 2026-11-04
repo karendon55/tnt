@@ -73,11 +73,16 @@ def resolve_category(cur: sqlite3.Cursor, hint: str | None,
     if parent_row:
         parent_id = parent_row["id"]
     else:
+        # OR IGNORE: si otra la creó entre medias, el índice único de las
+        # principales lo impide, y se usa la suya (ver db._indice_principales).
         cur.execute(
-            "INSERT INTO categories(name, kind) VALUES (?, ?)",
+            "INSERT OR IGNORE INTO categories(name, kind) VALUES (?, ?)",
             (parent_name, default_kind),
         )
-        parent_id = cur.lastrowid
+        parent_id = cur.execute(
+            "SELECT id FROM categories WHERE parent_id IS NULL AND LOWER(name) = LOWER(?)",
+            (parent_name,),
+        ).fetchone()["id"]
 
     if parent_id and sub_name:
         sub_row = cur.execute(

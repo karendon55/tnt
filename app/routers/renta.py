@@ -59,6 +59,14 @@ def renta_page(request: Request, ejercicio: str | None = None, msg: str = "", er
     hoy = date.today()
     anio = _ejercicio(ejercicio, hoy) or renta.ejercicio_por_defecto(hoy)
     with cursor() as cur:
+        lista = renta.preparada(cur)
+    if not lista:
+        # La primera vez crea sus categorías. Pidiendo la escritura desde el
+        # principio, otra apertura a la vez espera y luego las encuentra hechas;
+        # sin eso fallaba con «database is locked».
+        with cursor(inmediata=True) as cur:
+            renta.cargar_ajustes(cur)
+    with cursor() as cur:
         ajustes = renta.cargar_ajustes(cur)
         anios = renta.ejercicios(cur, hoy)
         informe = renta.informe(cur, anio, ajustes)
@@ -94,13 +102,13 @@ def renta_ajustes(inmueble: str = Form(""), ignorar: str = Form(""), ejercicio: 
         return _volver(anio, err=f"Como mucho {_MAX_PALABRAS} palabras a ignorar.")
     if any(len(p) > _MAX_PALABRA for p in palabras):
         return _volver(anio, err=f"Cada palabra a ignorar, como mucho {_MAX_PALABRA} caracteres.")
-    with cursor() as cur:
+    with cursor(inmediata=True) as cur:
         renta.guardar_ajustes(cur, nombre, palabras)
     return _volver(anio, msg="Ajustes guardados.")
 
 
 @router.post("/renta/categorias")
 def renta_reparar(ejercicio: str = Form("")):
-    with cursor() as cur:
+    with cursor(inmediata=True) as cur:
         renta.reparar_categorias(cur)
     return _volver(_ejercicio(ejercicio, date.today()), msg="Categorías creadas de nuevo.")

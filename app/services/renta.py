@@ -182,6 +182,14 @@ def _crear_categorias(cur: sqlite3.Cursor, claves: Iterable[str]) -> dict[str, i
     return hechas
 
 
+def preparada(cur: sqlite3.Cursor) -> bool:
+    """Si los ajustes ya están completos, y `cargar_ajustes` solo va a leer.
+    Si no, la primera apertura los crea (ver routers/renta.py)."""
+    fila = cur.execute("SELECT value FROM settings WHERE key = ?", (CLAVE_AJUSTES,)).fetchone()
+    datos = _leer(fila["value"]) if fila else None
+    return datos is not None and all(k in datos["categorias"] for k in _CLAVES)
+
+
 def cargar_ajustes(cur: sqlite3.Cursor) -> Ajustes:
     """Los ajustes del módulo. La primera vez crea sus categorías y los guarda.
 
