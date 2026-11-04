@@ -12,6 +12,9 @@
 *.ofx
 *.pdf
 /extracts/
+# Salvo el PDF del manual: es el que lleva el índice relleno. packaging/install.sh
+# lo incluye aparte, porque rsync no entiende esta excepción.
+!/docs/Manual-TNT.pdf
 
 # Entornos Python
 .venv/

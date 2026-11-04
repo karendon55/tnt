@@ -11,6 +11,9 @@ import os, random, hashlib, datetime, sqlite3, sys
 if not os.environ.get("TNT_DB"):
     sys.exit("Define TNT_DB antes de ejecutar, o crearás la base real.")
 
+# Para encontrar app/ al lanzarlo como `python scripts/make_demo_db.py` desde la raíz.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app.config import DB_PATH
 from app.db import init_db, cursor as db_cursor
 

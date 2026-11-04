@@ -97,7 +97,10 @@ if command -v rsync >/dev/null 2>&1; then
     # la real) se habría copiado entera. data/ y .claude/ van además aparte:
     # data/ de la instalación no se toca nunca, y .claude/ son los ajustes del
     # agente y los worktrees de otras sesiones. Lo excluido tampoco se borra.
+    # El PDF del manual va incluido antes del filtro: .gitignore lo exceptúa de
+    # «*.pdf» con «!», y rsync no entiende esa excepción.
     rsync -a --delete \
+        --include='/docs/Manual-TNT.pdf' \
         --filter=':- .gitignore' \
         --exclude='/data/' --exclude='/.claude/' \
         --exclude='.git' --exclude='.venv' --exclude='__pycache__' \

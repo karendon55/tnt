@@ -1,5 +1,6 @@
-# Dependencias solo para los tests. La app no las necesita, y packaging/install.sh
-# instala únicamente requirements.txt.
+# Dependencias solo para los tests y para regenerar el manual. La app no las
+# necesita, y packaging/install.sh instala únicamente requirements.txt.
 -r requirements.txt
 httpx2>=0.28         # TestClient de FastAPI: tests de ruta y de navegación
                      # (starlette avisa si usas httpx a secas)
+python-docx>=1.1     # scripts/generar_manual.py: el manual de usuario en Word

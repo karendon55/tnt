@@ -34,12 +34,12 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (133). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (134). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
 | `CLAUDE.md` | convenciones del repo para el agente |
-| `docs/Manual-TNT.*` | manual de usuario, **desfasado** (mayo) |
+| `docs/Manual-TNT.md` | manual de usuario. El Word y el PDF de al lado salen de él: `.venv/bin/python scripts/generar_manual.py` |
 
 ---
 
@@ -90,7 +90,7 @@ maestra. Restauración desde `.tnt`.
 avisa, y el backup se bloquea para no pisar las copias reales.
 
 **Empaquetado.** `install.sh` instala con icono y lanzador; `package.sh` genera
-el distribuible.
+el distribuible, solo con lo que sigue git.
 
 ---
 
@@ -314,9 +314,6 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 
 ### Se puede hacer sin decisiones
 
-- **Manual.** Es de mayo: no recoge el rediseño, la navegación nueva, las
-  inversiones, el modo demostración, el móvil ni la Renta. Lo más largo de la
-  lista.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
   `import_page.py` (400), `db.py` (399), `categorizer.py` (374),
@@ -364,6 +361,14 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   duplicaba, pero la segunda daba «database is locked». La creación pide la escritura
   desde el principio (`cursor(inmediata=True)`), y un índice único impide dos categorías
   principales con el mismo nombre.
+- **4/11** — El paquete para otro PC lleva solo lo que sigue git. Antes, de `data/` solo
+  excluía las bases: la configuración del histórico de HomeBank, las capturas con datos
+  reales de `explorations/`, `.env.local` y `.claude/` habrían viajado dentro.
+- **4/11** — Manual de usuario al día, con el índice relleno: el rediseño, la navegación,
+  las inversiones, el modo demostración, el móvil, la Renta y el histórico de HomeBank. El
+  texto vive en `docs/Manual-TNT.md`; `scripts/generar_manual.py` saca el Word y el PDF.
+  El LibreOffice de ahora pone Noto Serif en lugar de toda letra que falte, así que el
+  manual nombra letras instaladas (Noto Sans y DejaVu Sans Mono).
 
 ### Resuelto en octubre
 
