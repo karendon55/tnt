@@ -319,7 +319,7 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   lista.
 - **Ficheros sobre el tope blando de 350 líneas**, ninguno sobre el duro de 500:
   `analytics.py` (455), `backup.py` (426), `transactions.py` (409),
-  `import_page.py` (400), `db.py` (374), `categorizer.py` (369),
+  `import_page.py` (400), `db.py` (399), `categorizer.py` (374),
   `tests/test_analytics.py` (398) y `tests/test_homebank_historico.py` (379). Se
   parten cuando toque cambiarlos, empezando por `analytics.py`.
 
