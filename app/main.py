@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import DB_PATH, DEMO_MODE, APP_NAME, STATIC_DIR
 from app.db import init_db
-from app.routers import accounts, aliases, backup, budgets, categories, dashboard, external_rules, import_page, investments, reconciliations, renta, rules, settings, transactions, transfers
+from app.routers import accounts, aliases, backup, budgets, categories, dashboard, external_rules, import_page, investments, reconciliations, renta, rules, settings, transactions, transactions_edit, transfers
 
 
 @asynccontextmanager
@@ -67,6 +67,7 @@ async def _local_only_guard(request: Request, call_next):
 app.include_router(dashboard.router)
 app.include_router(import_page.router)
 app.include_router(transactions.router)
+app.include_router(transactions_edit.router)
 app.include_router(accounts.router)
 app.include_router(categories.router)
 app.include_router(budgets.router)
