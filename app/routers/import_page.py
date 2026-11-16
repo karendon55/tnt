@@ -8,33 +8,32 @@ Flujo nuevo:
                                     parseados con un token UUID.
   POST /importar/confirmar       -> recibe token y hace la inserción real,
                                     creando un import_batch para permitir undo.
+                                    El trabajo está en services/import_batches.py.
   GET  /importar/lotes           -> historial de lotes con botón "Deshacer".
   POST /importar/lotes/{id}/borrar -> borra todas las transacciones del lote.
 """
 from __future__ import annotations
 
-import json
 import tempfile
 import time
-import traceback
 import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from app.db import cursor, savepoint
+from app.db import cursor
 from app.importers.dispatcher import detect_and_parse
 from app.importers.homebank import _decode as _homebank_decode
 from app.importers.homebank import parse_csv_text as parse_homebank_csv
-from app.services.categorizer import retrain_and_apply
-from app.services.ingest import ingest, preview
+from app.services.import_batches import delete_batch, import_batch, list_batches
+from app.services.ingest import preview
 from app.templating import templates
 
 router = APIRouter()
 
 
-# Caché en proceso para previews. Token -> {expires_at, extracts: [(filename, ParsedExtract)], previews: [PreviewResult]}.
+# Caché en proceso para previews. Token -> {expires_at, parsed: [(filename, ParsedExtract)]}.
 # La caché es deliberadamente in-memory: si el proceso se reinicia entre el
 # preview y la confirmación, el usuario simplemente vuelve a subir.
 _PREVIEW_CACHE: dict[str, dict] = {}
@@ -46,6 +45,53 @@ def _gc_previews() -> None:
     expired = [k for k, v in _PREVIEW_CACHE.items() if v["expires_at"] < now]
     for k in expired:
         _PREVIEW_CACHE.pop(k, None)
+
+
+def _vista(filename: str, bank: str, pv) -> dict:
+    """Lo que la vista previa enseña de un fichero leído."""
+    return {
+        "filename": filename,
+        "bank": bank,
+        "account": pv.account_name,
+        "iban": pv.iban,
+        "total": pv.total_rows,
+        "new": pv.new_rows,
+        "duplicates": pv.duplicate_rows,
+        "rows": [
+            {
+                "date": r.date, "amount": r.amount,
+                "description": r.description,
+                "will_insert": r.will_insert,
+                "source_hint": r.source_hint,
+            } for r in pv.rows
+        ],
+    }
+
+
+def _pagina_preview(request: Request, parsed: list, previews: list[dict], errors: list[dict]):
+    """Pinta la vista previa. Si se ha leído algún fichero, lo deja en la caché
+    con un token para que /importar/confirmar lo inserte."""
+    token = ""
+    if parsed:
+        token = uuid.uuid4().hex
+        _PREVIEW_CACHE[token] = {
+            "expires_at": time.time() + _PREVIEW_TTL,
+            "parsed": parsed,
+        }
+    return templates.TemplateResponse(
+        request, "import_preview.html",
+        {
+            "active": "import",
+            "previews": previews,
+            "errors": errors,
+            "token": token,
+            "summary": {
+                "files": len(previews),
+                "new": sum(p["new"] for p in previews),
+                "duplicates": sum(p["duplicates"] for p in previews),
+            },
+        },
+    )
 
 
 @router.get("/importar", response_class=HTMLResponse)
@@ -81,57 +127,16 @@ async def import_preview(request: Request, files: list[UploadFile] = File(...)):
             with cursor() as cur:
                 pv = preview(cur, extract)
             parsed.append((up.filename, extract))
-            previews.append({
-                "filename": up.filename,
-                "bank": pv.bank,
-                "account": pv.account_name,
-                "iban": pv.iban,
-                "total": pv.total_rows,
-                "new": pv.new_rows,
-                "duplicates": pv.duplicate_rows,
-                "rows": [
-                    {
-                        "date": r.date, "amount": r.amount,
-                        "description": r.description,
-                        "will_insert": r.will_insert,
-                        "source_hint": r.source_hint,
-                    } for r in pv.rows
-                ],
-            })
+            previews.append(_vista(up.filename, pv.bank, pv))
         except Exception as exc:
             errors.append({
                 "filename": up.filename,
                 "message": str(exc) or exc.__class__.__name__,
-                "trace": traceback.format_exc(limit=2),
             })
         finally:
             Path(tmp.name).unlink(missing_ok=True)
 
-    token = ""
-    if parsed:
-        token = uuid.uuid4().hex
-        _PREVIEW_CACHE[token] = {
-            "expires_at": time.time() + _PREVIEW_TTL,
-            "parsed": parsed,
-        }
-
-    total_new = sum(p["new"] for p in previews)
-    total_dup = sum(p["duplicates"] for p in previews)
-
-    return templates.TemplateResponse(
-        request, "import_preview.html",
-        {
-            "active": "import",
-            "previews": previews,
-            "errors": errors,
-            "token": token,
-            "summary": {
-                "files": len(previews),
-                "new": total_new,
-                "duplicates": total_dup,
-            },
-        },
-    )
+    return _pagina_preview(request, parsed, previews, errors)
 
 
 @router.post("/importar/confirmar", response_class=HTMLResponse)
@@ -142,87 +147,25 @@ def import_confirm(request: Request, token: str = Form(...)):
     if not entry:
         return RedirectResponse("/importar", status_code=303)
 
-    parsed = entry["parsed"]
-    results: list[dict] = []
-    errors: list[dict] = []
-    files_summary: list[dict] = []
-
-    with cursor() as cur:
-        cur.execute(
-            "INSERT INTO import_batches(files, inserted, duplicates) VALUES ('[]', 0, 0)"
-        )
-        batch_id = cur.lastrowid
-
-        for i, (filename, extract) in enumerate(parsed):
-            # Un savepoint por fichero: si uno revienta a mitad, se deshacen
-            # SUS filas y los demás siguen entrando. Sin esto, un fichero a
-            # medio importar dejaba sus movimientos dentro del lote.
-            try:
-                with savepoint(cur, f"fichero_{i}"):
-                    r = ingest(cur, extract, batch_id=batch_id)
-                results.append({
-                        "filename": filename,
-                        "bank": extract.bank,
-                        "account": r.account_name,
-                        "total": r.total_rows,
-                        "inserted": r.inserted,
-                        "duplicates": r.duplicates,
-                        "from_hint": r.categorized_from_hint,
-                        "from_rule": r.categorized_from_rule,
-                    "transfers": r.transfers_linked,
-                })
-                files_summary.append({
-                    "filename": filename, "bank": extract.bank,
-                    "account": r.account_name,
-                    "inserted": r.inserted, "duplicates": r.duplicates,
-                })
-            except Exception as exc:
-                errors.append({
-                    "filename": filename,
-                    "message": str(exc) or exc.__class__.__name__,
-                })
-
-        total_inserted = sum(r["inserted"] for r in results)
-        total_dup = sum(r["duplicates"] for r in results)
-        cur.execute(
-            "UPDATE import_batches SET files = ?, inserted = ?, duplicates = ? WHERE id = ?",
-            (json.dumps(files_summary, ensure_ascii=False), total_inserted, total_dup, batch_id),
-        )
-        # Si el lote no insertó nada, lo borramos para no ensuciar el historial
-        if total_inserted == 0:
-            cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
-
-    rules_created = 0
-    auto_applied = 0        # de este lote
-    auto_applied_otros = 0  # movimientos antiguos que las reglas rescataron de paso
-    if results:
-        with cursor() as cur:
-            rules_created, aplicadas, auto_applied = retrain_and_apply(
-                cur, batch_id=batch_id)
-            auto_applied_otros = aplicadas - auto_applied
-    # Lo que una regla manual categorizó al entrar también es «por reglas».
-    auto_applied += sum(r["from_rule"] for r in results)
-
+    lote = import_batch(entry["parsed"])
+    results = lote.results
     total_inserted = sum(r["inserted"] for r in results)
-    total_dup = sum(r["duplicates"] for r in results)
-    total_transfers = sum(r["transfers"] for r in results)
-    total_hint = sum(r["from_hint"] for r in results)
 
     return templates.TemplateResponse(
         request, "import_result.html",
         {
             "active": "import",
             "results": results,
-            "errors": errors,
+            "errors": lote.errors,
             "summary": {
                 "files": len(results),
                 "inserted": total_inserted,
-                "duplicates": total_dup,
-                "transfers": total_transfers,
-                "categorized_hint": total_hint,
-                "rules_created": rules_created,
-                "auto_applied": auto_applied,
-                "auto_applied_otros": auto_applied_otros,
+                "duplicates": sum(r["duplicates"] for r in results),
+                "transfers": sum(r["transfers"] for r in results),
+                "categorized_hint": sum(r["from_hint"] for r in results),
+                "rules_created": lote.rules_created,
+                "auto_applied": lote.auto_applied,
+                "auto_applied_otros": lote.auto_applied_otros,
             },
             "confetti": total_inserted > 0,
         },
@@ -250,31 +193,15 @@ async def import_homebank_preview(
             (account_id,),
         ).fetchone()
     if not acct:
-        return templates.TemplateResponse(
-            request, "import_preview.html",
-            {
-                "active": "import",
-                "previews": [],
-                "errors": [{"filename": file.filename or "(sin nombre)",
-                            "message": "Cuenta destino no encontrada."}],
-                "token": "",
-                "summary": {"files": 0, "new": 0, "duplicates": 0},
-            },
-        )
+        return _pagina_preview(request, [], [], [{
+            "filename": file.filename or "(sin nombre)",
+            "message": "Cuenta destino no encontrada."}])
 
     blob = await file.read()
     if not blob:
-        return templates.TemplateResponse(
-            request, "import_preview.html",
-            {
-                "active": "import",
-                "previews": [],
-                "errors": [{"filename": file.filename or "(sin nombre)",
-                            "message": "El fichero está vacío."}],
-                "token": "",
-                "summary": {"files": 0, "new": 0, "duplicates": 0},
-            },
-        )
+        return _pagina_preview(request, [], [], [{
+            "filename": file.filename or "(sin nombre)",
+            "message": "El fichero está vacío."}])
 
     parsed: list[tuple[str, object]] = []
     previews: list[dict] = []
@@ -292,23 +219,7 @@ async def import_homebank_preview(
         with cursor() as cur:
             pv = preview(cur, extract)
         parsed.append((file.filename or "homebank.csv", extract))
-        previews.append({
-            "filename": file.filename or "homebank.csv",
-            "bank": "HomeBank",
-            "account": pv.account_name,
-            "iban": pv.iban,
-            "total": pv.total_rows,
-            "new": pv.new_rows,
-            "duplicates": pv.duplicate_rows,
-            "rows": [
-                {
-                    "date": r.date, "amount": r.amount,
-                    "description": r.description,
-                    "will_insert": r.will_insert,
-                    "source_hint": r.source_hint,
-                } for r in pv.rows
-            ],
-        })
+        previews.append(_vista(file.filename or "homebank.csv", "HomeBank", pv))
         # Errores no críticos del parser (filas malformadas que se han saltado)
         parse_errors = getattr(extract, "parse_errors", None)
         if parse_errors:
@@ -321,61 +232,15 @@ async def import_homebank_preview(
         errors.append({
             "filename": file.filename or "(sin nombre)",
             "message": str(exc) or exc.__class__.__name__,
-            "trace": traceback.format_exc(limit=2),
         })
 
-    token = ""
-    if parsed:
-        token = uuid.uuid4().hex
-        _PREVIEW_CACHE[token] = {
-            "expires_at": time.time() + _PREVIEW_TTL,
-            "parsed": parsed,
-        }
-
-    total_new = sum(p["new"] for p in previews)
-    total_dup = sum(p["duplicates"] for p in previews)
-
-    return templates.TemplateResponse(
-        request, "import_preview.html",
-        {
-            "active": "import",
-            "previews": previews,
-            "errors": errors,
-            "token": token,
-            "summary": {
-                "files": len(previews),
-                "new": total_new,
-                "duplicates": total_dup,
-            },
-        },
-    )
+    return _pagina_preview(request, parsed, previews, errors)
 
 
 @router.get("/importar/lotes", response_class=HTMLResponse)
 def import_batches(request: Request, msg: str = ""):
     with cursor() as cur:
-        rows = cur.execute(
-            """SELECT b.id, b.created_at, b.files, b.inserted, b.duplicates,
-                      (SELECT COUNT(*) FROM transactions t WHERE t.import_batch_id = b.id)
-                          AS still_present
-               FROM import_batches b
-               ORDER BY b.id DESC
-               LIMIT 100"""
-        ).fetchall()
-        batches = []
-        for r in rows:
-            try:
-                files = json.loads(r["files"]) if r["files"] else []
-            except Exception:
-                files = []
-            batches.append({
-                "id": r["id"],
-                "created_at": r["created_at"],
-                "files": files,
-                "inserted": r["inserted"],
-                "duplicates": r["duplicates"],
-                "still_present": r["still_present"],
-            })
+        batches = list_batches(cur)
     return templates.TemplateResponse(
         request, "import_batches.html",
         {"active": "import", "batches": batches, "msg": msg},
@@ -385,15 +250,8 @@ def import_batches(request: Request, msg: str = ""):
 @router.post("/importar/lotes/{batch_id}/borrar")
 def import_batch_delete(batch_id: int):
     """Borra todas las transacciones del lote y el lote en sí."""
-    # Borrar los movimientos y el lote son dos DELETE: o los dos o ninguno.
-    # La transacción la abre cursor().
     with cursor() as cur:
-        n = cur.execute(
-            "SELECT COUNT(*) AS n FROM transactions WHERE import_batch_id = ?",
-            (batch_id,),
-        ).fetchone()["n"]
-        cur.execute("DELETE FROM transactions WHERE import_batch_id = ?", (batch_id,))
-        cur.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
+        n = delete_batch(cur, batch_id)
     return RedirectResponse(
         f"/importar/lotes?msg=Lote+%23{batch_id}+revertido+({n}+movimientos+borrados)",
         status_code=303,
