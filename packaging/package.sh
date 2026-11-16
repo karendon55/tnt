@@ -31,34 +31,14 @@ mkdir -p "$DIST_DIR" "$STAGE_DIR"
 
 echo "  · Empaquetando $PKG_NAME"
 
-# Listado de exclusiones para tar
-EXCLUDES=(
-    "--exclude=.git"
-    "--exclude=.venv"
-    "--exclude=__pycache__"
-    "--exclude=*.pyc"
-    "--exclude=./data"
-    "--exclude=./.claude"
-    "--exclude=.env.local"
-    "--exclude=our-build-*.png"
-    "--exclude=diff-*.png"
-    "--exclude=logs"
-    "--exclude=.pytest_cache"
-    "--exclude=packaging/dist"
-    "--exclude=*.xls"
-    "--exclude=*.csv"
-    "--exclude=Carga_Homebank_*"
-    "--exclude=movements-*.xls"
-)
-
 # El paquete lleva lo que sigue git: ni datos, ni extractos, ni capturas con
-# datos reales, ni ajustes locales. Antes solo se excluía data/*.db, y una
-# subcarpeta de data/ o una captura de explorations/ habrían viajado dentro.
-# Fuera de un repositorio (un paquete ya desempaquetado), la lista de arriba.
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git ls-files -z | tar --null --ignore-failed-read -T - -cf - | (cd "$STAGE_DIR" && tar -xf -)
+# datos reales, ni ajustes locales. Fuera de un repositorio (un paquete ya
+# desempaquetado), todo menos lo excluido en packaging/ficheros.sh.
+. packaging/ficheros.sh
+if es_repositorio .; then
+    copiar_seguidos_por_git . "$STAGE_DIR"
 else
-    tar "${EXCLUDES[@]}" -cf - . | (cd "$STAGE_DIR" && tar -xf -)
+    copiar_con_tar . "$STAGE_DIR"
 fi
 
 # README de instalación específico para distribución

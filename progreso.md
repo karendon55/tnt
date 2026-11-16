@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (134). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (135). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -90,7 +90,9 @@ maestra. Restauración desde `.tnt`.
 avisa, y el backup se bloquea para no pisar las copias reales.
 
 **Empaquetado.** `install.sh` instala con icono y lanzador; `package.sh` genera
-el distribuible, solo con lo que sigue git.
+el distribuible, solo con lo que sigue git. Qué viaja y qué no lo decide un solo
+sitio, `packaging/ficheros.sh`, y `tests/test_empaquetado.py` lo comprueba con un
+señuelo por cada patrón de `.gitignore`.
 
 ---
 
@@ -369,6 +371,11 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
   texto vive en `docs/Manual-TNT.md`; `scripts/generar_manual.py` saca el Word y el PDF.
   El LibreOffice de ahora pone Noto Serif en lugar de toda letra que falte, así que el
   manual nombra letras instaladas (Noto Sans y DejaVu Sans Mono).
+- **16/11** — Sin rsync, el instalador ya no copia los extractos de la raíz. Era la tercera
+  lista de exclusiones hecha a mano que se desfasaba de `.gitignore`: ahora hay una
+  (`packaging/ficheros.sh`) y un test con señuelos que falla si un patrón nuevo se queda
+  sin cubrir. De paso: un paquete hecho dentro de un repositorio ajeno salía vacío, y
+  `.claude/` ya no viaja en ningún caso.
 
 ### Resuelto en octubre
 

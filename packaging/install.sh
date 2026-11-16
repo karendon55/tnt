@@ -89,31 +89,14 @@ mkdir -p "$APP_DIR" "$BIN_DIR" "$DESKTOP_DIR"
 
 # ---------- copiar código ----------
 echo "  · Copiando código a $APP_DIR"
-# Lo copiamos con rsync si está; si no, con tar.
+# Qué viaja y qué no lo decide packaging/ficheros.sh, igual para rsync y para
+# tar: lo que git ignora (datos, extractos, capturas con datos de verdad) no es
+# código, y data/ de la instalación no se toca nunca.
+. "$SRC_DIR/packaging/ficheros.sh"
 if command -v rsync >/dev/null 2>&1; then
-    # Lo que git ignora no es código: datos del usuario, extractos, capturas
-    # con datos de verdad, entornos, logs. Antes solo se excluía data/*.db, y
-    # una subcarpeta de data/ (la base de prueba de una importación, copia de
-    # la real) se habría copiado entera. data/ y .claude/ van además aparte:
-    # data/ de la instalación no se toca nunca, y .claude/ son los ajustes del
-    # agente y los worktrees de otras sesiones. Lo excluido tampoco se borra.
-    # El PDF del manual va incluido antes del filtro: .gitignore lo exceptúa de
-    # «*.pdf» con «!», y rsync no entiende esa excepción.
-    rsync -a --delete \
-        --include='/docs/Manual-TNT.pdf' \
-        --filter=':- .gitignore' \
-        --exclude='/data/' --exclude='/.claude/' \
-        --exclude='.git' --exclude='.venv' --exclude='__pycache__' \
-        --exclude='.env.local' \
-        --exclude='*.pyc' --exclude='logs' --exclude='.pytest_cache' \
-        --exclude='packaging/dist' \
-        "$SRC_DIR"/ "$APP_DIR"/
+    copiar_con_rsync "$SRC_DIR" "$APP_DIR"
 else
-    (cd "$SRC_DIR" && tar --exclude='.git' --exclude='.venv' --exclude='__pycache__' \
-        --exclude='./data' --exclude='./.claude' --exclude='*.db' --exclude='*.db-*' \
-        --exclude='*.pyc' --exclude='logs' --exclude='.env.local' \
-        --exclude='packaging/dist' --exclude='our-build-*.png' --exclude='diff-*.png' \
-        -cf - .) | (cd "$APP_DIR" && tar -xf -)
+    copiar_con_tar "$SRC_DIR" "$APP_DIR"
 fi
 mkdir -p "$APP_DIR/data" "$APP_DIR/logs"
 
