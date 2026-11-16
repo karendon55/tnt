@@ -44,7 +44,7 @@ def resolve_category(cur: sqlite3.Cursor, hint: str | None,
         parent_id = parent_row["id"]
     else:
         # OR IGNORE: si otra la creó entre medias, el índice único de las
-        # principales lo impide, y se usa la suya (ver db._indice_principales).
+        # principales lo impide, y se usa la suya (ver schema._indice_principales).
         cur.execute(
             "INSERT OR IGNORE INTO categories(name, kind) VALUES (?, ?)",
             (parent_name, default_kind),

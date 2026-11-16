@@ -27,7 +27,7 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "renta-carrera.db")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from app import db  # noqa: E402
+from app import schema  # noqa: E402
 from app.config import DB_PATH  # noqa: E402
 from app.db import cursor, init_db  # noqa: E402
 from app.main import app  # noqa: E402
@@ -106,7 +106,7 @@ class TestUnaSolaPrincipal(_Limpio):
         con.execute("CREATE TABLE categories(id INTEGER PRIMARY KEY, name TEXT NOT NULL, parent_id INTEGER, "
                     "kind TEXT NOT NULL DEFAULT 'expense', icon TEXT, color TEXT, UNIQUE(name, parent_id))")
         con.execute("INSERT INTO categories(name) VALUES ('Repetida'), ('Repetida')")
-        db._indice_principales(con.cursor())
+        schema._indice_principales(con.cursor())
         self.assertIsNone(con.execute("SELECT 1 FROM sqlite_master WHERE name = 'idx_categorias_principales'").fetchone())
         con.close()
 

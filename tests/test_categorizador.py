@@ -17,7 +17,8 @@ import unittest
 _TMP = tempfile.mkdtemp(prefix="tnt-cat-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "cat.db")
 
-from app.db import DEFAULT_CATEGORIES, cursor, init_db  # noqa: E402
+from app.db import cursor, init_db  # noqa: E402
+from app.schema import DEFAULT_CATEGORIES  # noqa: E402
 from app.services.categories import resolve_category  # noqa: E402
 from app.services.categorizer import (  # noqa: E402
     apply_rules_to_uncategorized, learn_rules_from_known, retrain_and_apply,

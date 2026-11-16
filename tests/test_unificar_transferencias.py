@@ -24,7 +24,8 @@ import unittest
 _TMP = tempfile.mkdtemp(prefix="tnt-unificar-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "unificar.db")
 
-from app.db import DEFAULT_CATEGORIES, cursor, init_db  # noqa: E402
+from app.db import cursor, init_db  # noqa: E402
+from app.schema import DEFAULT_CATEGORIES  # noqa: E402
 from app.services import unificar_transferencias as ut  # noqa: E402
 from app.services.analytics import month_income_expense  # noqa: E402
 from app.services.categories import resolve_category  # noqa: E402
