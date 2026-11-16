@@ -26,7 +26,8 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 
-from app.services.categorizer import resolve_category, seed_builtin_rules
+from app.services.categories import resolve_category
+from app.services.categorizer import seed_builtin_rules
 
 ING_TRASPASO = "Movimientos excluidos|Traspaso entre cuentas"
 ING_TRANSFERENCIAS = "Otros gastos|Transferencias"

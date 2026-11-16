@@ -28,8 +28,9 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "homebank.db")
 from app.db import cursor, init_db  # noqa: E402
 from app.importers import homebank_xhb  # noqa: E402
 from app.services import homebank_historico as hh  # noqa: E402
-from app.services.analytics import balances_by_account  # noqa: E402
-from app.services.categorizer import resolve_category, seed_builtin_rules  # noqa: E402
+from app.services.balances import balances_by_account  # noqa: E402
+from app.services.categories import resolve_category  # noqa: E402
+from app.services.categorizer import seed_builtin_rules  # noqa: E402
 
 init_db()
 D = Decimal

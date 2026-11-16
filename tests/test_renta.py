@@ -24,7 +24,7 @@ os.environ["TNT_DB"] = os.path.join(_TMP, "renta.db")
 
 from app.db import cursor, init_db  # noqa: E402
 from app.services import renta  # noqa: E402
-from app.services.categorizer import resolve_category  # noqa: E402
+from app.services.categories import resolve_category  # noqa: E402
 
 init_db()
 

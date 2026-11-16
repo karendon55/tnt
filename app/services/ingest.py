@@ -10,7 +10,7 @@ from datetime import timedelta
 from typing import Optional
 
 from app.importers.common import ParsedExtract, tx_hash
-from app.services.categorizer import resolve_category
+from app.services.categories import resolve_category
 from app.services.external_transfers import apply_rules as apply_external_rules
 from app.services.rule_matching import best_rule
 

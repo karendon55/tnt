@@ -13,16 +13,14 @@ from fastapi.responses import HTMLResponse
 
 from app.db import cursor
 from app.services.analytics import (
-    balances_by_account,
-    balance_series,
     by_category,
     month_income_expense,
     month_label,
     month_range,
     net_series,
     prev_month_range,
-    total_balance,
 )
+from app.services.balances import balance_series, balances_by_account, total_balance
 from app.services.forecast import MIN_RECURRENCIAS, forecast_next_month
 from app.services.recurring import detect_anomalies, find_recurring
 from app.templating import templates

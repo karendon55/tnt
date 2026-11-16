@@ -16,7 +16,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
 from app.importers.common import normalize_iban
-from app.services.analytics import balances_by_account
+from app.services.balances import balances_by_account
 from app.templating import templates
 
 router = APIRouter()

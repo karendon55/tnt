@@ -32,7 +32,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from app.importers.homebank_xhb import LibroHB, OperacionHB
-from app.services.analytics import balances_by_account
+from app.services.balances import balances_by_account
 from app.services.categorizer import PREFIJO_HISTORICO
 from app.services.rule_matching import best_rule
 

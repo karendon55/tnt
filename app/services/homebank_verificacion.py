@@ -20,7 +20,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 
-from app.services.analytics import balances_by_account, month_income_expense, total_balance
+from app.services.analytics import month_income_expense
+from app.services.balances import balances_by_account, total_balance
 from app.services.categorizer import learn_rules_from_known
 
 

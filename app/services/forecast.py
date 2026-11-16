@@ -8,7 +8,7 @@ import sqlite3
 from datetime import date, timedelta
 from statistics import mean
 
-from app.services.analytics import total_balance
+from app.services.balances import total_balance
 from app.services.recurring import find_recurring
 
 # A la previsión le vale con que algo se repita dos veces: es una estimación,

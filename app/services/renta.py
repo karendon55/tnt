@@ -33,7 +33,7 @@ from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Iterable
 
-from app.services.categorizer import resolve_category
+from app.services.categories import resolve_category
 
 CLAVE_AJUSTES = "renta"
 _CENTIMO = Decimal("0.01")

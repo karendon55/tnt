@@ -32,7 +32,7 @@ from app.db import cursor, init_db  # noqa: E402
 from app.importers.homebank_xhb import CuentaHB, LibroHB, OperacionHB  # noqa: E402
 from app.services import homebank_historico as hh  # noqa: E402
 from app.services import homebank_migracion as hm  # noqa: E402
-from app.services.categorizer import resolve_category  # noqa: E402
+from app.services.categories import resolve_category  # noqa: E402
 from app.services.homebank_verificacion import comparar  # noqa: E402
 
 init_db()

@@ -25,7 +25,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 from app.db import cursor, init_db  # noqa: E402
 from app.main import app  # noqa: E402
 from app.services import renta  # noqa: E402
-from app.services.categorizer import resolve_category  # noqa: E402
+from app.services.categories import resolve_category  # noqa: E402
 
 init_db()
 client = TestClient(app, base_url="http://127.0.0.1:8000")

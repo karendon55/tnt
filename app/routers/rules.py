@@ -17,7 +17,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
-from app.services.analytics import category_tree
+from app.services.categories import category_tree
 from app.services.categorizer import apply_rule_retroactively
 from app.templating import templates
 

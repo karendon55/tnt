@@ -12,7 +12,7 @@ from fastapi import APIRouter, Form
 from fastapi.responses import RedirectResponse
 
 from app.db import cursor
-from app.services.analytics import account_balance_at
+from app.services.balances import account_balance_at
 
 router = APIRouter()
 

@@ -19,7 +19,7 @@ _TMP = tempfile.mkdtemp(prefix="tnt-saldos-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "saldos.db")
 
 from app.db import cursor, init_db  # noqa: E402
-from app.services.analytics import (  # noqa: E402
+from app.services.balances import (  # noqa: E402
     account_balance, balances_by_account, total_balance,
 )
 

@@ -20,9 +20,8 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.db import cursor
-from app.services.analytics import (
-    INVESTMENT_TYPE, MONTHS_ES, contributed, last_valuation, prev_month_range,
-)
+from app.services.analytics import MONTHS_ES, prev_month_range
+from app.services.balances import INVESTMENT_TYPE, contributed, last_valuation
 from app.templating import templates
 
 router = APIRouter()
