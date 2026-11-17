@@ -34,7 +34,7 @@ La documentación está repartida; esto es el mapa.
 | Fichero | Para qué |
 |---|---|
 | `progreso.md` | este: estado, porqués y trampas |
-| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (135). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
+| `docs/QUESTIONS.md` | **registro de decisiones**, una por línea (136). Leer antes de preguntar nada: lo respondido está cerrado salvo que el usuario lo reabra |
 | `design-system.md` | el lenguaje visual: tokens, tipografía, qué no se hace, deuda |
 | `briefs/*.md` | una por pantalla (11), con lo que vale y no vale en cada una |
 | `explorations/` | los bocetos de los que salió el diseño |
@@ -280,6 +280,19 @@ Sin esa nota, no hay forma de que aparezcan.
 Reutilizar el mismo cursor dentro del bucle invalida la iteración y solo se
 procesa la primera fila.
 
+### Un test que hace backup escribe en los destinos de verdad
+Los destinos son `~/Dropbox` y `~/Documentos/contabilidad/backup`, y la clave
+maestra, `~/.config/tnt`. El 17/11 un test del modo demostración se lanzó detrás de
+otro, sin el modo puesto, e hizo un backup de una base vacía encima de los dos de
+verdad. Ahora `tests/__init__.py` cambia la carpeta personal y la base por unas
+temporales antes de cargar la app, y `test_aislamiento.py` lo comprueba. Los tests,
+siempre como paquete: `./run_tests.sh` o `python -m unittest tests.<fichero>`.
+
+### Abrir una base en WAL, aunque sea solo para leer, crea `-shm` y `-wal`
+Con `?mode=ro` SQLite deja esos dos ficheros junto a la base: en un backup de
+Dropbox se sincronizan. Para mirar una copia sin tocar nada,
+`?mode=ro&immutable=1`.
+
 ---
 
 ## 6. Datos del usuario (contexto)
@@ -366,6 +379,11 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 - **4/11** — El paquete para otro PC lleva solo lo que sigue git. Antes, de `data/` solo
   excluía las bases: la configuración del histórico de HomeBank, las capturas con datos
   reales de `explorations/`, `.env.local` y `.claude/` habrían viajado dentro.
+- **17/11** — Un test de backup escribió encima de los backups de verdad: lanzado
+  detrás de otro, el modo demostración no estaba puesto y su «Hacer backup» se hizo de
+  verdad, con una base vacía, y borró el cifrado de Dropbox. La base de verdad no se
+  tocó; el usuario rehízo el backup desde TNT a las 10:28. Ahora ningún test ve la
+  carpeta personal ni la base de verdad (ver Trampas conocidas).
 - **4/11** — Manual de usuario al día, con el índice relleno: el rediseño, la navegación,
   las inversiones, el modo demostración, el móvil, la Renta y el histórico de HomeBank. El
   texto vive en `docs/Manual-TNT.md`; `scripts/generar_manual.py` saca el Word y el PDF.

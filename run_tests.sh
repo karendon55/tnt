@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests mínimos: importers (ING, CaixaBank, common), formatters, analytics.
+# Toda la suite de tests.
 # No requiere pytest — se usa unittest de stdlib.
 set -euo pipefail
 
@@ -17,4 +17,7 @@ if [[ -z "$PY" ]]; then
     exit 1
 fi
 
-"$PY" -m unittest discover -s tests -v "$@"
+# Como paquete (-t .): así tests/__init__.py corre antes que nada y los tests
+# no ven ni tu carpeta personal ni tu base. Sin eso, un test de backup escribió
+# encima de los backups de verdad.
+"$PY" -m unittest discover -s tests -t . -v "$@"
