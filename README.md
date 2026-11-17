@@ -52,9 +52,10 @@ abrir en Excel o LibreOffice en España).
 Todos tus datos viven en `data/tnt.db` (SQLite). Tienes tres formas:
 
 **1. Backup local plano** (`/backup` POST, también desde el panel)
-Copia `data/tnt.db` a las rutas configuradas en `app/routers/backup.py`
-(`~/Dropbox`, `~/Documentos/contabilidad/backup`, …). Sobrescribe la copia
-anterior, escribe a `.tmp` y hace rename atómico.
+Copia `data/tnt.db` a las rutas que configures en Configuración › Backup (por
+defecto `~/Dropbox` y `~/Documentos/contabilidad/backup`; ver
+`app/services/backup_destinations.py`). Sobrescribe la copia anterior, escribe
+a `.tmp` y hace rename atómico.
 
 **2. Backup cifrado descargable** (`/backup` página → "Backup cifrado")
 Genera un fichero `tnt-backup-YYYYMMDD-HHMMSS.tnt` cifrado con la contraseña
@@ -133,7 +134,8 @@ cd tnt-<versión>
 ```
 app/
 ├── config.py            # Rutas y constantes
-├── db.py                # SQLite: esquema + semilla de categorías
+├── db.py                # SQLite: conexión, transacciones (cursor, savepoint)
+├── schema.py            # Tablas, migraciones y categorías de siembra
 ├── main.py              # FastAPI: monta routers y estáticos
 ├── templating.py        # Instancia compartida de Jinja2Templates
 ├── importers/
@@ -143,15 +145,21 @@ app/
 │   └── caixabank.py     # Parser CaixaBank (Excel nativo)
 ├── routers/
 │   ├── dashboard.py     # Panel principal
-│   ├── import_page.py   # Subir y procesar extractos
+│   ├── import_page.py   # Subir extractos y vista previa
 │   ├── transactions.py  # Lista de movimientos + export CSV
+│   ├── transactions_edit.py # Crear, editar y borrar un movimiento
+│   ├── backup.py        # Backup, backup cifrado y restaurar
 │   ├── accounts.py      # CRUD de cuentas
 │   ├── categories.py    # Árbol de categorías
 │   └── budgets.py       # Presupuestos mensuales
 ├── services/
 │   ├── ingest.py        # Insertar + dedup + emparejar transferencias
+│   ├── import_batches.py # Lotes de importación: insertar, listar, deshacer
 │   ├── categorizer.py   # Reglas builtin + aprendidas
-│   ├── analytics.py     # KPIs y series
+│   ├── categories.py    # Árbol de categorías y resolve_category
+│   ├── balances.py      # Saldos, patrimonio y su curva
+│   ├── analytics.py     # Agregados por mes y series
+│   ├── backup_destinations.py # Destinos de backup y la copia a cada uno
 │   ├── recurring.py     # Recurrentes + anomalías
 │   └── forecast.py      # Previsión del mes siguiente
 ├── static/
