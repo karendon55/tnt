@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import DB_PATH, DEMO_MODE, APP_NAME, STATIC_DIR
@@ -80,6 +80,14 @@ app.include_router(aliases.router)
 app.include_router(settings.router)
 app.include_router(investments.router)
 app.include_router(renta.router)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """El icono, también donde lo buscan por costumbre. base.html dice dónde está,
+    pero hay navegadores que piden /favicon.ico igualmente: cada página dejaba
+    un 404 en el registro."""
+    return FileResponse(STATIC_DIR / "img" / "favicon.svg", media_type="image/svg+xml")
 
 
 @app.get("/health")

@@ -6,7 +6,7 @@ No lee nada de la base real: el esquema lo crea la propia app (init_db) y las
 filas se generan aquí. Sirve para probar el comportamiento de la interfaz
 —categorizar, borrar, filtrar— sin tocar dinero de verdad.
 """
-import os, random, hashlib, datetime, sqlite3, sys
+import os, random, hashlib, datetime, sys
 
 if not os.environ.get("TNT_DB"):
     sys.exit("Define TNT_DB antes de ejecutar, o crearás la base real.")

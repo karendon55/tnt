@@ -9,12 +9,14 @@ Dos cosas que fallan en silencio:
 
 2. El tope de líneas del estándar. `tnt.css` llegó a 535 con el tope duro en
    500, y nadie se enteró hasta auditarlo a mano. Aquí se entera solo.
+
+Y el icono: el navegador pide /favicon.ico por su cuenta, aunque la página diga
+dónde está. Sin esa ruta, cada página dejaba un 404 en el registro.
 """
 import os
 import re
 import tempfile
 import unittest
-from pathlib import Path
 
 _TMP = tempfile.mkdtemp(prefix="tnt-css-test-")
 os.environ["TNT_DB"] = os.path.join(_TMP, "css.db")
@@ -143,6 +145,15 @@ class TestAvisoDeTamano(unittest.TestCase):
         pasadas = [(n, c) for n, c in gordas if c > TOPE_BLANDO]
         if pasadas:
             print(f"\n  aviso: por encima del tope blando ({TOPE_BLANDO}): {pasadas}")
+
+
+class TestIcono(unittest.TestCase):
+    def test_favicon_ico_sirve_el_mismo_icono_que_declara_la_pagina(self):
+        declarado = re.search(r'<link rel="icon"[^>]*href="([^"]+)"', client.get("/").text).group(1)
+        r = client.get("/favicon.ico")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.headers["content-type"], "image/svg+xml")
+        self.assertEqual(r.content, client.get(declarado).content)
 
 
 if __name__ == "__main__":

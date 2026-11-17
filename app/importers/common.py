@@ -10,7 +10,6 @@ import tempfile
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterable
 
 # ====== Normalización de texto ======
 

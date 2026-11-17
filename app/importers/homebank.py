@@ -29,7 +29,6 @@ from __future__ import annotations
 import csv
 import io
 from pathlib import Path
-from typing import Iterable
 
 from app.importers.common import (
     ParsedExtract, ParsedTransaction, clean_text, parse_amount, parse_date,

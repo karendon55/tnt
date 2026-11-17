@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
-from datetime import timedelta
 from typing import Optional
 
 from app.importers.common import ParsedExtract, tx_hash

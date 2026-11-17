@@ -20,7 +20,7 @@ Aplicación local de finanzas personales para sustituir a HomeBank. Corre en
 | Plantillas | Jinja2 renderizado en servidor, HTMX 1.9.10, sin framework JS |
 | Estilos | sistema propio **"papel en oscuro"** sobre la base de Basecoat |
 | Gráficos | Chart.js 4.4.1 |
-| Tamaño | 8.100 líneas de Python en `app/` y `scripts/`, 3.100 de plantillas, 610 de CSS; 496 tests |
+| Tamaño | 8.100 líneas de Python en `app/` y `scripts/`, 3.100 de plantillas, 610 de CSS; 497 tests |
 
 Basecoat y Chart.js se cargan por CDN. Es deliberado: "100 % local" se refiere
 a **los datos**, no a los assets.
@@ -329,9 +329,7 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 
 ### Se puede hacer sin decisiones
 
-- **Siete imports sin usar** que señala pyflakes, de antes: en `common.py`,
-  `homebank.py`, `eurocajarural.py`, `ingest.py`, `make_demo_db.py`,
-  `test_estaticos.py` y `test_transacciones.py`. Se quitan al tocar cada uno.
+Nada.
 
 ### Recurrente (no es código)
 
@@ -377,6 +375,9 @@ Nada: todo lo pendiente se puede hacer sin preguntar, o no es código.
 - **4/11** — El paquete para otro PC lleva solo lo que sigue git. Antes, de `data/` solo
   excluía las bases: la configuración del histórico de HomeBank, las capturas con datos
   reales de `explorations/`, `.env.local` y `.claude/` habrían viajado dentro.
+- **17/11** — Fuera los siete imports sin usar: pyflakes no da ningún aviso. Y
+  `/favicon.ico` sirve el icono de la app: el navegador lo pedía en cada página, aunque
+  `base.html` dice dónde está, y cada vez quedaba un 404 en el registro.
 - **16-17/11** — Ningún fichero pasa ya de 350 líneas. Los ocho que lo hacían se
   partieron por lo que hacen, sin tocar la lógica: los saldos a `balances.py`, el árbol
   de categorías a `categories.py`, el esquema a `schema.py`, crear y editar movimientos

@@ -12,7 +12,6 @@ transacción. Así no hay que acordarse en cada uno de los cincuenta y cinco
 sitios que lo usan.
 """
 import os
-import sqlite3
 import tempfile
 import unittest
 
